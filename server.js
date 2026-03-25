@@ -2023,7 +2023,7 @@ function checkScheduledBroadcasts() {
 
 async function executeBroadcast(accountId, chatIds, message, broadcastId, broadcastName) {
   const acc = accounts.get(accountId);
-  if (!acc || !acc.ready) throw new Error(`Account ${accountId} not ready`);
+  if (!acc || (!acc.ready && acc.status !== 'authenticated')) throw new Error(`Account ${accountId} not ready (status: ${acc?.status})`);
 
   let sent = 0, failed = 0;
   const failures = [];
@@ -2163,10 +2163,16 @@ app.get('/api/whatsapp/qr', async (req, res) => {
 app.get('/api/whatsapp/groups', async (req, res) => {
   const { id, acc } = getAccount(req);
   if (!acc) return res.status(404).json({ error: `Account "${id}" not found`, groups: [] });
-  if (!acc.ready) return res.status(503).json({ error: 'Not connected', groups: [] });
+  // Allow if ready OR if status is authenticated/ready (whatsapp-web.js may have chats before ready event)
+  if (!acc.ready && acc.status !== 'authenticated') {
+    return res.status(503).json({ error: `Not connected (status: ${acc.status})`, groups: [] });
+  }
 
   try {
-    const chats = await acc.client.getChats();
+    const chats = await Promise.race([
+      acc.client.getChats(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('getChats timed out after 30s')), 30000))
+    ]);
     let groups = chats.filter(c => c.isGroup).map(c => ({
       id: c.id._serialized, name: c.name,
       participantCount: c.participants ? c.participants.length : undefined,
@@ -2196,7 +2202,7 @@ app.post('/api/whatsapp/broadcast', async (req, res) => {
   const accountId = req.body.account || 'default';
   const acc = accounts.get(accountId);
   if (!acc) return res.status(404).json({ error: `Account "${accountId}" not found` });
-  if (!acc.ready) return res.status(503).json({ error: 'Not connected' });
+  if (!acc.ready && acc.status !== 'authenticated') return res.status(503).json({ error: `Not connected (status: ${acc.status})` });
 
   const chatIds = req.body.chatIds || req.body.groupIds;
   let { message, templateId, variables } = req.body;
@@ -2226,7 +2232,7 @@ app.post('/api/whatsapp/broadcast-events', async (req, res) => {
   const accountId = req.body.account || 'default';
   const acc = accounts.get(accountId);
   if (!acc) return res.status(404).json({ error: `Account "${accountId}" not found` });
-  if (!acc.ready) return res.status(503).json({ error: 'Not connected' });
+  if (!acc.ready && acc.status !== 'authenticated') return res.status(503).json({ error: `Not connected (status: ${acc.status})` });
 
   const chatIds = req.body.chatIds || req.body.groupIds;
   const maxEvents = req.body.maxEvents || 5;
@@ -2308,7 +2314,7 @@ app.post('/api/whatsapp/auto-announce', async (req, res) => {
   const accountId = req.body.account || 'default';
   const acc = accounts.get(accountId);
   if (!acc) return res.status(404).json({ error: `Account "${accountId}" not found` });
-  if (!acc.ready) return res.status(503).json({ error: 'Not connected' });
+  if (!acc.ready && acc.status !== 'authenticated') return res.status(503).json({ error: `Not connected (status: ${acc.status})` });
 
   const templateName = req.body.template || 'event-announcement';
   const maxEvents = req.body.maxEvents || 3;
@@ -2732,7 +2738,7 @@ app.post('/api/whatsapp/scrape/:groupId', async (req, res) => {
   const { groupId } = req.params;
   const accountId = req.body.account || 'default';
   const acc = accounts.get(accountId);
-  if (!acc || !acc.ready) return res.status(503).json({ error: 'Account not ready' });
+  if (!acc || (!acc.ready && acc.status !== 'authenticated')) return res.status(503).json({ error: `Account not ready (status: ${acc?.status})` });
 
   try {
     const chats = await acc.client.getChats();
@@ -2882,7 +2888,7 @@ app.post('/api/whatsapp/crm/contacts/:id/dm', async (req, res) => {
 
   const accountId = account || 'default';
   const acc = accounts.get(accountId);
-  if (!acc || !acc.ready) return res.status(503).json({ error: 'Account not ready' });
+  if (!acc || (!acc.ready && acc.status !== 'authenticated')) return res.status(503).json({ error: `Account not ready (status: ${acc?.status})` });
 
   try {
     const jid = contact.id + '@c.us';
@@ -2986,7 +2992,7 @@ app.post('/api/whatsapp/lists/:id/broadcast', async (req, res) => {
 
   const accountId = account || 'default';
   const acc = accounts.get(accountId);
-  if (!acc || !acc.ready) return res.status(503).json({ error: 'Account not ready' });
+  if (!acc || (!acc.ready && acc.status !== 'authenticated')) return res.status(503).json({ error: `Account not ready (status: ${acc?.status})` });
 
   const contacts = Array.from(crmContacts.values()).filter(c => c.lists.includes(req.params.id));
   const settings = getCrmSettings();
@@ -3390,7 +3396,7 @@ app.post('/api/whatsapp/broadcast-lists/:id/send', async (req, res) => {
 
   const accountId = account || 'default';
   const acc = accounts.get(accountId);
-  if (!acc || !acc.ready) return res.status(503).json({ error: 'Account not ready' });
+  if (!acc || (!acc.ready && acc.status !== 'authenticated')) return res.status(503).json({ error: `Account not ready (status: ${acc?.status})` });
 
   const settings = getCrmSettings();
   const cooldownMs = settings.autoDmCooldownHours * 60 * 60 * 1000;
