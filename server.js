@@ -989,18 +989,26 @@ app.get('/api/keywords', (req, res) => {
   // TBP expects: { keywords: { en: [...], he: [...] }, scannerEnabled: bool }
   const kwData = leads.getCustomKeywords();
   const settings = loadJSON(SETTINGS_FILE, {});
-  // Flatten custom keywords by language
+  // Get builtin keywords from leads.js
+  const builtin = kwData.builtin || {};
+  const builtinEn = builtin.en || {};
+  const builtinHe = builtin.he || {};
+  // Flatten builtin categories into arrays
   const en = [];
   const he = [];
+  for (const words of Object.values(builtinEn)) { en.push(...words); }
+  for (const words of Object.values(builtinHe)) { he.push(...words); }
+  // Add custom keywords
   const custom = kwData.custom || {};
-  for (const [category, words] of Object.entries(custom)) {
-    for (const w of words) {
+  for (const words of Object.values(custom)) {
+    for (const w of (Array.isArray(words) ? words : [])) {
       if (/[\u0590-\u05FF]/.test(w)) he.push(w);
       else en.push(w);
     }
   }
+  // Deduplicate
   res.json({
-    keywords: { en, he },
+    keywords: { en: [...new Set(en)], he: [...new Set(he)] },
     scannerEnabled: settings.scannerEnabled !== false,
   });
 });
