@@ -260,10 +260,328 @@
     details summary::-webkit-details-marker { display: none; }
     details[open] summary .bubble-label::before { content: '\25BC '; font-size: 10px; }
     details:not([open]) summary .bubble-label::before { content: '\25B6 '; font-size: 10px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       POLISH: Desktop Two-Panel Layout
+       ═══════════════════════════════════════════════════════════ */
+    @media (min-width: 769px) {
+      html, body { position: static; overflow: hidden; }
+      .app {
+        max-width: 100%; flex-direction: row; height: 100vh; height: 100dvh;
+        padding-bottom: 56px; /* bottom nav */
+      }
+      .app > .topbar { display: none; } /* use sidebar header on desktop */
+      .desktop-sidebar {
+        width: 380px; min-width: 380px; background: #1f2c34;
+        display: flex; flex-direction: column; border-right: 1px solid #222e35;
+        height: 100%;
+      }
+      .desktop-sidebar .sidebar-hdr {
+        display: flex; align-items: center; padding: 10px 16px;
+        background: #1f2c34; height: 59px; gap: 12px; border-bottom: 1px solid #222e35;
+      }
+      .desktop-sidebar .sidebar-hdr-title {
+        font-size: 16px; font-weight: 700; flex: 1; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis;
+      }
+      .desktop-sidebar .sidebar-hdr-actions { display: flex; gap: 4px; align-items: center; }
+      .desktop-sidebar .sidebar-search {
+        padding: 8px 12px;
+      }
+      .desktop-sidebar .sidebar-search-inner {
+        display: flex; align-items: center; background: #2a3942;
+        border-radius: 8px; padding: 0 12px; height: 35px; gap: 12px;
+      }
+      .desktop-sidebar .sidebar-search-inner input {
+        flex: 1; border: none; background: transparent; color: #e9edef;
+        font-size: 13px; outline: none; font-family: inherit;
+      }
+      .desktop-sidebar .sidebar-search-inner input::placeholder { color: #8696a0; }
+      .desktop-sidebar .sidebar-groups {
+        flex: 1; overflow-y: auto; overflow-x: hidden;
+      }
+      .desktop-sidebar .sidebar-groups::-webkit-scrollbar { width: 6px; }
+      .desktop-sidebar .sidebar-groups::-webkit-scrollbar-thumb { background: #374955; border-radius: 3px; }
+      .desktop-sidebar .sidebar-select-all {
+        display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+        border-bottom: 1px solid #222e35; cursor: pointer; font-size: 13px;
+        font-weight: 600; color: #00a884; transition: background 0.12s;
+      }
+      .desktop-sidebar .sidebar-select-all:hover { background: #222e35; }
+      .desktop-sidebar .sidebar-select-all input[type="checkbox"] {
+        width: 18px; height: 18px; accent-color: #00a884; cursor: pointer;
+      }
+      /* Sidebar group row — WhatsApp style */
+      .desktop-sidebar .sb-group-row {
+        display: flex; align-items: center; padding: 10px 14px; cursor: pointer;
+        transition: background 0.12s; gap: 12px; border-bottom: 1px solid #1a2a33;
+        position: relative; overflow: hidden;
+      }
+      .desktop-sidebar .sb-group-row:hover { background: #2a3942; }
+      .desktop-sidebar .sb-group-row.selected { background: #0c332c; }
+      .desktop-sidebar .sb-group-row input[type="checkbox"] {
+        width: 20px; height: 20px; accent-color: #00a884; cursor: pointer; flex-shrink: 0;
+      }
+      .desktop-sidebar .sb-group-avatar {
+        width: 49px; height: 49px; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; font-size: 19px;
+        font-weight: 700; flex-shrink: 0; color: #fff;
+      }
+      .desktop-sidebar .sb-group-info { flex: 1; min-width: 0; }
+      .desktop-sidebar .sb-group-name {
+        font-size: 16px; font-weight: 400; color: #e9edef;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .desktop-sidebar .sb-group-row.selected .sb-group-name { font-weight: 600; }
+      .desktop-sidebar .sb-group-meta {
+        font-size: 12px; color: #8696a0; margin-top: 2px;
+      }
+      /* Selection bar at bottom of sidebar */
+      .desktop-sidebar .sidebar-selection-bar {
+        display: none; align-items: center; justify-content: space-between;
+        padding: 10px 16px; background: #00a884; color: #111b21;
+        font-size: 13px; font-weight: 600; border-top: 1px solid #222e35;
+      }
+      .desktop-sidebar .sidebar-selection-bar.visible { display: flex; }
+      .desktop-sidebar .sidebar-selection-bar .compose-btn-sb {
+        background: #111b21; color: #00a884; border: none; padding: 8px 16px;
+        border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer;
+        transition: all 0.15s;
+      }
+      .desktop-sidebar .sidebar-selection-bar .compose-btn-sb:hover { background: #1a2a33; }
+      /* Sidebar footer */
+      .desktop-sidebar .sidebar-footer {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 8px 16px; border-top: 1px solid #222e35;
+        font-size: 12px; color: #8696a0;
+      }
+
+      /* Right panel fills remaining space */
+      .desktop-right-panel {
+        flex: 1; display: flex; flex-direction: column; min-width: 0;
+        overflow: hidden;
+      }
+      /* On desktop, chat-area becomes the right panel content */
+      .chat-area {
+        flex: 1; padding: 20px 40px 20px; overflow-y: auto; overflow-x: hidden;
+        padding-bottom: 70px;
+      }
+      .bottom-bar { max-width: none; }
+      .tab-bar { max-width: none; }
+    }
+
+    /* Hide desktop sidebar on mobile */
+    @media (max-width: 768px) {
+      .desktop-sidebar { display: none !important; }
+      .desktop-right-panel { display: contents; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       POLISH: Connection Status Banner
+       ═══════════════════════════════════════════════════════════ */
+    .connection-banner {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; padding: 6px 16px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .connection-banner.connected { background: #0c332c; color: #00a884; }
+    .connection-banner.disconnected { background: #3b1c1e; color: #f15c6d; }
+    .connection-banner.checking { background: #2a3942; color: #8696a0; }
+    .connection-banner:hover { filter: brightness(1.15); }
+
+    /* ═══════════════════════════════════════════════════════════
+       POLISH: Skeleton Loading
+       ═══════════════════════════════════════════════════════════ */
+    @keyframes skeleton-shimmer {
+      0% { background-position: -200px 0; }
+      100% { background-position: 200px 0; }
+    }
+    .skeleton-row {
+      display: flex; align-items: center; padding: 10px 14px;
+      gap: 12px; border-bottom: 1px solid #1a2a33;
+    }
+    .skeleton-circle {
+      width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(90deg, #1a2a33 25%, #243540 50%, #1a2a33 75%);
+      background-size: 400px 100%;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+    .skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .skeleton-line {
+      height: 12px; border-radius: 4px;
+      background: linear-gradient(90deg, #1a2a33 25%, #243540 50%, #1a2a33 75%);
+      background-size: 400px 100%;
+      animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    }
+    .skeleton-line.short { width: 60%; }
+    .skeleton-line.shorter { width: 40%; }
+
+    /* ═══════════════════════════════════════════════════════════
+       POLISH: Toast Notification System
+       ═══════════════════════════════════════════════════════════ */
+    .toast-container {
+      position: fixed; bottom: 68px; right: 16px; z-index: 200;
+      display: flex; flex-direction: column-reverse; gap: 8px; pointer-events: none;
+    }
+    .toast-notify {
+      padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      pointer-events: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      animation: toast-in 0.3s ease, toast-out 0.3s ease 2.7s forwards;
+      display: flex; align-items: center; gap: 8px; max-width: 380px;
+    }
+    .toast-notify.success { background: #0c332c; color: #00a884; border-left: 3px solid #00a884; }
+    .toast-notify.error { background: #3b1c1e; color: #f15c6d; border-left: 3px solid #f15c6d; }
+    .toast-notify.warning { background: #3b3420; color: #f0b429; border-left: 3px solid #f0b429; }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes toast-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(20px); } }
+
+    /* ═══════════════════════════════════════════════════════════
+       POLISH: Confirmation Dialog
+       ═══════════════════════════════════════════════════════════ */
+    .confirm-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      display: none; align-items: center; justify-content: center; z-index: 150;
+    }
+    .confirm-overlay.visible { display: flex; }
+    .confirm-dialog {
+      background: #1f2c34; border-radius: 8px; padding: 24px;
+      max-width: 360px; width: 90%; text-align: center;
+    }
+    .confirm-dialog h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .confirm-dialog p { font-size: 13px; color: #8696a0; margin-bottom: 20px; line-height: 1.5; }
+    .confirm-actions { display: flex; gap: 8px; justify-content: center; }
+    .confirm-btn {
+      padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.15s;
+    }
+    .confirm-btn.cancel { background: #2a3942; color: #8696a0; }
+    .confirm-btn.cancel:hover { background: #374045; color: #e9edef; }
+    .confirm-btn.ok { background: #00a884; color: #fff; }
+    .confirm-btn.ok:hover { background: #06cf9c; }
+    .confirm-btn.danger { background: #dc2626; color: #fff; }
+    .confirm-btn.danger:hover { background: #ef4444; }
+
+    /* ═══════════════════════════════════════════════════════════
+       POLISH: Onboarding Experience
+       ═══════════════════════════════════════════════════════════ */
+    .onboarding-card {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 16px; padding: 40px; text-align: center;
+      animation: fadeSlideIn 0.4s ease;
+    }
+    .onboarding-card .onboard-icon { font-size: 48px; }
+    .onboarding-card h2 { font-size: 22px; font-weight: 300; color: #e9edef; }
+    .onboarding-card p { font-size: 14px; color: #8696a0; max-width: 400px; line-height: 1.5; }
+    .connect-card {
+      background: #1f2c34; border-radius: 12px; padding: 32px;
+      max-width: 440px; width: 100%; text-align: center; border: 1px solid #222e35;
+      animation: fadeSlideIn 0.4s ease;
+    }
+    .connect-card h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+    .connect-card p { font-size: 13px; color: #8696a0; margin-bottom: 20px; line-height: 1.5; }
+    .connect-card .steps { text-align: left; margin-bottom: 24px; }
+    .connect-card .step {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 12px; font-size: 13px; color: #8696a0;
+    }
+    .connect-card .step-num {
+      width: 24px; height: 24px; border-radius: 50%; background: #00a884;
+      color: #111b21; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .connect-btn-big {
+      background: #00a884; color: #fff; border: none; padding: 14px 32px;
+      border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .connect-btn-big:hover { background: #06cf9c; transform: scale(1.02); }
+    .connect-btn-big:active { transform: scale(0.98); }
+    .onboarding-arrow {
+      font-size: 28px; color: #8696a0;
+      animation: point-left 1.5s ease-in-out infinite;
+    }
+    @keyframes point-left { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-10px); } }
+    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ═══════════════════════════════════════════════════════════
+       POLISH: Enhanced Composer — Emoji Bar
+       ═══════════════════════════════════════════════════════════ */
+    .emoji-bar { display: flex; gap: 2px; flex-wrap: wrap; }
+    .emoji-btn {
+      background: none; border: none; font-size: 18px; cursor: pointer;
+      padding: 2px 4px; border-radius: 4px; transition: background 0.12s, transform 0.1s;
+    }
+    .emoji-btn:hover { background: #2a3942; transform: scale(1.2); }
+
+    /* ═══════════════════════════════════════════════════════════
+       POLISH: Ripple Effect
+       ═══════════════════════════════════════════════════════════ */
+    @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
+    .ripple-effect {
+      position: absolute; border-radius: 50%;
+      background: rgba(255,255,255,0.15); transform: scale(0);
+      animation: ripple-anim 0.5s linear; pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       POLISH: Better Transitions
+       ═══════════════════════════════════════════════════════════ */
+    .tab-content { transition: opacity 0.2s ease; }
+    .tab-content.active { animation: fadeSlideIn 0.25s ease; }
+    button, .group-item, .acc-chip, .tpl-pill, .lead-card, .contact-card, .list-card,
+    .rule-item, .hist-item, .sched-item, .block-item, .scan-item {
+      transition: all 0.15s ease;
+    }
+    button:hover { transition: all 0.15s ease; }
+    .group-item:active, .contact-card:active, .list-card:active { transform: scale(0.99); }
+    /* Smooth modal transitions */
+    .modal-overlay { transition: opacity 0.2s ease; }
   </style>
 </head>
 <body>
   <div class="app">
+    <!-- ═══ DESKTOP SIDEBAR (visible only on desktop) ═══ -->
+    <div class="desktop-sidebar" id="desktopSidebar">
+      <div class="sidebar-hdr">
+        <div class="sidebar-hdr-title">WB<span class="mod-badge">pro</span></div>
+        <div class="sidebar-hdr-actions">
+          <button class="topbar-btn" onclick="toggleLang()" title="Language">&#x1F310;</button>
+          <button class="topbar-btn" onclick="loadGroups()" title="Refresh groups">&#x21BB;</button>
+        </div>
+      </div>
+      <div class="connection-banner checking" id="connectionBannerDesktop" onclick="onBannerClick()">
+        <span id="bannerTextDesktop">Checking connection...</span>
+      </div>
+      <div class="accounts-bar" id="accountsBarDesktop"></div>
+      <div class="sidebar-search">
+        <div class="sidebar-search-inner">
+          <span style="color:#8696a0;font-size:14px">&#x1F50D;</span>
+          <input type="text" id="sidebarSearchInput" placeholder="Search groups..." oninput="filterGroupsSidebar()" />
+        </div>
+      </div>
+      <div class="sidebar-select-all" id="sidebarSelectAll" onclick="selectAll()">
+        <input type="checkbox" id="sidebarSelectAllCb" onclick="event.stopPropagation();selectAll()">
+        <span id="sidebarSelectAllLabel">Select All</span>
+      </div>
+      <div class="sidebar-groups" id="sidebarGroupsList">
+        <!-- Skeleton loading rows shown while loading -->
+        <div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line shorter"></div></div></div>
+        <div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        <div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line shorter"></div></div></div>
+        <div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      </div>
+      <div class="sidebar-selection-bar" id="sidebarSelectionBar">
+        <span id="sidebarSelectionText">0 groups selected</span>
+        <button class="compose-btn-sb" onclick="switchTab('broadcast');document.getElementById('msgInput').focus()">Compose</button>
+      </div>
+      <div class="sidebar-footer">
+        <span id="sidebarSelectedCount">0 selected</span>
+        <button style="background:none;border:none;color:#8696a0;cursor:pointer;font-size:12px" onclick="loadGroups()" title="Refresh">&#8635; Refresh</button>
+      </div>
+    </div>
+
+    <div class="desktop-right-panel">
     <div class="topbar">
       <div class="topbar-avatar">&#x1F4E2;</div>
       <div class="topbar-info">
@@ -277,6 +595,11 @@
 
     <div class="accounts-bar" id="accountsBar">
       <button class="acc-chip add-chip" onclick="addAccount()" id="addBtn">+ Add</button>
+    </div>
+
+    <!-- Connection Status Banner -->
+    <div class="connection-banner checking" id="connectionBanner" onclick="onBannerClick()">
+      <span id="bannerText">Checking connection...</span>
     </div>
 
     <!-- tab bar moved to bottom -->
@@ -310,7 +633,8 @@
       <div class="tab-content active" id="panelBroadcast">
         <div class="bubble">
           <div class="bubble-label" id="msgLabel">Compose message</div>
-          <textarea id="msgInput" oninput="updateCount()" rows="3"></textarea>
+          <div class="emoji-bar" id="emojiBarMobile"></div>
+          <textarea id="msgInput" oninput="updateCount();autoGrowMobile(this)" rows="3"></textarea>
           <div class="char-count"><span id="charCount">0</span> <span id="charLabel">chars</span></div>
         </div>
 
@@ -325,7 +649,9 @@
           </div>
           <div id="scrapeStatus" style="display:none;padding:6px 10px;background:#005c4b;border-radius:6px;margin-bottom:8px;font-size:12px;color:#e9edef"></div>
           <div class="groups-list" id="groupsList">
-            <div class="empty">Loading...</div>
+            <div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+            <div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line shorter"></div></div></div>
+            <div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
           </div>
         </div>
 
@@ -693,6 +1019,22 @@
       <button class="tab-btn" onclick="switchTab('lists')" id="tabLists"><span class="tab-icon">&#x1F4CB;</span>Lists</button>
       <button class="tab-btn" onclick="switchTab('keywords')" id="tabKeywords"><span class="tab-icon">&#x2699;</span>Settings</button>
     </div>
+    </div><!-- /desktop-right-panel -->
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confirmation Dialog -->
+    <div class="confirm-overlay" id="confirmOverlay">
+      <div class="confirm-dialog">
+        <h3 id="confirmTitle">Confirm</h3>
+        <p id="confirmMsg">Are you sure?</p>
+        <div class="confirm-actions">
+          <button class="confirm-btn cancel" id="confirmCancelBtn" onclick="resolveConfirm(false)">Cancel</button>
+          <button class="confirm-btn ok" id="confirmOkBtn" onclick="resolveConfirm(true)">OK</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -868,7 +1210,12 @@
     }
 
     async function loadGroups() {
-      document.getElementById('groupsList').innerHTML = '<div class="empty">' + t('groupsLoading') + '</div>';
+      var skeletonHTML = '<div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>'
+        + '<div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line shorter"></div></div></div>'
+        + '<div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>';
+      document.getElementById('groupsList').innerHTML = skeletonHTML;
+      var sbEl = document.getElementById('sidebarGroupsList');
+      if (sbEl) sbEl.innerHTML = skeletonHTML;
       try { var r = await fetch('/api/groups'); var d = await r.json(); groups = d.groups || []; renderGroups(); }
       catch (e) { document.getElementById('groupsList').innerHTML = '<div class="empty">' + t('groupsError') + '</div>'; }
     }
@@ -2052,6 +2399,384 @@
     loadTemplates();
     loadSchedules();
     loadGroupStats();
+
+    // ══════════════════════════════════════════════════════════════
+    // ── POLISH: Toast Notification System ──
+    // ══════════════════════════════════════════════════════════════
+    function showToast(message, type) {
+      type = type || 'success';
+      var container = document.getElementById('toastContainer');
+      if (!container) return;
+      var toast = document.createElement('div');
+      toast.className = 'toast-notify ' + type;
+      var icons = { success: '\u2713', error: '\u2717', warning: '\u26A0' };
+      toast.innerHTML = '<span>' + (icons[type] || '') + '</span><span>' + message + '</span>';
+      container.appendChild(toast);
+      setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3200);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── POLISH: Confirmation Dialog ──
+    // ══════════════════════════════════════════════════════════════
+    var _confirmResolve = null;
+    function showConfirm(title, message, okText, isDanger) {
+      document.getElementById('confirmTitle').textContent = title || 'Confirm';
+      document.getElementById('confirmMsg').textContent = message || 'Are you sure?';
+      var okBtn = document.getElementById('confirmOkBtn');
+      okBtn.textContent = okText || 'OK';
+      okBtn.className = isDanger ? 'confirm-btn danger' : 'confirm-btn ok';
+      document.getElementById('confirmOverlay').classList.add('visible');
+      return new Promise(function(resolve) { _confirmResolve = resolve; });
+    }
+    function resolveConfirm(val) {
+      document.getElementById('confirmOverlay').classList.remove('visible');
+      if (_confirmResolve) { _confirmResolve(val); _confirmResolve = null; }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── POLISH: Connection Banner ──
+    // ══════════════════════════════════════════════════════════════
+    var _connectionStatus = 'checking';
+    function updateConnectionBanner() {
+      var online = accountsList.filter(function(a) { return a.status === 'ready'; }).length;
+      var total = accountsList.length;
+      var banner = document.getElementById('connectionBanner');
+      var bannerD = document.getElementById('connectionBannerDesktop');
+      var text, cls;
+      if (total === 0) {
+        cls = 'connection-banner disconnected';
+        text = 'No accounts \u2014 tap to add';
+        _connectionStatus = 'disconnected';
+      } else if (online > 0) {
+        cls = 'connection-banner connected';
+        text = '\u2713 Connected (' + online + '/' + total + ')';
+        _connectionStatus = 'connected';
+      } else {
+        cls = 'connection-banner disconnected';
+        text = 'Disconnected \u2014 tap to reconnect';
+        _connectionStatus = 'disconnected';
+      }
+      if (banner) { banner.className = cls; document.getElementById('bannerText').textContent = text; }
+      if (bannerD) { bannerD.className = cls; document.getElementById('bannerTextDesktop').textContent = text; }
+      // Update onboarding if visible
+      updateOnboarding();
+    }
+    function onBannerClick() {
+      if (_connectionStatus === 'disconnected') {
+        if (accountsList.length === 0) addAccount();
+        else {
+          var disc = accountsList.find(function(a) { return a.status !== 'ready'; });
+          if (disc) openQR(disc.id);
+        }
+      }
+    }
+
+    // Hook into refreshAccounts to update banner
+    var _origRefreshAccounts = refreshAccounts;
+    refreshAccounts = async function() {
+      await _origRefreshAccounts();
+      updateConnectionBanner();
+    };
+
+    // ══════════════════════════════════════════════════════════════
+    // ── POLISH: Onboarding Experience ──
+    // ══════════════════════════════════════════════════════════════
+    function updateOnboarding() {
+      // Only show on broadcast tab
+      if (currentTab !== 'broadcast') return;
+      var panel = document.getElementById('panelBroadcast');
+      var existing = document.getElementById('onboardingCard');
+      if (existing) existing.remove();
+
+      var online = accountsList.filter(function(a) { return a.status === 'ready'; }).length;
+      if (online === 0 && accountsList.length === 0) {
+        // Show connect card
+        var card = document.createElement('div');
+        card.id = 'onboardingCard';
+        card.className = 'onboarding-card';
+        card.innerHTML = '<div class="connect-card">'
+          + '<div style="font-size:48px;margin-bottom:8px">&#x1F4F1;</div>'
+          + '<h2>Connect WhatsApp</h2>'
+          + '<p>Link your WhatsApp account to load groups and start broadcasting messages.</p>'
+          + '<div class="steps">'
+          + '<div class="step"><div class="step-num">1</div><span>Open WhatsApp on your phone</span></div>'
+          + '<div class="step"><div class="step-num">2</div><span>Go to Settings > Linked Devices</span></div>'
+          + '<div class="step"><div class="step-num">3</div><span>Tap "Link a Device" and scan QR code</span></div>'
+          + '</div>'
+          + '<button class="connect-btn-big" onclick="addAccount()">&#x1F4F1; Connect WhatsApp</button>'
+          + '</div>';
+        panel.insertBefore(card, panel.firstChild);
+      } else if (selected.size === 0 && groups.length > 0) {
+        // Show select groups hint on desktop only
+        if (window.innerWidth > 768) {
+          var hint = document.createElement('div');
+          hint.id = 'onboardingCard';
+          hint.className = 'onboarding-card';
+          hint.innerHTML = '<div style="font-size:48px">&#x1F449;</div>'
+            + '<h2>Select groups to broadcast</h2>'
+            + '<p>Choose groups from the sidebar on the left, then compose your message.</p>'
+            + '<div class="onboarding-arrow">&#x2190;</div>';
+          panel.insertBefore(hint, panel.firstChild);
+        }
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── POLISH: Desktop Sidebar Rendering ──
+    // ══════════════════════════════════════════════════════════════
+    var sidebarSearchQuery = '';
+    function filterGroupsSidebar() {
+      sidebarSearchQuery = (document.getElementById('sidebarSearchInput') || {}).value || '';
+      renderSidebarGroups();
+    }
+
+    function renderSidebarGroups() {
+      var el = document.getElementById('sidebarGroupsList');
+      if (!el) return;
+      var validIds = new Set(groups.map(function(g) { return g.id; }));
+      selected.forEach(function(id) { if (!validIds.has(id)) selected.delete(id); });
+      var visible = groups.filter(function(g) { return !hiddenGroups.has(g.id); });
+      if (sidebarSearchQuery) {
+        var q = sidebarSearchQuery.toLowerCase();
+        visible = visible.filter(function(g) { return g.name.toLowerCase().includes(q); });
+      }
+      if (!visible.length && groups.length === 0) {
+        // Still loading or no groups — show skeleton
+        el.innerHTML = '<div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>'
+          + '<div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line shorter"></div></div></div>'
+          + '<div class="skeleton-row"><div class="skeleton-circle"></div><div class="skeleton-lines"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>';
+        return;
+      }
+      if (!visible.length) {
+        el.innerHTML = '<div class="empty" style="padding:24px;text-align:center;color:#8696a0">' + (sidebarSearchQuery ? 'No groups match "' + esc(sidebarSearchQuery) + '"' : 'No groups') + '</div>';
+        return;
+      }
+      var avatarEmojis = ['\u{1F389}','\u{1F38A}','\u{1F973}','\u{1F3B6}','\u{1FA69}'];
+      el.innerHTML = visible.map(function(g, i) {
+        var isSel = selected.has(g.id);
+        var acctTag = accountsList.length > 1 ? ' \u00B7 ' + esc(g.accountName || '') : '';
+        return '<div class="sb-group-row ' + (isSel ? 'selected' : '') + '" onclick="toggle(\'' + g.id + '\')">'
+          + '<input type="checkbox" ' + (isSel ? 'checked' : '') + ' onclick="event.stopPropagation();toggle(\'' + g.id + '\')">'
+          + '<div class="sb-group-avatar" style="background:' + getAvatarColorSB(g.name) + '">' + avatarEmojis[i % 5] + '</div>'
+          + '<div class="sb-group-info"><div class="sb-group-name">' + esc(g.name) + '</div>'
+          + '<div class="sb-group-meta">' + (g.participantCount || '?') + ' members' + acctTag + '</div></div>'
+          + '</div>';
+      }).join('');
+
+      // Update selection bar
+      var bar = document.getElementById('sidebarSelectionBar');
+      var countEl = document.getElementById('sidebarSelectedCount');
+      var textEl = document.getElementById('sidebarSelectionText');
+      if (selected.size > 0) {
+        bar.classList.add('visible');
+        textEl.textContent = selected.size + ' group' + (selected.size !== 1 ? 's' : '') + ' selected';
+      } else {
+        bar.classList.remove('visible');
+      }
+      countEl.textContent = selected.size + ' selected';
+      // Update select all checkbox
+      var cb = document.getElementById('sidebarSelectAllCb');
+      if (cb) cb.checked = selected.size > 0 && selected.size === visible.length;
+    }
+
+    var avatarColorsSB = ['#00a884','#53bdeb','#7c5cfc','#e07c4f','#d34a65','#00bfa5','#4fc3f7','#ffb74d','#f06292','#9575cd'];
+    function getAvatarColorSB(name) {
+      var hash = 0;
+      for (var i = 0; i < (name||'').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      return avatarColorsSB[Math.abs(hash) % avatarColorsSB.length];
+    }
+
+    // Sync desktop accounts bar
+    function syncDesktopAccounts() {
+      var barD = document.getElementById('accountsBarDesktop');
+      if (!barD) return;
+      var barM = document.getElementById('accountsBar');
+      if (barM) barD.innerHTML = barM.innerHTML;
+    }
+
+    // Hook into renderGroups to also render sidebar
+    var _origRenderGroups2 = renderGroups;
+    renderGroups = function() {
+      _origRenderGroups2();
+      renderSidebarGroups();
+      updateOnboarding();
+    };
+
+    // Hook into renderAccounts to sync desktop
+    var _origRenderAccounts = renderAccounts;
+    renderAccounts = function() {
+      _origRenderAccounts();
+      syncDesktopAccounts();
+    };
+
+    // ══════════════════════════════════════════════════════════════
+    // ── POLISH: Emoji Bar ──
+    // ══════════════════════════════════════════════════════════════
+    var PARTY_EMOJIS = ['\u{1F389}','\u{1F38A}','\u{1F3B6}','\u{1F483}','\u{1F37E}','\u{1F942}','\u{1F3B5}','\u{1F525}'];
+    function renderEmojiBar() {
+      var bar = document.getElementById('emojiBarMobile');
+      if (!bar) return;
+      bar.innerHTML = PARTY_EMOJIS.map(function(e) {
+        return '<button class="emoji-btn" type="button" onclick="insertEmoji(\'' + e + '\')">' + e + '</button>';
+      }).join('');
+    }
+    function insertEmoji(emoji) {
+      var ta = document.getElementById('msgInput');
+      var start = ta.selectionStart;
+      var end = ta.selectionEnd;
+      ta.value = ta.value.substring(0, start) + emoji + ta.value.substring(end);
+      ta.selectionStart = ta.selectionEnd = start + emoji.length;
+      ta.focus();
+      updateCount();
+    }
+    renderEmojiBar();
+
+    // Auto-grow textarea
+    function autoGrowMobile(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── POLISH: Ripple Effect ──
+    // ══════════════════════════════════════════════════════════════
+    document.addEventListener('click', function(e) {
+      var target = e.target.closest('button, .group-item, .acc-chip, .contact-card, .list-card, .sb-group-row');
+      if (!target) return;
+      // Need position relative for ripple
+      var prev = target.style.position;
+      if (!prev || prev === 'static') target.style.position = 'relative';
+      target.style.overflow = 'hidden';
+      var rect = target.getBoundingClientRect();
+      var size = Math.max(rect.width, rect.height);
+      var ripple = document.createElement('span');
+      ripple.className = 'ripple-effect';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      target.appendChild(ripple);
+      setTimeout(function() { ripple.remove(); }, 500);
+    });
+
+    // ══════════════════════════════════════════════════════════════
+    // ── POLISH: Replace confirm() and alert() with toast/dialog ──
+    // ══════════════════════════════════════════════════════════════
+    // Override the send function to use confirmation dialog for 10+ groups
+    var _origSend = send;
+    send = async function() {
+      var msg = document.getElementById('msgInput').value.trim();
+      if (!msg || selected.size === 0) return;
+      if (selected.size >= 10) {
+        var ok = await showConfirm('Confirm Broadcast', 'Send message to ' + selected.size + ' groups?', 'Send');
+        if (!ok) return;
+      }
+      await _origSend();
+      // Show toast on completion
+      var result = document.getElementById('result');
+      if (result && result.style.display !== 'none') {
+        if (result.classList.contains('success')) showToast('Broadcast sent to ' + selected.size + ' groups!', 'success');
+        else showToast('Some messages failed to send', 'warning');
+      }
+    };
+
+    // Override removeAccount to use confirmation dialog
+    var _origRemoveAccount = removeAccount;
+    removeAccount = async function(id) {
+      var a = accountsList.find(function(x) { return x.id === id; });
+      var ok = await showConfirm('Remove Account', 'Remove ' + (a ? a.name : id) + '?', 'Remove', true);
+      if (!ok) return;
+      try { await fetch('/api/accounts?id=' + encodeURIComponent(id), { method: 'DELETE' }); await refreshAccounts(); loadGroups(); } catch (e) {}
+    };
+
+    // Override dismissAllLeads to use confirmation dialog
+    var _origDismissAllLeads = dismissAllLeads;
+    dismissAllLeads = async function() {
+      var ok = await showConfirm('Dismiss All', 'Dismiss all leads?', 'Dismiss', true);
+      if (!ok) return;
+      try { await fetch('/api/leads/dismiss-all', { method: 'POST' }); leadCount = 0; updateLeadBadge(); loadLeads(); loadLeadStats(); showToast('All leads dismissed', 'success'); } catch (e) {}
+    };
+
+    // Override deleteTemplate to use confirmation dialog
+    var _origDeleteTemplate = deleteTemplate;
+    deleteTemplate = async function(id) {
+      var ok = await showConfirm('Delete Template', 'Delete this template?', 'Delete', true);
+      if (!ok) return;
+      try {
+        await fetch('/api/templates/' + encodeURIComponent(id), { method: 'DELETE' });
+        loadTemplates();
+        showToast('Template deleted', 'success');
+      } catch (e) {}
+    };
+
+    // Override cancelSchedule to use confirmation dialog
+    var _origCancelSchedule = cancelSchedule;
+    cancelSchedule = async function(id) {
+      var ok = await showConfirm('Cancel Schedule', 'Cancel this scheduled broadcast?', 'Cancel', true);
+      if (!ok) return;
+      try {
+        await fetch('/api/schedules/' + encodeURIComponent(id), { method: 'DELETE' });
+        loadSchedules();
+        showToast('Schedule cancelled', 'success');
+      } catch (e) {}
+    };
+
+    // Override saveAsTemplate to use toast
+    var _origSaveAsTemplate = saveAsTemplate;
+    saveAsTemplate = async function() {
+      var msg = document.getElementById('msgInput').value.trim();
+      if (!msg) { showToast('Write a message first', 'warning'); return; }
+      var name = prompt('Template name:', msg.slice(0, 30));
+      if (!name) return;
+      try {
+        await fetch('/api/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, body: msg })
+        });
+        loadTemplates();
+        showToast('Template saved!', 'success');
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    };
+
+    // Override QR connected to use toast and auto-close
+    var _origPollQR = pollQR;
+    pollQR = async function() {
+      if (!activeQrAccount) return;
+      try {
+        var r = await fetch('/api/qr?account=' + encodeURIComponent(activeQrAccount));
+        var d = await r.json();
+        if (d.status === 'ready') {
+          document.getElementById('qrWrap').style.display = 'none';
+          document.getElementById('qrStatusMsg').textContent = t('qrConnected');
+          if (qrPollTimer) { clearInterval(qrPollTimer); qrPollTimer = null; }
+          refreshAccounts(); loadGroups();
+          showToast('WhatsApp connected!', 'success');
+          // Auto-close QR modal after 1.5s
+          setTimeout(function() { closeQR(); }, 1500);
+        }
+        else if (d.qrDataUrl) { document.getElementById('qrImg').src = d.qrDataUrl; document.getElementById('qrWrap').style.display = 'inline-block'; document.getElementById('qrStatusMsg').textContent = t('qrScan'); }
+        else { document.getElementById('qrStatusMsg').textContent = d.status || t('qrWaiting'); }
+      } catch (e) { document.getElementById('qrStatusMsg').textContent = t('errorMsg', e.message); }
+    };
+
+    // Replace sendReply alert with toast
+    var _origSendReply = sendReply;
+    sendReply = async function() {
+      var msg = document.getElementById('replyMsg').value.trim();
+      if (!msg || !replyLeadId) return;
+      try {
+        var r = await fetch('/api/leads/reply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ leadId: replyLeadId, message: msg }) });
+        var d = await r.json();
+        if (d.ok) { closeReply(); showToast('DM sent!', 'success'); }
+        else { showToast('Error: ' + (d.error || 'Unknown'), 'error'); }
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    };
+
+    // Initial banner update
+    updateConnectionBanner();
+    // Re-render sidebar groups after initial load
+    renderSidebarGroups();
+    syncDesktopAccounts();
   </script>
 </body>
 </html>
