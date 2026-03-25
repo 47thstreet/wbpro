@@ -10,6 +10,7 @@ const leads = require('./leads');
 const app = express();
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET;
+const WBPRO_PASSWORD = process.env.WBPRO_PASSWORD || 'admin';
 const KARTIS_EVENTS_URL = process.env.KARTIS_EVENTS_URL || 'https://kartis-astro.vercel.app/api/cms/public-events';
 const KARTIS_URL = process.env.KARTIS_URL || 'https://kartis-astro.vercel.app';
 const KARTIS_WEBHOOK_SECRET = process.env.KARTIS_WEBHOOK_SECRET;
@@ -33,6 +34,65 @@ function ensureDir(dir) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 ensureDir(AUTH_DIR);
+
+// ─── WhatsApp Session Persistence Check ─────────────────────────────────
+const sessionDir = path.join(AUTH_DIR, 'session-default');
+if (fs.existsSync(sessionDir)) {
+  console.log('WhatsApp session: RESTORED from', sessionDir);
+} else {
+  console.log('WhatsApp session: FRESH start (no previous session found)');
+}
+
+// ─── Session Cookie Auth Helpers ────────────────────────────────────────
+const SESSION_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
+
+function signSession(timestamp) {
+  const secret = WBPRO_PASSWORD + (JWT_SECRET || '');
+  return crypto.createHmac('sha256', secret).update(String(timestamp)).digest('hex');
+}
+
+function createSessionValue() {
+  const ts = Date.now();
+  return ts + ':' + signSession(ts);
+}
+
+function verifySession(value) {
+  if (!value || typeof value !== 'string') return false;
+  const idx = value.indexOf(':');
+  if (idx === -1) return false;
+  const ts = value.substring(0, idx);
+  const hash = value.substring(idx + 1);
+  // Check hash validity
+  if (signSession(ts) !== hash) return false;
+  // Check expiration (30 days)
+  const age = (Date.now() - Number(ts)) / 1000;
+  return age < SESSION_MAX_AGE;
+}
+
+function parseCookie(cookieHeader) {
+  const cookies = {};
+  if (!cookieHeader) return cookies;
+  cookieHeader.split(';').forEach(part => {
+    const [k, ...v] = part.trim().split('=');
+    if (k) cookies[k.trim()] = decodeURIComponent(v.join('='));
+  });
+  return cookies;
+}
+
+function setSessionCookie(res, value) {
+  const flags = [
+    `wbpro_session=${value}`,
+    'HttpOnly',
+    'SameSite=Lax',
+    `Max-Age=${SESSION_MAX_AGE}`,
+    'Path=/',
+  ];
+  res.setHeader('Set-Cookie', flags.join('; '));
+}
+
+function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie', 'wbpro_session=; HttpOnly; SameSite=Lax; Max-Age=0; Path=/');
+}
 
 // ─── JSON File Persistence Helpers ──────────────────────────────────────
 function loadJSON(filePath, fallback = []) {
@@ -930,9 +990,6 @@ const PARTY_KEYWORDS = [
 
 // ─── Express Middleware ──────────────────────────────────────────────────
 
-// Serve frontend (no auth needed — same origin)
-app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -942,6 +999,58 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
+
+// ─── Login / Logout API (before session middleware) ─────────────────────
+
+app.post('/api/login', (req, res) => {
+  const { password } = req.body || {};
+  if (password === WBPRO_PASSWORD) {
+    const sessionVal = createSessionValue();
+    setSessionCookie(res, sessionVal);
+    return res.json({ ok: true });
+  }
+  return res.status(401).json({ error: 'Wrong password' });
+});
+
+app.post('/api/logout', (req, res) => {
+  clearSessionCookie(res);
+  return res.redirect('/login');
+});
+
+// Serve login page (before session check)
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// ─── Session Cookie Middleware ──────────────────────────────────────────
+
+function sessionAuth(req, res, next) {
+  // Skip health check, login routes, webhooks, and static assets for login page
+  if (req.path === '/health' || req.path === '/login' || req.path === '/api/login' || req.path === '/api/logout') return next();
+  if (req.path.startsWith('/api/webhooks/')) return next(); // webhooks have their own auth
+
+  // JWT auth still works for external API access
+  if (req.path.startsWith('/api/') && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    return next(); // will be verified by authMiddleware below
+  }
+
+  // Check session cookie
+  const cookies = parseCookie(req.headers.cookie || '');
+  if (cookies.wbpro_session && verifySession(cookies.wbpro_session)) {
+    return next();
+  }
+
+  // Not authenticated
+  if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Not authenticated' });
+  return res.redirect('/login');
+}
+
+app.use(sessionAuth);
+
+// Serve frontend (after session check)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ─── JWT Auth (for external API access) ─────────────────────────────────
 
 function verifyJWT(token, secret) {
   const parts = token.split('.');
@@ -958,8 +1067,10 @@ function verifyJWT(token, secret) {
 }
 
 function authMiddleware(req, res, next) {
-  // Skip for health check and non-API routes (static files, frontend)
-  if (req.path === '/health' || !req.path.startsWith('/api/')) return next();
+  // Skip for health check, login routes, webhooks, and non-API routes (static files, frontend)
+  if (req.path === '/health' || req.path === '/login' || req.path === '/api/login' || req.path === '/api/logout') return next();
+  if (req.path.startsWith('/api/webhooks/')) return next();
+  if (!req.path.startsWith('/api/')) return next();
 
   // Check for JWT token (external API access)
   const authHeader = req.headers.authorization;
@@ -972,9 +1083,9 @@ function authMiddleware(req, res, next) {
     }
   }
 
-  // Allow same-origin requests (frontend served by this server)
-  const origin = req.headers.origin || req.headers.referer || '';
-  if (origin.includes(req.headers.host) || !origin) {
+  // Session-authenticated web UI user
+  const cookies = parseCookie(req.headers.cookie || '');
+  if (cookies.wbpro_session && verifySession(cookies.wbpro_session)) {
     req.user = { userId: 'web-ui', role: 'admin' };
     return next();
   }
@@ -3365,6 +3476,40 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// ─── Kartis Webhook Registration ─────────────────────────────────────────
+
+async function registerKartisWebhook() {
+  if (!KARTIS_URL || !KARTIS_WEBHOOK_SECRET) {
+    console.log('Kartis webhook: skipping registration (KARTIS_URL or KARTIS_WEBHOOK_SECRET not set)');
+    return;
+  }
+
+  const webhookUrl = `${WBPRO_URL}/api/webhooks/kartis`;
+  console.log(`Kartis webhook: registering ${webhookUrl} with ${KARTIS_URL}...`);
+
+  try {
+    const resp = await fetch(`${KARTIS_URL}/api/webhooks/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: webhookUrl,
+        events: ['event.published'],
+        secret: KARTIS_WEBHOOK_SECRET,
+      }),
+    });
+
+    if (resp.ok) {
+      webhookRegistered = true;
+      console.log('Kartis webhook: registered successfully');
+    } else {
+      const body = await resp.text();
+      console.warn(`Kartis webhook: registration failed (${resp.status}): ${body}`);
+    }
+  } catch (err) {
+    console.warn('Kartis webhook: registration failed:', err.message);
+  }
+}
+
 // ─── Start ───────────────────────────────────────────────────────────────
 
 app.listen(PORT, '0.0.0.0', () => {
@@ -3380,4 +3525,6 @@ app.listen(PORT, '0.0.0.0', () => {
   startAutoAnnounceSchedule();
   // Initial scrape 60s after startup (give clients time to connect)
   setTimeout(() => scrapeAllGroups(), 60000);
+  // Register Kartis webhook after startup
+  registerKartisWebhook();
 });
