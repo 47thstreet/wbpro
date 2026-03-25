@@ -1098,7 +1098,7 @@
        ═══════════════════════════════════════════════════════════ */
     .contacts-search-sticky {
       position: sticky; top: 0; z-index: 5; background: var(--bg-primary);
-      padding: 4px 0 8px;
+      padding: 10px 0 10px;
     }
     .contact-status-pills {
       display: flex; gap: 6px; overflow-x: auto; padding: 4px 0;
@@ -2669,10 +2669,17 @@
       if (sbEl) sbEl.innerHTML = skeletonHTML;
       try {
         invalidateCache('/api/groups');
-        var r = await fetch('/api/groups'); if (!r.ok) throw new Error('HTTP ' + r.status); var d = await r.json(); groups = d.groups || []; renderGroups();
+        var r = await fetch('/api/groups');
+        if (!r.ok) {
+          var errData = await r.json().catch(function() { return {}; });
+          throw new Error(errData.error || 'HTTP ' + r.status);
+        }
+        var d = await r.json(); groups = d.groups || []; renderGroups();
       } catch (e) {
-        document.getElementById('groupsList').innerHTML = '<div class="empty">' + icon('alert-triangle', 24) + ' ' + t('groupsError') + '</div>';
-        showToast('Failed to load groups', 'error');
+        var msg = e.message || 'Failed to load';
+        if (msg.includes('Not connected')) msg = 'WhatsApp not connected. Scan QR code first.';
+        document.getElementById('groupsList').innerHTML = '<div class="empty">' + icon('alert-triangle', 24) + ' ' + msg + '</div>';
+        showToast(msg, 'error');
       }
     }
 
