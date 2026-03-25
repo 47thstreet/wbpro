@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#1f2c34" />
-  <title>Broadcast Pro v3</title>
+  <title>WBpro</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { overflow-x: hidden; width: 100%; position: relative; }
-    body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background: #0b141a; color: #e9edef; min-height: 100vh; min-height: 100dvh; -webkit-text-size-adjust: 100%; }
-    .app { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; overflow-x: hidden; }
+    html, body { overflow: hidden; width: 100%; height: 100%; position: fixed; top: 0; left: 0; overscroll-behavior: none; }
+    body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background: #0b141a; color: #e9edef; height: 100vh; height: 100dvh; -webkit-text-size-adjust: 100%; }
+    .app { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: relative; }
 
     .topbar { background: #1f2c34; padding: 10px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; }
     .topbar-avatar { width: 40px; height: 40px; background: #00a884; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
@@ -39,12 +39,12 @@
     .tab-btn.active { color: #00a884; }
     .tab-btn.active::after { content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: 3px; background: #00a884; border-radius: 0 0 3px 3px; }
     .tab-btn .badge { position: absolute; top: 2px; right: calc(50% - 20px); background: #f15c6d; color: #fff; font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 8px; min-width: 14px; text-align: center; }
-    .app { padding-bottom: 64px; }
+    .app { padding-bottom: 120px; } /* space for bottom-bar (56px) + tab-bar (56px) */
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    .chat-area { flex: 1; padding: 12px 12px 8px; background: #0b141a; background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); overflow-y: auto; overflow-x: hidden; }
+    .chat-area { flex: 1; padding: 12px 12px 8px; background: #0b141a; background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); overflow-y: auto; overflow-x: hidden; padding-bottom: 70px; }
 
     .bubble { background: #1f2c34; border-radius: 8px; padding: 14px; margin-bottom: 8px; position: relative; }
     .bubble::before { content: ''; position: absolute; top: 0; left: -6px; width: 0; height: 0; border-top: 6px solid #1f2c34; border-left: 6px solid transparent; }
@@ -76,7 +76,7 @@
     .wa-icon-btn { background: #2a3942; border: none; color: #8696a0; font-size: 12px; padding: 6px 10px; border-radius: 20px; cursor: pointer; transition: all 0.15s; }
     .wa-icon-btn:hover { background: #374045; color: #e9edef; }
 
-    .bottom-bar { background: #1f2c34; padding: 8px 12px; display: flex; align-items: center; gap: 8px; border-radius: 8px; margin-top: 8px; }
+    .bottom-bar { background: #1f2c34; padding: 8px 12px; display: flex; align-items: center; gap: 8px; position: fixed; bottom: 56px; left: 0; right: 0; max-width: 500px; margin: 0 auto; z-index: 40; border-top: 1px solid #222e35; }
     .send-btn { width: 48px; height: 48px; background: #00a884; border: none; border-radius: 50%; color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
     .send-btn:hover { background: #06cf9c; }
     .send-btn:disabled { background: #2a3942; color: #8696a0; cursor: not-allowed; }
@@ -267,7 +267,7 @@
     <div class="topbar">
       <div class="topbar-avatar">&#x1F4E2;</div>
       <div class="topbar-info">
-        <div class="topbar-title" id="subtitle">Broadcast<span class="mod-badge">PRO v3</span></div>
+        <div class="topbar-title" id="subtitle">WB<span class="mod-badge">pro</span></div>
         <div class="topbar-sub"><span class="dot" id="statusDot"></span> <span id="statusText">connecting...</span></div>
       </div>
       <div class="topbar-actions">
@@ -318,10 +318,12 @@
           <div class="groups-header">
             <div class="bubble-label" style="margin:0" id="groupsLabel">Groups (0)</div>
             <div style="display:flex;gap:6px">
+              <button class="wa-icon-btn" onclick="scrapeGroupContacts()" id="scrapeBtn" title="Scrape contacts from all groups">&#x1F50D; Scrape</button>
               <button class="wa-link" onclick="selectAll()" id="selectAllBtn">Select all</button>
               <button class="wa-icon-btn" onclick="loadGroups()" id="refreshBtn">&#x21BB;</button>
             </div>
           </div>
+          <div id="scrapeStatus" style="display:none;padding:6px 10px;background:#005c4b;border-radius:6px;margin-bottom:8px;font-size:12px;color:#e9edef"></div>
           <div class="groups-list" id="groupsList">
             <div class="empty">Loading...</div>
           </div>
@@ -846,6 +848,25 @@
     }
 
     // ── Groups ──
+    async function scrapeGroupContacts() {
+      var btn = document.getElementById('scrapeBtn');
+      var status = document.getElementById('scrapeStatus');
+      btn.disabled = true; btn.textContent = '⏳ Scraping...';
+      status.style.display = 'block'; status.textContent = 'Scraping contacts from all groups...';
+      try {
+        var r = await fetch('/api/whatsapp/scrape', { method: 'POST' });
+        var d = await r.json();
+        status.textContent = '✓ Scraped ' + (d.scraped || 0) + ' contacts — ' + (d.new || 0) + ' new, ' + (d.updated || 0) + ' updated';
+        status.style.background = '#005c4b';
+        setTimeout(function(){ status.style.display = 'none'; }, 5000);
+      } catch (e) {
+        status.textContent = '✗ Scrape failed: ' + e.message;
+        status.style.background = '#dc2626';
+        setTimeout(function(){ status.style.display = 'none'; }, 5000);
+      }
+      btn.disabled = false; btn.innerHTML = '&#x1F50D; Scrape';
+    }
+
     async function loadGroups() {
       document.getElementById('groupsList').innerHTML = '<div class="empty">' + t('groupsLoading') + '</div>';
       try { var r = await fetch('/api/groups'); var d = await r.json(); groups = d.groups || []; renderGroups(); }
