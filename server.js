@@ -2131,6 +2131,66 @@ app.post('/api/whatsapp/broadcast-events', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ─── Kartis Webhook Receiver ────────────────────────────────────────────
+
+app.post('/api/webhooks/kartis', async (req, res) => {
+  // Verify webhook secret
+  const secret = req.headers['x-webhook-secret'];
+  if (!KARTIS_WEBHOOK_SECRET || secret !== KARTIS_WEBHOOK_SECRET) {
+    console.warn('Kartis webhook: invalid or missing secret');
+    return res.status(401).json({ error: 'Invalid webhook secret' });
+  }
+
+  const { event, data } = req.body;
+  console.log(`Kartis webhook received: ${event}`, data?.name || '');
+
+  if (event !== 'event.published') {
+    return res.json({ ok: true, skipped: true, reason: `Unhandled event: ${event}` });
+  }
+
+  // Find a ready account to broadcast from
+  let accountId = 'default';
+  let acc = accounts.get(accountId);
+  if (!acc || !acc.ready) {
+    for (const [id, a] of accounts) {
+      if (a.ready) { accountId = id; acc = a; break; }
+    }
+  }
+  if (!acc || !acc.ready) {
+    console.warn('Kartis webhook: no ready WhatsApp account for broadcast');
+    return res.status(503).json({ error: 'No connected WhatsApp account' });
+  }
+
+  try {
+    // Get all groups from the connected account
+    const chats = await acc.client.getChats();
+    const groupIds = chats.filter(c => c.isGroup).map(c => c.id._serialized);
+
+    if (groupIds.length === 0) {
+      console.warn('Kartis webhook: no groups to broadcast to');
+      return res.json({ ok: true, skipped: true, reason: 'No groups available' });
+    }
+
+    // Format event message from webhook data
+    const d = data.date ? new Date(data.date) : null;
+    const dateStr = d ? d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA';
+    const message = `🎉 *${data.name || 'New Event'}*\n\n` +
+      `📅 ${dateStr}${data.time ? ' | ' + data.time : ''}\n` +
+      `${data.venue ? '📍 ' + data.venue + '\n' : ''}` +
+      `${data.ticketUrl ? '🎟️ Tickets: ' + data.ticketUrl + '\n' : ''}` +
+      `\n_The Best Parties 🐙_`;
+
+    const broadcastId = crypto.randomUUID();
+    const result = await executeBroadcast(accountId, groupIds, message, broadcastId, `Webhook: ${data.name || 'New Event'}`);
+    console.log(`Kartis webhook broadcast complete: sent=${result.sent}, failed=${result.failed}`);
+
+    res.json({ ok: true, broadcastId, ...result });
+  } catch (err) {
+    console.error('Kartis webhook broadcast error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Auto-Announce Endpoint ─────────────────────────────────────────────
 
 app.post('/api/whatsapp/auto-announce', async (req, res) => {
