@@ -869,6 +869,505 @@ function authMiddleware(req, res, next) {
 
 app.use(authMiddleware);
 
+// ─── TBP Frontend Route Aliases & New Handlers ─────────────────────────
+// The TBP frontend uses short /api/* paths. These aliases forward to the
+// existing /api/whatsapp/* routes so both path styles work side by side.
+
+// --- Status / QR / Groups / Broadcast (simple aliases) ---
+app.get('/api/status', (req, res, next) => { req.url = '/api/whatsapp/status' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
+app.get('/api/qr', (req, res, next) => { req.url = '/api/whatsapp/qr' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
+app.get('/api/groups', (req, res, next) => { req.url = '/api/whatsapp/groups' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
+app.post('/api/broadcast', (req, res, next) => { req.url = '/api/whatsapp/broadcast'; next(); });
+
+// --- Accounts DELETE with ?id= query param (TBP style) ---
+app.delete('/api/accounts', (req, res, next) => {
+  const id = req.query.id;
+  if (id) { req.url = '/api/accounts/' + encodeURIComponent(id); next(); }
+  else { res.status(400).json({ error: 'id query param required' }); }
+});
+
+// --- Leads aliases ---
+app.get('/api/leads', (req, res, next) => { req.url = '/api/whatsapp/leads' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
+app.get('/api/leads/stats', (req, res, next) => { req.url = '/api/whatsapp/leads/stats'; next(); });
+app.get('/api/leads/export', (req, res, next) => { req.url = '/api/whatsapp/leads/export' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
+
+// --- Leads: dismiss (TBP sends {id}, sets lead status to 'dismissed') ---
+app.post('/api/leads/dismiss', (req, res) => {
+  const { id } = req.body;
+  if (!id) return res.status(400).json({ error: 'id required' });
+  try {
+    const lead = leads.updateLeadStatus(id, 'dismissed');
+    if (!lead) return res.status(404).json({ error: 'Lead not found' });
+    res.json({ ok: true });
+  } catch (e) { res.status(400).json({ error: e.message }); }
+});
+
+// --- Leads: dismiss-all ---
+app.post('/api/leads/dismiss-all', (req, res) => {
+  try {
+    const allLeads = leads.getLeads({});
+    const list = allLeads.leads || [];
+    let count = 0;
+    for (const l of list) {
+      if (l.status !== 'dismissed') {
+        try { leads.updateLeadStatus(l.id, 'dismissed'); count++; } catch {}
+      }
+    }
+    res.json({ ok: true, dismissed: count });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- Leads: reply via DM ---
+app.post('/api/leads/reply', async (req, res) => {
+  const { leadId, message } = req.body;
+  if (!leadId || !message) return res.status(400).json({ error: 'leadId and message required' });
+
+  // Find the lead to get sender info
+  const allLeads = leads.getLeads({});
+  const lead = (allLeads.leads || []).find(l => l.id === leadId);
+  if (!lead) return res.status(404).json({ error: 'Lead not found' });
+
+  const senderId = lead.senderId || lead.senderJid;
+  if (!senderId) return res.status(400).json({ error: 'No sender info on lead' });
+
+  // Find a connected account (prefer the one that captured the lead)
+  const accountId = lead.account || 'default';
+  const acc = accounts.get(accountId) || accounts.get('default');
+  if (!acc || !acc.ready) return res.status(503).json({ error: 'No connected account' });
+
+  try {
+    await acc.client.sendMessage(senderId, message);
+    // Mark lead as replied
+    try { leads.updateLeadStatus(leadId, 'replied'); } catch {}
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Keywords aliases (TBP uses GET + PUT with different payload shape) ---
+app.get('/api/keywords', (req, res) => {
+  // TBP expects: { keywords: { en: [...], he: [...] }, scannerEnabled: bool }
+  const kwData = leads.getCustomKeywords();
+  const settings = loadJSON(SETTINGS_FILE, {});
+  // Flatten custom keywords by language
+  const en = [];
+  const he = [];
+  const custom = kwData.custom || {};
+  for (const [category, words] of Object.entries(custom)) {
+    for (const w of words) {
+      if (/[\u0590-\u05FF]/.test(w)) he.push(w);
+      else en.push(w);
+    }
+  }
+  res.json({
+    keywords: { en, he },
+    scannerEnabled: settings.scannerEnabled !== false,
+  });
+});
+
+app.put('/api/keywords', (req, res) => {
+  const settings = loadJSON(SETTINGS_FILE, {});
+  const { keywords, scannerEnabled } = req.body;
+
+  if (scannerEnabled !== undefined) {
+    settings.scannerEnabled = Boolean(scannerEnabled);
+    saveJSON(SETTINGS_FILE, settings);
+  }
+
+  if (keywords) {
+    // TBP sends { en: [...], he: [...] }. Store as custom keywords under a 'tbp' category.
+    const allWords = [...(keywords.en || []), ...(keywords.he || [])];
+    try {
+      leads.setCustomKeywords({ keywords: allWords, category: 'tbp' });
+    } catch {}
+  }
+
+  res.json({ ok: true });
+});
+
+// --- Contacts aliases (TBP uses /api/contacts, WBpro uses /api/whatsapp/crm/contacts) ---
+
+// GET /api/contacts — map to CRM contacts with TBP-compatible response shape
+app.get('/api/contacts', (req, res) => {
+  let contactList = Array.from(crmContacts.values()).map(c => {
+    c.score = calculateScore(c);
+    c.status = c.blocked ? 'blocked' : statusFromScore(c.score);
+    return c;
+  });
+
+  // Search by name/phone
+  if (req.query.q) {
+    const q = req.query.q.toLowerCase();
+    contactList = contactList.filter(c =>
+      (c.name && c.name.toLowerCase().includes(q)) ||
+      (c.pushName && c.pushName.toLowerCase().includes(q)) ||
+      (c.phone && c.phone.includes(q)) ||
+      (c.id && c.id.includes(q))
+    );
+  }
+
+  // Filter by group
+  if (req.query.group) {
+    contactList = contactList.filter(c => {
+      const groupSlug = (c.source?.groupId || '');
+      return c.lists.includes(req.query.group) || groupSlug === req.query.group ||
+        c.tags.some(t => t === req.query.group);
+    });
+  }
+
+  // Sort by score descending
+  contactList.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  // Limit
+  const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+  contactList = contactList.slice(0, limit);
+
+  // Transform to TBP shape
+  const contacts = contactList.map(c => {
+    const score = c.score || 0;
+    let activityLevel = 'cold';
+    if (score >= 60) activityLevel = 'hot';
+    else if (score >= 30) activityLevel = 'warm';
+
+    const userTags = (c.tags || []).filter(t => !t.startsWith('all-'));
+    const groups = (c.lists || []).filter(l => l !== 'all-contacts').map(l => l);
+
+    return {
+      jid: c.id + '@s.whatsapp.net',
+      phone: c.phone || formatPhone(c.id),
+      name: c.name || c.pushName || null,
+      messageCount: c.profile?.messageCount || 0,
+      activityScore: score,
+      activityLevel,
+      tags: userTags,
+      groups,
+      firstSeen: c.createdAt,
+      lastSeen: c.profile?.lastActive || c.updatedAt,
+    };
+  });
+
+  res.json({ contacts });
+});
+
+// GET /api/contacts/stats — TBP expects { total, today, week, topGroups }
+app.get('/api/contacts/stats', (req, res) => {
+  const all = Array.from(crmContacts.values());
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  let today = 0, week = 0;
+  const groupCounts = {};
+
+  for (const c of all) {
+    const created = c.createdAt || '';
+    if (created.startsWith(todayStr)) today++;
+    if (new Date(created) >= weekAgo) week++;
+
+    const groupName = c.source?.groupName;
+    const groupId = c.source?.groupId;
+    if (groupName && groupId) {
+      if (!groupCounts[groupId]) groupCounts[groupId] = { group_id: groupId, group_name: groupName, contact_count: 0 };
+      groupCounts[groupId].contact_count++;
+    }
+  }
+
+  const topGroups = Object.values(groupCounts).sort((a, b) => b.contact_count - a.contact_count).slice(0, 20);
+
+  res.json({ total: all.length, today, week, topGroups });
+});
+
+// GET /api/contacts/detail?jid=... — TBP expects detailed contact object
+app.get('/api/contacts/detail', (req, res) => {
+  const jid = req.query.jid;
+  if (!jid) return res.status(400).json({ error: 'jid required' });
+  const phoneId = jid.split('@')[0];
+  const contact = getCrmContact(phoneId);
+  if (!contact) return res.status(404).json({ error: 'Contact not found' });
+
+  const score = contact.score || 0;
+  let activityLevel = 'cold';
+  if (score >= 60) activityLevel = 'hot';
+  else if (score >= 30) activityLevel = 'warm';
+
+  const userTags = (contact.tags || []).filter(t => !t.startsWith('all-'));
+  const groups = (contact.lists || []).filter(l => l !== 'all-contacts').map(l => ({
+    group_id: l, group_name: l, message_count: 0,
+  }));
+
+  res.json({
+    contact: {
+      jid: contact.id + '@s.whatsapp.net',
+      phone: contact.phone || formatPhone(contact.id),
+      name: contact.name || contact.pushName || null,
+      messageCount: contact.profile?.messageCount || 0,
+      activityScore: score,
+      activityLevel,
+      tags: userTags,
+      interests: contact.profile?.interests || [],
+      groups,
+      notes: contact.profile?.notes || '',
+      firstSeen: contact.createdAt,
+      lastSeen: contact.profile?.lastActive || contact.updatedAt,
+    }
+  });
+});
+
+// POST /api/contacts/tag — add tag to contact
+app.post('/api/contacts/tag', (req, res) => {
+  const { jid, tag } = req.body;
+  if (!jid || !tag) return res.status(400).json({ error: 'jid and tag required' });
+  const phoneId = jid.split('@')[0];
+  const contact = getCrmContact(phoneId);
+  if (!contact) return res.status(404).json({ error: 'Contact not found' });
+
+  if (!contact.tags.includes(tag)) {
+    contact.tags.push(tag);
+    crmDirty = true;
+    saveCRM();
+  }
+  res.json({ ok: true });
+});
+
+// DELETE /api/contacts/tag — remove tag from contact
+app.delete('/api/contacts/tag', (req, res) => {
+  const { jid, tag } = req.body;
+  if (!jid || !tag) return res.status(400).json({ error: 'jid and tag required' });
+  const phoneId = jid.split('@')[0];
+  const contact = getCrmContact(phoneId);
+  if (!contact) return res.status(404).json({ error: 'Contact not found' });
+
+  const idx = contact.tags.indexOf(tag);
+  if (idx >= 0) {
+    contact.tags.splice(idx, 1);
+    crmDirty = true;
+    saveCRM();
+  }
+  res.json({ ok: true });
+});
+
+// PUT /api/contacts/notes — save notes for contact
+app.put('/api/contacts/notes', (req, res) => {
+  const { jid, notes } = req.body;
+  if (!jid) return res.status(400).json({ error: 'jid required' });
+  const phoneId = jid.split('@')[0];
+  const contact = getCrmContact(phoneId);
+  if (!contact) return res.status(404).json({ error: 'Contact not found' });
+
+  upsertCrmContact(phoneId, { profile: { notes: notes || '' } });
+  saveCRM();
+  res.json({ ok: true });
+});
+
+// POST /api/contacts/delete — delete contact
+app.post('/api/contacts/delete', (req, res) => {
+  const { jid } = req.body;
+  if (!jid) return res.status(400).json({ error: 'jid required' });
+  const phoneId = jid.split('@')[0];
+  if (!crmContacts.has(phoneId)) return res.status(404).json({ error: 'Contact not found' });
+
+  crmContacts.delete(phoneId);
+  crmDirty = true;
+  saveCRM();
+  res.json({ ok: true });
+});
+
+// GET /api/contacts/export — CSV export alias
+app.get('/api/contacts/export', (req, res, next) => {
+  req.url = '/api/whatsapp/crm/contacts/export' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '');
+  next();
+});
+
+// POST /api/contacts/import — TBP sends { contacts: [...rows], listId }
+app.post('/api/contacts/import', (req, res) => {
+  const { contacts: rows, listId } = req.body;
+  if (!rows || !Array.isArray(rows)) return res.status(400).json({ error: 'contacts array required' });
+
+  let imported = 0, skipped = 0;
+  for (const row of rows) {
+    const rawPhone = row.phone || row.Phone || '';
+    const phone = normalizePhone(rawPhone);
+    if (!phone) { skipped++; continue; }
+
+    const phoneId = phone.replace(/[^0-9]/g, '');
+    if (!phoneId || phoneId.length < 5) { skipped++; continue; }
+    if (isBlocked(phone)) { skipped++; continue; }
+
+    const tags = [];
+    if (row.tag) tags.push(row.tag);
+    if (row.source) tags.push('import:' + row.source);
+
+    const updates = {
+      name: row.name || row.Name || null,
+      tags,
+      source: { type: 'csv_import', importSource: row.source || 'manual', firstSeen: new Date().toISOString() },
+      profile: { lastActive: new Date().toISOString() },
+    };
+
+    // Add to broadcast list if specified
+    if (listId) {
+      updates.lists = [listId];
+    }
+
+    upsertCrmContact(phoneId, updates);
+    imported++;
+  }
+  saveCRM();
+  res.json({ ok: true, imported, skipped });
+});
+
+// --- Broadcast Lists (TBP uses /api/lists, WBpro uses /api/whatsapp/broadcast-lists) ---
+
+// GET /api/lists — return all broadcast lists in TBP shape
+app.get('/api/lists', (req, res) => {
+  const result = broadcastLists.map(l => ({
+    id: l.id,
+    name: l.name,
+    member_count: (l.contacts || []).length,
+    created_at: l.createdAt,
+  }));
+  res.json({ lists: result });
+});
+
+// POST /api/lists — create a new broadcast list
+app.post('/api/lists', (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ error: 'name required' });
+
+  const id = 'list_' + crypto.randomUUID().slice(0, 12);
+  const list = {
+    id,
+    name,
+    description: '',
+    contacts: [],
+    tags: [],
+    createdAt: new Date().toISOString(),
+    lastBroadcastAt: null,
+    broadcastCount: 0,
+  };
+  broadcastLists.push(list);
+  broadcastListsDirty = true;
+  saveBroadcastLists();
+  res.json({ ok: true, list: { id: list.id, name: list.name, member_count: 0, created_at: list.createdAt } });
+});
+
+// DELETE /api/lists?id=... — delete a broadcast list
+app.delete('/api/lists', (req, res) => {
+  const id = req.query.id;
+  if (!id) return res.status(400).json({ error: 'id query param required' });
+  const idx = broadcastLists.findIndex(l => l.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'List not found' });
+  broadcastLists.splice(idx, 1);
+  broadcastListsDirty = true;
+  saveBroadcastLists();
+  res.json({ ok: true });
+});
+
+// GET /api/lists/members?id=... — get members of a broadcast list
+app.get('/api/lists/members', (req, res) => {
+  const id = req.query.id;
+  if (!id) return res.status(400).json({ error: 'id query param required' });
+  const list = broadcastLists.find(l => l.id === id);
+  if (!list) return res.status(404).json({ error: 'List not found' });
+
+  const members = (list.contacts || []).map(phone => {
+    const phoneId = phone.replace(/[^0-9]/g, '');
+    const contact = getCrmContact(phoneId);
+    const score = contact ? (contact.score || 0) : 0;
+    let activityLevel = 'cold';
+    if (score >= 60) activityLevel = 'hot';
+    else if (score >= 30) activityLevel = 'warm';
+
+    return {
+      jid: phoneId + '@s.whatsapp.net',
+      phone: phone,
+      name: contact ? (contact.name || contact.pushName || null) : null,
+      activityScore: score,
+      activityLevel,
+    };
+  });
+
+  res.json({ members });
+});
+
+// POST /api/lists/members — add members { listId, jids: [...] }
+app.post('/api/lists/members', (req, res) => {
+  const { listId, jids } = req.body;
+  if (!listId || !jids || !Array.isArray(jids)) return res.status(400).json({ error: 'listId and jids[] required' });
+  const list = broadcastLists.find(l => l.id === listId);
+  if (!list) return res.status(404).json({ error: 'List not found' });
+
+  let added = 0;
+  for (const jid of jids) {
+    const phoneId = jid.split('@')[0];
+    const phone = formatPhone(phoneId);
+    if (!list.contacts.includes(phone)) {
+      list.contacts.push(phone);
+      added++;
+    }
+  }
+  broadcastListsDirty = true;
+  saveBroadcastLists();
+  res.json({ ok: true, added });
+});
+
+// DELETE /api/lists/members — remove member { listId, jid }
+app.delete('/api/lists/members', (req, res) => {
+  const { listId, jid } = req.body;
+  if (!listId || !jid) return res.status(400).json({ error: 'listId and jid required' });
+  const list = broadcastLists.find(l => l.id === listId);
+  if (!list) return res.status(404).json({ error: 'List not found' });
+
+  const phoneId = jid.split('@')[0];
+  const phone = formatPhone(phoneId);
+  const idx = list.contacts.indexOf(phone);
+  if (idx >= 0) {
+    list.contacts.splice(idx, 1);
+    broadcastListsDirty = true;
+    saveBroadcastLists();
+  }
+  res.json({ ok: true });
+});
+
+// POST /api/lists/broadcast — send DM to all list members
+app.post('/api/lists/broadcast', async (req, res) => {
+  const { listId, message } = req.body;
+  if (!listId || !message) return res.status(400).json({ error: 'listId and message required' });
+  const list = broadcastLists.find(l => l.id === listId);
+  if (!list) return res.status(404).json({ error: 'List not found' });
+
+  // Find a connected account
+  let acc = null;
+  for (const [, a] of accounts) {
+    if (a.ready) { acc = a; break; }
+  }
+  if (!acc) return res.status(503).json({ error: 'No connected account' });
+
+  let sent = 0, failed = 0;
+  for (const phone of list.contacts) {
+    const phoneId = phone.replace(/[^0-9]/g, '');
+    try {
+      const jid = phoneId + '@c.us';
+      await acc.client.sendMessage(jid, message);
+      sent++;
+      if (sent < list.contacts.length) await new Promise(r => setTimeout(r, 3000));
+    } catch (err) {
+      console.error(`List broadcast DM failed for ${phone}:`, err.message);
+      failed++;
+    }
+  }
+
+  list.lastBroadcastAt = new Date().toISOString();
+  list.broadcastCount = (list.broadcastCount || 0) + 1;
+  broadcastListsDirty = true;
+  saveBroadcastLists();
+
+  res.json({ sent, failed, total: list.contacts.length });
+});
+
+// ─── End TBP Frontend Route Aliases ─────────────────────────────────────
+
 // ─── Chromium Args (shared across all clients) ──────────────────────────
 
 const PUPPETEER_ARGS = [
@@ -1285,8 +1784,12 @@ app.get('/health', (req, res) => {
 // ─── Account Management ─────────────────────────────────────────────────
 
 app.post('/api/accounts', (req, res) => {
-  const { id, name } = req.body;
-  if (!id || typeof id !== 'string') return res.status(400).json({ error: 'id required (slug)' });
+  let { id, name } = req.body;
+  // Auto-generate ID if not provided (TBP frontend sends empty body)
+  if (!id || typeof id !== 'string') {
+    id = 'acct-' + crypto.randomUUID().slice(0, 8);
+    if (!name) name = 'Account ' + (accounts.size + 1);
+  }
   if (!/^[a-z0-9-]+$/.test(id)) return res.status(400).json({ error: 'id must be lowercase alphanumeric with hyphens' });
   if (accounts.has(id)) return res.status(409).json({ error: 'Account already exists' });
 
@@ -1304,7 +1807,12 @@ app.post('/api/accounts', (req, res) => {
 app.get('/api/accounts', (req, res) => {
   const list = [];
   for (const [id, acc] of accounts) {
-    list.push({ id, name: acc.name, status: acc.status, ready: acc.ready, hasQr: !!acc.qr });
+    // Map status for TBP frontend compatibility:
+    // TBP checks: 'ready', 'qr' (for dot color)
+    let tbpStatus = acc.status;
+    if (acc.ready) tbpStatus = 'ready';
+    else if (acc.qr || acc.status === 'waiting_for_qr_scan') tbpStatus = 'qr';
+    list.push({ id, name: acc.name, status: tbpStatus, ready: acc.ready, hasQr: !!acc.qr, phone: acc.phone || null });
   }
   res.json({ accounts: list });
 });
