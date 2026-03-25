@@ -114,7 +114,7 @@
     body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); height: 100vh; height: 100dvh; -webkit-text-size-adjust: 100%; }
     .app { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: relative; }
 
-    .topbar { background: #ffffff; padding: 0 12px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 10; height: 44px; border-bottom: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); flex-shrink: 0; }
+    .topbar { background: var(--bg-primary); padding: 0 12px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 10; height: 44px; border-bottom: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); flex-shrink: 0; }
     .topbar-avatar { display: none; }
     .topbar-info { flex: 1; }
     .topbar-title { font-size: var(--font-heading); font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
@@ -140,7 +140,7 @@
     .add-chip:hover { background: var(--accent-dark); border-color: var(--accent); color: var(--text-primary); }
 
     /* Bottom Nav */
-    .tab-bar { display: flex; background: #ffffff; border-top: 1px solid var(--border-color); box-shadow: 0 -1px 2px rgba(0,0,0,0.05); position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; max-width: 500px; margin: 0 auto; }
+    .tab-bar { display: flex; background: var(--bg-primary); border-top: 1px solid var(--border-color); box-shadow: 0 -1px 2px rgba(0,0,0,0.05); position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; max-width: 500px; margin: 0 auto; }
     .tab-btn { flex: 1; padding: 4px 2px 6px; background: none; border: none; color: var(--text-secondary); font-size: 8px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em; position: relative; transition: color 0.15s; display: flex; flex-direction: column; align-items: center; gap: 1px; }
     .tab-btn .tab-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
     .tab-btn .tab-icon svg { width: 18px; height: 18px; }
@@ -155,12 +155,12 @@
 
     .chat-area { flex: 1; padding: 8px 10px 6px; background: var(--bg-primary); overflow-y: auto; overflow-x: hidden; padding-bottom: 120px; }
 
-    .bubble { background: #ffffff; border-radius: var(--radius-md); padding: 10px; margin-bottom: 6px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
+    .bubble { background: var(--bg-primary); border-radius: var(--radius-md); padding: 10px; margin-bottom: 6px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
     .bubble::before { content: ''; position: absolute; top: 0; left: -6px; width: 0; height: 0; border-top: 6px solid #ffffff; border-left: 6px solid transparent; }
     .bubble-label { font-size: var(--font-small); font-weight: 600; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
     .bubble-label svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-    textarea, input[type=text] { width: 100%; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 10px; color: var(--text-primary); font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    textarea, input[type=text] { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 10px; color: var(--text-primary); font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
     textarea:focus, input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(24,119,242,0.15); }
     textarea { resize: none; min-height: 60px; line-height: 1.4; }
     textarea::placeholder, input::placeholder { color: var(--text-secondary); }
@@ -189,7 +189,7 @@
     .wa-icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--text-muted); }
     .wa-icon-btn svg { width: 14px; height: 14px; }
 
-    .bottom-bar { background: #ffffff; box-shadow: 0 -1px 2px rgba(0,0,0,0.05); padding: 8px 12px; display: flex; align-items: center; gap: 8px; position: fixed; bottom: 60px; left: 0; right: 0; max-width: 500px; margin: 0 auto; z-index: 40; border-top: 1px solid var(--border-color); }
+    .bottom-bar { background: var(--bg-primary); box-shadow: 0 -1px 2px rgba(0,0,0,0.05); padding: 8px 12px; display: flex; align-items: center; gap: 8px; position: fixed; bottom: 60px; left: 0; right: 0; max-width: 500px; margin: 0 auto; z-index: 40; border-top: 1px solid var(--border-color); }
     .send-btn { width: 40px; height: 40px; background: var(--accent); border: none; border-radius: var(--radius-full); color: #ffffff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; font-weight: 700; box-shadow: 0 2px 8px rgba(24,119,242,0.3); }
     .send-btn:hover { background: var(--accent-hover); transform: scale(1.05); box-shadow: 0 4px 16px rgba(24,119,242,0.4); }
     .send-btn:disabled { background: var(--bg-tertiary); color: var(--text-muted); cursor: not-allowed; box-shadow: none; transform: none; }
@@ -213,7 +213,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    .modal { background: #ffffff; border-radius: 12px; padding: 16px; max-width: 320px; width: 90%; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+    .modal { background: var(--bg-primary); border-radius: 12px; padding: 16px; max-width: 320px; width: 90%; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
     .modal h3 { font-size: var(--font-heading); font-weight: 500; color: var(--text-primary); margin-bottom: 6px; }
     .modal p { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4; }
     .qr-wrap { background: #fff; border-radius: var(--radius-md); padding: 12px; display: inline-block; margin-bottom: 16px; }
@@ -226,7 +226,7 @@
     .mod-badge { display: inline-block; background: transparent; color: var(--text-primary); font-size: inherit; font-weight: 400; padding: 0; border-radius: 0; letter-spacing: -0.3px; vertical-align: baseline; margin-left: 0; }
 
     /* Lead cards */
-    .lead-card { background: #ffffff; border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 8px; border: 1px solid var(--border-color); border-left: 3px solid var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: all 0.2s ease; }
+    .lead-card { background: var(--bg-primary); border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 8px; border: 1px solid var(--border-color); border-left: 3px solid var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: all 0.2s ease; }
     .lead-card:hover { border-color: rgba(24,119,242,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left-color: var(--accent); }
     .lead-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
     .lead-sender { font-size: var(--font-body); font-weight: 600; color: var(--text-primary); }
@@ -247,7 +247,7 @@
 
     /* Stats cards */
     .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-    .stat-card { background: #ffffff; border-radius: var(--radius-lg); padding: var(--pad-card); text-align: center; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .stat-card { background: var(--bg-primary); border-radius: var(--radius-lg); padding: var(--pad-card); text-align: center; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .stat-num { font-size: 20px; font-weight: 700; color: var(--accent); font-family: var(--font-mono); letter-spacing: -0.5px; }
     .stat-label { font-size: var(--font-micro); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; font-weight: 500; }
 
@@ -265,7 +265,7 @@
     .kw-add-btn:hover { background: var(--accent-hover); transform: scale(1.02); }
     .kw-add-btn svg { width: 14px; height: 14px; }
 
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 12px; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-primary); border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 12px; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .toggle-label { font-size: var(--font-body); color: var(--text-primary); }
     .toggle-sub { font-size: 11px; color: var(--text-secondary); }
     .toggle-switch { width: 44px; height: 24px; background: var(--bg-tertiary); border-radius: 12px; position: relative; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--border-color); flex-shrink: 0; }
@@ -282,7 +282,7 @@
     .reply-send svg { width: 14px; height: 14px; }
 
     /* Contact cards */
-    .contact-card { display: flex; align-items: center; gap: 10px; background: #ffffff; border-radius: var(--radius-lg); padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .contact-card { display: flex; align-items: center; gap: 10px; background: var(--bg-primary); border-radius: var(--radius-lg); padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .contact-card:hover { background: var(--bg-secondary); border-color: rgba(24,119,242,0.3); }
     .contact-avatar { width: 34px; height: 34px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; font-weight: 700; color: #fff; }
     .contact-avatar.hot { background: var(--danger-dark); }
@@ -301,7 +301,7 @@
     .contact-score.cold { background: var(--bg-tertiary); color: var(--text-secondary); }
 
     /* List cards */
-    .list-card { background: #ffffff; border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .list-card { background: var(--bg-primary); border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .list-card:hover { background: var(--bg-secondary); border-color: rgba(24,119,242,0.3); }
     .list-icon { width: 34px; height: 34px; background: var(--accent-dark); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
     .list-icon svg { width: 20px; height: 20px; stroke: #fff; }
@@ -404,13 +404,13 @@
       }
       .app > .topbar { display: none; }
       .desktop-sidebar {
-        width: 380px; min-width: 380px; background: #ffffff;
+        width: 380px; min-width: 380px; background: var(--bg-primary);
         display: flex; flex-direction: column; border-right: 1px solid var(--border-color);
         height: 100%;
       }
       .desktop-sidebar .sidebar-hdr {
         display: flex; align-items: center; padding: 10px 16px;
-        background: #ffffff; height: 52px; gap: 12px; border-bottom: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        background: var(--bg-primary); height: 52px; gap: 12px; border-bottom: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.05);
       }
       .desktop-sidebar .sidebar-hdr-title {
         font-size: 16px; font-weight: 700; flex: 1; white-space: nowrap;
@@ -566,7 +566,7 @@
     }
     .confirm-overlay.visible { display: flex; }
     .confirm-dialog {
-      background: #ffffff; border-radius: 16px; padding: 24px;
+      background: var(--bg-primary); border-radius: 16px; padding: 24px;
       max-width: 360px; width: 90%; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     }
     .confirm-dialog h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
@@ -596,7 +596,7 @@
     .onboarding-card h2 { font-size: 22px; font-weight: 300; color: var(--text-primary); }
     .onboarding-card p { font-size: var(--font-body); color: var(--text-secondary); max-width: 400px; line-height: 1.5; }
     .connect-card {
-      background: #ffffff; border-radius: var(--radius-lg); padding: 32px;
+      background: var(--bg-primary); border-radius: var(--radius-lg); padding: 32px;
       max-width: 440px; width: 100%; text-align: center; border: 1px solid var(--border-color);
       animation: fadeSlideIn 0.4s ease;
     }
@@ -1120,7 +1120,7 @@
     /* Slide-in detail panel */
     .contact-slide-panel {
       position: fixed; top: 0; right: -100%; width: 100%; max-width: 400px;
-      height: 100vh; height: 100dvh; background: #ffffff;
+      height: 100vh; height: 100dvh; background: var(--bg-primary);
       z-index: 90; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       overflow-y: auto; border-left: 1px solid var(--border-color);
       box-shadow: -4px 0 24px rgba(0,0,0,0.1);
@@ -1129,7 +1129,7 @@
     .contact-slide-panel .panel-header {
       display: flex; align-items: center; gap: 12px; padding: 12px 16px;
       border-bottom: 1px solid var(--border-color); position: sticky; top: 0;
-      background: #ffffff; z-index: 2;
+      background: var(--bg-primary); z-index: 2;
     }
     .contact-slide-panel .panel-back {
       background: none; border: none; color: var(--text-secondary);
@@ -1150,7 +1150,7 @@
     /* Contact card redesign for people tab */
     .contact-card-v2 {
       display: flex; align-items: center; gap: 10px;
-      background: #ffffff; border-radius: var(--radius-lg);
+      background: var(--bg-primary); border-radius: var(--radius-lg);
       padding: 10px 12px; margin-bottom: 6px; cursor: pointer;
       transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
@@ -1211,7 +1211,7 @@
     .settings-section {
       margin-bottom: 8px; border-radius: var(--radius-lg);
       border: 1px solid var(--border-color); overflow: hidden;
-      background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      background: var(--bg-primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
     .settings-section-header {
       display: flex; align-items: center; gap: 10px;
@@ -1509,7 +1509,7 @@
                     </div>
                     <div style="height:6px;background:#1877f2;border-radius:2px;margin-top:auto"></div>
                   </div>
-                  <span data-i18n="themeLight">Light</span>
+                  <span data-i18n="themeLight">Modern Light</span>
                 </button>
                 <button class="theme-card" id="themeDark" onclick="setTheme('dark')">
                   <div class="theme-preview" style="background:#0b141a;border:2px solid #222e35">
@@ -1520,7 +1520,7 @@
                     </div>
                     <div style="height:6px;background:#005c4b;border-radius:2px;margin-top:auto"></div>
                   </div>
-                  <span data-i18n="themeDark">Dark</span>
+                  <span data-i18n="themeDark">WhatsApp Clone</span>
                 </button>
                 <button class="theme-card" id="themePro" onclick="setTheme('pro')">
                   <div class="theme-preview" style="background:#0a0f14;border:2px solid #1e2d3a">
@@ -1531,7 +1531,7 @@
                     </div>
                     <div style="height:6px;background:#005e45;border-radius:2px;margin-top:auto"></div>
                   </div>
-                  <span data-i18n="themePro">WBpro Dark</span>
+                  <span data-i18n="themePro">Modern Dark</span>
                 </button>
               </div>
             </div>
