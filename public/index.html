@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#0b141a" />
   <title>WBpro</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -12,14 +12,14 @@
       --bg-secondary: #f0f2f5;
       --bg-tertiary: #e4e6eb;
       --bg-hover: #d8dadf;
-      --bg-selected: #e7f3ff;
+      --bg-selected: #dcf8c6;
       --border-color: #ced0d4;
       --text-primary: #1c1e21;
       --text-secondary: #65676b;
       --text-muted: #8a8d91;
-      --accent: #1877f2;
-      --accent-hover: #166fe5;
-      --accent-dark: #1466cc;
+      --accent: #25d366;
+      --accent-hover: #1fba59;
+      --accent-dark: #128c7e;
       --accent-glow: rgba(24, 119, 242, 0.15);
       --danger: #e4405f;
       --danger-dark: #c0392b;
@@ -1500,17 +1500,6 @@
             <div style="margin-bottom:12px">
               <div class="text-label" style="margin-bottom:8px" data-i18n="themeLabel">Theme</div>
               <div style="display:flex;gap:8px">
-                <button class="theme-card" id="themeLight" onclick="setTheme('light')">
-                  <div class="theme-preview" style="background:#ffffff;border:2px solid #ced0d4">
-                    <div style="height:6px;background:#f0f2f5;border-radius:2px;margin-bottom:4px"></div>
-                    <div style="display:flex;gap:4px">
-                      <div style="width:8px;height:8px;border-radius:50%;background:#1877f2"></div>
-                      <div style="flex:1;height:8px;background:#e4e6eb;border-radius:2px"></div>
-                    </div>
-                    <div style="height:6px;background:#1877f2;border-radius:2px;margin-top:auto"></div>
-                  </div>
-                  <span data-i18n="themeLight">Modern Light</span>
-                </button>
                 <button class="theme-card" id="themeDark" onclick="setTheme('dark')">
                   <div class="theme-preview" style="background:#0b141a;border:2px solid #222e35">
                     <div style="height:6px;background:#1f2c34;border-radius:2px;margin-bottom:4px"></div>
@@ -1520,18 +1509,18 @@
                     </div>
                     <div style="height:6px;background:#005c4b;border-radius:2px;margin-top:auto"></div>
                   </div>
-                  <span data-i18n="themeDark">WhatsApp Clone</span>
+                  <span data-i18n="themeDark">Dark</span>
                 </button>
-                <button class="theme-card" id="themePro" onclick="setTheme('pro')">
-                  <div class="theme-preview" style="background:#0a0f14;border:2px solid #1e2d3a">
-                    <div style="height:6px;background:#131a22;border-radius:2px;margin-bottom:4px"></div>
+                <button class="theme-card" id="themeLight" onclick="setTheme('light')">
+                  <div class="theme-preview" style="background:#ffffff;border:2px solid #ced0d4">
+                    <div style="height:6px;background:#f0f2f5;border-radius:2px;margin-bottom:4px"></div>
                     <div style="display:flex;gap:4px">
-                      <div style="width:8px;height:8px;border-radius:50%;background:#00c896"></div>
-                      <div style="flex:1;height:8px;background:#1c2630;border-radius:2px"></div>
+                      <div style="width:8px;height:8px;border-radius:50%;background:#25d366"></div>
+                      <div style="flex:1;height:8px;background:#e4e6eb;border-radius:2px"></div>
                     </div>
-                    <div style="height:6px;background:#005e45;border-radius:2px;margin-top:auto"></div>
+                    <div style="height:6px;background:#25d366;border-radius:2px;margin-top:auto"></div>
                   </div>
-                  <span data-i18n="themePro">Modern Dark</span>
+                  <span data-i18n="themeLight">Light</span>
                 </button>
               </div>
             </div>
@@ -4111,17 +4100,14 @@
 
     // ── Theme Switcher ──
     function setTheme(theme) {
-      // Valid themes: 'light', 'dark', 'pro'
-      if (theme === 'dark') {
-        document.documentElement.className = 'theme-dark';
-        document.querySelector('meta[name="theme-color"]').content = '#0b141a';
-      } else if (theme === 'pro') {
-        document.documentElement.className = 'theme-pro';
-        document.querySelector('meta[name="theme-color"]').content = '#0a0f14';
-      } else {
+      // Valid themes: 'dark' (WhatsApp Clone, default), 'light'
+      if (theme === 'light') {
         document.documentElement.className = '';
-        theme = 'light';
         document.querySelector('meta[name="theme-color"]').content = '#ffffff';
+      } else {
+        document.documentElement.className = 'theme-dark';
+        theme = 'dark';
+        document.querySelector('meta[name="theme-color"]').content = '#0b141a';
       }
       // Preserve RTL direction
       if (lang === 'he') {
@@ -4134,10 +4120,8 @@
       localStorage.setItem('wbpro-theme', theme);
       var lightEl = document.getElementById('themeLight');
       var darkEl = document.getElementById('themeDark');
-      var proEl = document.getElementById('themePro');
       if (lightEl) lightEl.className = 'theme-card' + (theme === 'light' ? ' active' : '');
       if (darkEl) darkEl.className = 'theme-card' + (theme === 'dark' ? ' active' : '');
-      if (proEl) proEl.className = 'theme-card' + (theme === 'pro' ? ' active' : '');
       updateThemeToggleIcon(theme);
     }
 
@@ -4154,17 +4138,15 @@
     }
 
     function cycleTheme() {
-      var current = localStorage.getItem('wbpro-theme') || 'light';
-      if (current === 'light') setTheme('dark');
-      else if (current === 'dark') setTheme('pro');
-      else setTheme('light');
+      var current = localStorage.getItem('wbpro-theme') || 'dark';
+      setTheme(current === 'dark' ? 'light' : 'dark');
     }
 
     // Load saved theme on startup
     (function() {
-      var saved = localStorage.getItem('wbpro-theme') || 'light';
-      // Migration: map old 'classic' to 'dark' (preserving existing user preference)
-      if (saved === 'classic') saved = 'dark';
+      var saved = localStorage.getItem('wbpro-theme') || 'dark';
+      // Migration: map old values to dark (default)
+      if (saved === 'classic' || saved === 'pro') saved = 'dark';
       setTheme(saved);
     })();
 
