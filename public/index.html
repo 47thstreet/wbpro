@@ -1098,7 +1098,7 @@
        ═══════════════════════════════════════════════════════════ */
     .contacts-search-sticky {
       position: sticky; top: 0; z-index: 5; background: var(--bg-primary);
-      padding: 10px 0 10px;
+      padding: 6px 0 6px;
     }
     .contact-status-pills {
       display: flex; gap: 6px; overflow-x: auto; padding: 4px 0;
@@ -1678,13 +1678,13 @@
           </div>
         </div>
 
-        <div class="stats-row" id="contactStats">
-          <div class="stat-card"><div class="stat-num" id="cStatTotal">0</div><div class="stat-label">Total</div></div>
-          <div class="stat-card"><div class="stat-num" id="cStatToday">0</div><div class="stat-label">Today</div></div>
-          <div class="stat-card"><div class="stat-num" id="cStatWeek">0</div><div class="stat-label">This Week</div></div>
+        <div class="stats-row" id="contactStats" style="margin-bottom:6px">
+          <div class="stat-card" style="padding:6px"><div class="stat-num" id="cStatTotal">0</div><div class="stat-label">Total</div></div>
+          <div class="stat-card" style="padding:6px"><div class="stat-num" id="cStatToday">0</div><div class="stat-label">Today</div></div>
+          <div class="stat-card" style="padding:6px"><div class="stat-num" id="cStatWeek">0</div><div class="stat-label">This Week</div></div>
         </div>
 
-        <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0">
           <div class="bubble-label" style="margin:0" id="contactsCount">Contacts (0)</div>
         </div>
 
@@ -2565,6 +2565,12 @@
       // bottomBar replaced by wide send button in broadcast panel
       var fabEl = document.getElementById('fabNewList');
       if (fabEl) fabEl.style.display = (tab === 'lists') ? 'flex' : 'none';
+
+      // Show/hide broadcast-only header elements
+      var accBar = document.getElementById('accountsBar');
+      var connBanner = document.getElementById('connectionBanner');
+      if (accBar) accBar.style.display = (tab === 'broadcast') ? '' : 'none';
+      if (connBanner) connBanner.style.display = (tab === 'broadcast') ? '' : 'none';
 
       // Lazy load: only fetch data first time or refresh
       if (tab === 'leads') { loadLeads(); loadLeadStats(); loadScannerFeed(); loadScannerStats(); }
