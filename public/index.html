@@ -3,29 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0a0f14" />
+  <meta name="theme-color" content="#ffffff" />
   <title>WBpro</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
     :root {
-      --bg-primary: #0b141a;
-      --bg-secondary: #1f2c34;
-      --bg-tertiary: #2a3942;
-      --bg-hover: #374045;
-      --bg-selected: #0c332c;
-      --border-color: #222e35;
-      --text-primary: #e9edef;
-      --text-secondary: #8696a0;
-      --text-muted: #64748b;
-      --accent: #00a884;
-      --accent-hover: #06cf9c;
-      --accent-dark: #005c4b;
-      --danger: #f15c6d;
-      --danger-dark: #dc2626;
-      --danger-bg: #3b1c1e;
+      --bg-primary: #ffffff;
+      --bg-secondary: #f0f2f5;
+      --bg-tertiary: #e4e6eb;
+      --bg-hover: #d8dadf;
+      --bg-selected: #e7f3ff;
+      --border-color: #ced0d4;
+      --text-primary: #1c1e21;
+      --text-secondary: #65676b;
+      --text-muted: #8a8d91;
+      --accent: #1877f2;
+      --accent-hover: #166fe5;
+      --accent-dark: #1466cc;
+      --accent-glow: rgba(24, 119, 242, 0.15);
+      --danger: #e4405f;
+      --danger-dark: #c0392b;
+      --danger-bg: #fce8ec;
       --warning: #f0b429;
-      --warning-bg: #3b3420;
-      --success-bg: #0c332c;
+      --warning-bg: #fef3cd;
+      --success-bg: #e6f4ea;
       --radius-sm: 4px;
       --radius-md: 8px;
       --radius-lg: 12px;
@@ -38,12 +39,82 @@
       --pad-card: 10px;
       --pad-compact: 6px;
     }
+
+    /* ═══════════════════════════════════════════════════════════
+       THEME: Dark (WhatsApp-style)
+       ═══════════════════════════════════════════════════════════ */
+    .theme-dark {
+      --bg-primary: #0b141a;
+      --bg-secondary: #1f2c34;
+      --bg-tertiary: #2a3942;
+      --bg-hover: #374045;
+      --bg-selected: #0c332c;
+      --border-color: #222e35;
+      --text-primary: #e9edef;
+      --text-secondary: #8696a0;
+      --text-muted: #64748b;
+      --accent: #00a884;
+      --accent-hover: #06cf9c;
+      --accent-dark: #005c4b;
+      --accent-glow: rgba(0, 200, 150, 0.15);
+      --danger: #f15c6d;
+      --danger-dark: #dc2626;
+      --danger-bg: #3b1c1e;
+      --warning: #f0b429;
+      --warning-bg: #3b3420;
+      --success-bg: #0c332c;
+    }
+    .theme-dark .topbar {
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      background: rgba(19,26,34,0.85);
+      border-image: linear-gradient(90deg, transparent 0%, rgba(0,200,150,0.2) 20%, rgba(0,200,150,0.2) 80%, transparent 100%) 1;
+      box-shadow: none;
+    }
+    .theme-dark .tab-bar {
+      background: var(--bg-secondary);
+      box-shadow: none;
+    }
+    .theme-dark .tab-btn.active .tab-icon {
+      background: rgba(0,168,132,0.15);
+    }
+    .theme-dark .bottom-bar {
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      background: rgba(19,26,34,0.9);
+      box-shadow: none;
+    }
+    .theme-dark .bubble, .theme-dark .lead-card, .theme-dark .contact-card, .theme-dark .list-card,
+    .theme-dark .stat-card, .theme-dark .settings-section, .theme-dark .toggle-row,
+    .theme-dark .contact-card-v2, .theme-dark .hist-item, .theme-dark .rule-item {
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .theme-dark .send-btn {
+      box-shadow: 0 2px 8px rgba(0,200,150,0.3);
+    }
+    .theme-dark .send-btn:hover {
+      box-shadow: 0 4px 16px rgba(0,200,150,0.4);
+    }
+    .theme-dark .send-btn-wide {
+      box-shadow: 0 2px 8px rgba(0,200,150,0.3);
+    }
+    .theme-dark .chat-area {
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .theme-dark .lead-msg { color: #d1d7db; }
+    .theme-dark .hist-item .hist-msg { color: #d1d7db; }
+    .theme-dark .rule-response { color: #d1d7db; }
+    .theme-dark .modal-overlay { background: rgba(0,0,0,0.7); }
+    .theme-dark .modal { box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .theme-dark .toast-notify { box-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+    .theme-dark .confirm-dialog { box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .theme-dark .contact-slide-panel { box-shadow: -4px 0 24px rgba(0,0,0,0.4); }
+    .theme-dark .ripple-effect { background: rgba(255,255,255,0.15); }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { overflow: hidden; width: 100%; height: 100%; position: fixed; top: 0; left: 0; overscroll-behavior: none; }
     body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); height: 100vh; height: 100dvh; -webkit-text-size-adjust: 100%; }
     .app { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: relative; }
 
-    .topbar { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(19,26,34,0.85); padding: 0 12px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 10; height: 44px; border-bottom: 1px solid; border-image: linear-gradient(90deg, transparent 0%, rgba(0,200,150,0.2) 20%, rgba(0,200,150,0.2) 80%, transparent 100%) 1; flex-shrink: 0; }
+    .topbar { background: #ffffff; padding: 0 12px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 10; height: 44px; border-bottom: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); flex-shrink: 0; }
     .topbar-avatar { display: none; }
     .topbar-info { flex: 1; }
     .topbar-title { font-size: var(--font-heading); font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
@@ -60,7 +131,7 @@
     .acc-chip { display: flex; align-items: center; gap: 5px; padding: 4px 10px; background: transparent; border: 1px solid var(--border-color); border-radius: var(--radius-pill); font-size: var(--font-micro); cursor: pointer; flex-shrink: 0; transition: all 0.2s ease; color: var(--text-primary); }
     .acc-chip:hover { background: var(--bg-hover); border-color: var(--text-muted); }
     .acc-chip .cd { width: 6px; height: 6px; border-radius: var(--radius-full); background: var(--text-muted); flex-shrink: 0; transition: all 0.2s ease; }
-    .acc-chip .cd.on { background: var(--accent); box-shadow: 0 0 6px rgba(0,200,150,0.4); }
+    .acc-chip .cd.on { background: #00a884; box-shadow: 0 0 6px rgba(0,168,132,0.4); }
     .acc-chip .cd.qr { background: var(--warning); }
     .acc-chip .cx { color: var(--text-secondary); font-size: var(--font-micro); margin-left: 2px; padding: 2px; line-height: 1; display: flex; align-items: center; }
     .acc-chip .cx:hover { color: var(--danger); }
@@ -69,7 +140,7 @@
     .add-chip:hover { background: var(--accent-dark); border-color: var(--accent); color: var(--text-primary); }
 
     /* Bottom Nav */
-    .tab-bar { display: flex; background: var(--bg-secondary); border-top: 1px solid var(--border-color); position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; max-width: 500px; margin: 0 auto; }
+    .tab-bar { display: flex; background: #ffffff; border-top: 1px solid var(--border-color); box-shadow: 0 -1px 2px rgba(0,0,0,0.05); position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; max-width: 500px; margin: 0 auto; }
     .tab-btn { flex: 1; padding: 4px 2px 6px; background: none; border: none; color: var(--text-secondary); font-size: 8px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em; position: relative; transition: color 0.15s; display: flex; flex-direction: column; align-items: center; gap: 1px; }
     .tab-btn .tab-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
     .tab-btn .tab-icon svg { width: 18px; height: 18px; }
@@ -82,14 +153,15 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    .chat-area { flex: 1; padding: 8px 10px 6px; background: var(--bg-primary); background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); overflow-y: auto; overflow-x: hidden; padding-bottom: 120px; }
+    .chat-area { flex: 1; padding: 8px 10px 6px; background: var(--bg-primary); overflow-y: auto; overflow-x: hidden; padding-bottom: 120px; }
 
-    .bubble { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px; margin-bottom: 6px; position: relative; }
-    .bubble::before { content: ''; position: absolute; top: 0; left: -6px; width: 0; height: 0; border-top: 6px solid var(--bg-secondary); border-left: 6px solid transparent; }
+    .bubble { background: #ffffff; border-radius: var(--radius-md); padding: 10px; margin-bottom: 6px; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
+    .bubble::before { content: ''; position: absolute; top: 0; left: -6px; width: 0; height: 0; border-top: 6px solid #ffffff; border-left: 6px solid transparent; }
     .bubble-label { font-size: var(--font-small); font-weight: 600; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
     .bubble-label svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-    textarea, input[type=text] { width: 100%; background: var(--bg-tertiary); border: none; border-radius: var(--radius-md); padding: 8px 10px; color: var(--text-primary); font-size: 13px; font-family: inherit; outline: none; }
+    textarea, input[type=text] { width: 100%; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 8px 10px; color: var(--text-primary); font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    textarea:focus, input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(24,119,242,0.15); }
     textarea { resize: none; min-height: 60px; line-height: 1.4; }
     textarea::placeholder, input::placeholder { color: var(--text-secondary); }
     .char-count { font-size: 11px; color: var(--text-secondary); margin-top: 4px; text-align: right; }
@@ -117,9 +189,9 @@
     .wa-icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--text-muted); }
     .wa-icon-btn svg { width: 14px; height: 14px; }
 
-    .bottom-bar { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(19,26,34,0.9); padding: 8px 12px; display: flex; align-items: center; gap: 8px; position: fixed; bottom: 60px; left: 0; right: 0; max-width: 500px; margin: 0 auto; z-index: 40; border-top: 1px solid var(--border-color); }
-    .send-btn { width: 40px; height: 40px; background: var(--accent); border: none; border-radius: var(--radius-full); color: var(--bg-primary); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; font-weight: 700; box-shadow: 0 2px 8px rgba(0,200,150,0.3); }
-    .send-btn:hover { background: var(--accent-hover); transform: scale(1.05); box-shadow: 0 4px 16px rgba(0,200,150,0.4); }
+    .bottom-bar { background: #ffffff; box-shadow: 0 -1px 2px rgba(0,0,0,0.05); padding: 8px 12px; display: flex; align-items: center; gap: 8px; position: fixed; bottom: 60px; left: 0; right: 0; max-width: 500px; margin: 0 auto; z-index: 40; border-top: 1px solid var(--border-color); }
+    .send-btn { width: 40px; height: 40px; background: var(--accent); border: none; border-radius: var(--radius-full); color: #ffffff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; flex-shrink: 0; font-weight: 700; box-shadow: 0 2px 8px rgba(24,119,242,0.3); }
+    .send-btn:hover { background: var(--accent-hover); transform: scale(1.05); box-shadow: 0 4px 16px rgba(24,119,242,0.4); }
     .send-btn:disabled { background: var(--bg-tertiary); color: var(--text-muted); cursor: not-allowed; box-shadow: none; transform: none; }
     .send-btn svg { width: 22px; height: 22px; }
     .send-info { flex: 1; font-size: 13px; color: var(--text-secondary); }
@@ -140,8 +212,8 @@
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #ffffff30; border-top-color: #fff; border-radius: var(--radius-full); animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 100; }
-    .modal { background: var(--bg-secondary); border-radius: 12px; padding: 16px; max-width: 320px; width: 90%; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .modal { background: #ffffff; border-radius: 12px; padding: 16px; max-width: 320px; width: 90%; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
     .modal h3 { font-size: var(--font-heading); font-weight: 500; color: var(--text-primary); margin-bottom: 6px; }
     .modal p { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4; }
     .qr-wrap { background: #fff; border-radius: var(--radius-md); padding: 12px; display: inline-block; margin-bottom: 16px; }
@@ -154,14 +226,14 @@
     .mod-badge { display: inline-block; background: transparent; color: var(--text-primary); font-size: inherit; font-weight: 400; padding: 0; border-radius: 0; letter-spacing: -0.3px; vertical-align: baseline; margin-left: 0; }
 
     /* Lead cards */
-    .lead-card { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 8px; border: 1px solid var(--border-color); border-left: 3px solid var(--warning); box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: all 0.2s ease; }
-    .lead-card:hover { border-color: rgba(0,200,150,0.2); box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,168,132,0.15); border-left-color: var(--warning); }
+    .lead-card { background: #ffffff; border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 8px; border: 1px solid var(--border-color); border-left: 3px solid var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: all 0.2s ease; }
+    .lead-card:hover { border-color: rgba(24,119,242,0.3); box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left-color: var(--accent); }
     .lead-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
     .lead-sender { font-size: var(--font-body); font-weight: 600; color: var(--text-primary); }
     .lead-group { font-size: 11px; color: var(--accent); display: flex; align-items: center; gap: 4px; }
     .lead-group svg { width: 12px; height: 12px; }
     .lead-time { font-size: 11px; color: var(--text-secondary); flex-shrink: 0; }
-    .lead-msg { font-size: var(--font-body); color: #d1d7db; line-height: 1.4; margin-bottom: 8px; word-break: break-word; }
+    .lead-msg { font-size: var(--font-body); color: var(--text-primary); line-height: 1.4; margin-bottom: 8px; word-break: break-word; }
     .lead-msg .kw-match { background: #f0b42930; color: var(--warning); padding: 1px 3px; border-radius: 3px; font-weight: 600; }
     .lead-keywords { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
     .lead-kw-tag { font-size: var(--font-micro); background: #f0b42920; color: var(--warning); padding: 2px 6px; border-radius: var(--radius-sm); font-family: var(--font-mono); }
@@ -175,7 +247,7 @@
 
     /* Stats cards */
     .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-    .stat-card { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--pad-card); text-align: center; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .stat-card { background: #ffffff; border-radius: var(--radius-lg); padding: var(--pad-card); text-align: center; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .stat-num { font-size: 20px; font-weight: 700; color: var(--accent); font-family: var(--font-mono); letter-spacing: -0.5px; }
     .stat-label { font-size: var(--font-micro); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; font-weight: 500; }
 
@@ -189,15 +261,15 @@
     .kw-tag .kw-x svg { width: 12px; height: 12px; }
     .kw-add-row { display: flex; gap: 6px; }
     .kw-add-row input { flex: 1; padding: 8px 12px; font-size: 13px; border-radius: var(--radius-pill); }
-    .kw-add-btn { background: var(--accent); color: var(--bg-primary); border: none; border-radius: var(--radius-md); padding: 8px 14px; font-size: 13px; cursor: pointer; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; }
+    .kw-add-btn { background: var(--accent); color: #ffffff; border: none; border-radius: var(--radius-md); padding: 8px 14px; font-size: 13px; cursor: pointer; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; }
     .kw-add-btn:hover { background: var(--accent-hover); transform: scale(1.02); }
     .kw-add-btn svg { width: 14px; height: 14px; }
 
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 12px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; background: #ffffff; border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 12px; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
     .toggle-label { font-size: var(--font-body); color: var(--text-primary); }
     .toggle-sub { font-size: 11px; color: var(--text-secondary); }
     .toggle-switch { width: 44px; height: 24px; background: var(--bg-tertiary); border-radius: 12px; position: relative; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--border-color); flex-shrink: 0; }
-    .toggle-switch.on { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px rgba(0,168,132,0.4); }
+    .toggle-switch.on { background: var(--accent); border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow, rgba(24,119,242,0.3)); }
     .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: var(--radius-full); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
     .toggle-switch.on::after { transform: translateX(20px); }
 
@@ -205,13 +277,13 @@
     .reply-modal textarea { min-height: 60px; margin: 12px 0; }
     .reply-modal .reply-to { font-size: var(--font-small); color: var(--text-secondary); margin-bottom: 8px; }
     .reply-modal .modal-actions { display: flex; gap: 8px; justify-content: center; }
-    .reply-send { background: var(--accent); color: var(--bg-primary); border: none; border-radius: var(--radius-md); padding: 8px 20px; cursor: pointer; font-size: var(--font-body); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; }
+    .reply-send { background: var(--accent); color: #ffffff; border: none; border-radius: var(--radius-md); padding: 8px 20px; cursor: pointer; font-size: var(--font-body); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s ease; }
     .reply-send:hover { background: var(--accent-hover); transform: scale(1.02); }
     .reply-send svg { width: 14px; height: 14px; }
 
     /* Contact cards */
-    .contact-card { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); border-radius: var(--radius-lg); padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-    .contact-card:hover { background: var(--bg-hover); border-color: rgba(0,200,150,0.2); }
+    .contact-card { display: flex; align-items: center; gap: 10px; background: #ffffff; border-radius: var(--radius-lg); padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .contact-card:hover { background: var(--bg-secondary); border-color: rgba(24,119,242,0.3); }
     .contact-avatar { width: 34px; height: 34px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; font-weight: 700; color: #fff; }
     .contact-avatar.hot { background: var(--danger-dark); }
     .contact-avatar.warm { background: #f59e0b; }
@@ -229,8 +301,8 @@
     .contact-score.cold { background: var(--bg-tertiary); color: var(--text-secondary); }
 
     /* List cards */
-    .list-card { background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-    .list-card:hover { background: var(--bg-hover); border-color: rgba(0,200,150,0.2); }
+    .list-card { background: #ffffff; border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .list-card:hover { background: var(--bg-secondary); border-color: rgba(24,119,242,0.3); }
     .list-icon { width: 34px; height: 34px; background: var(--accent-dark); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
     .list-icon svg { width: 20px; height: 20px; stroke: #fff; }
     .list-info { flex: 1; min-width: 0; }
@@ -271,7 +343,7 @@
 
     .hist-item { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px; margin-bottom: 6px; font-size: var(--font-small); border: 1px solid var(--border-color); }
     .hist-item .hist-time { color: var(--text-secondary); font-size: 11px; }
-    .hist-item .hist-msg { color: #d1d7db; margin: 4px 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .hist-item .hist-msg { color: var(--text-primary); margin: 4px 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .hist-item .hist-stats { display: flex; gap: 10px; font-size: 11px; align-items: center; }
     .hist-item .hist-stats svg { width: 12px; height: 12px; }
     .hist-item .hist-sent { color: var(--accent); display: flex; align-items: center; gap: 3px; font-family: var(--font-mono); }
@@ -282,7 +354,7 @@
     .rule-info { flex: 1; min-width: 0; }
     .rule-keywords { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
     .rule-kw { font-size: var(--font-micro); background: #00a88420; color: var(--accent); padding: 2px 6px; border-radius: var(--radius-sm); }
-    .rule-response { font-size: var(--font-small); color: #d1d7db; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .rule-response { font-size: var(--font-small); color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .rule-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
     .rule-del { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: var(--font-body); display: flex; align-items: center; }
     .rule-del:hover { color: var(--danger); }
@@ -305,7 +377,7 @@
     .scan-item { background: var(--bg-secondary); border-radius: 6px; padding: var(--pad-compact) 10px; margin-bottom: 4px; font-size: var(--font-small); border-left: 2px solid var(--warning); }
     .scan-item .scan-time { color: var(--text-secondary); font-size: var(--font-micro); }
     .scan-item .scan-group { color: var(--accent); font-size: 11px; }
-    .scan-item .scan-msg { color: #d1d7db; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .scan-item .scan-msg { color: var(--text-primary); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
     /* Group activity indicators */
     .group-activity { display: inline-block; width: 8px; height: 8px; border-radius: var(--radius-full); margin-left: 6px; flex-shrink: 0; }
@@ -332,13 +404,13 @@
       }
       .app > .topbar { display: none; }
       .desktop-sidebar {
-        width: 380px; min-width: 380px; background: var(--bg-secondary);
+        width: 380px; min-width: 380px; background: #ffffff;
         display: flex; flex-direction: column; border-right: 1px solid var(--border-color);
         height: 100%;
       }
       .desktop-sidebar .sidebar-hdr {
         display: flex; align-items: center; padding: 10px 16px;
-        background: var(--bg-secondary); height: 52px; gap: 12px; border-bottom: 1px solid; border-image: linear-gradient(90deg, transparent 0%, rgba(0,200,150,0.15) 50%, transparent 100%) 1;
+        background: #ffffff; height: 52px; gap: 12px; border-bottom: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.05);
       }
       .desktop-sidebar .sidebar-hdr-title {
         font-size: 16px; font-weight: 700; flex: 1; white-space: nowrap;
@@ -351,7 +423,7 @@
         border-radius: var(--radius-md); padding: 0 12px; height: 35px; gap: 12px;
         border: 1px solid var(--border-color); transition: border-color 0.2s ease;
       }
-      .desktop-sidebar .sidebar-search-inner:focus-within { border-color: rgba(0,200,150,0.3); }
+      .desktop-sidebar .sidebar-search-inner:focus-within { border-color: var(--accent); }
       .desktop-sidebar .sidebar-search-inner svg { width: 16px; height: 16px; stroke: var(--text-secondary); flex-shrink: 0; }
       .desktop-sidebar .sidebar-search-inner input {
         flex: 1; border: none; background: transparent; color: var(--text-primary);
@@ -394,7 +466,7 @@
       .desktop-sidebar .sb-group-meta { font-size: var(--font-small); color: var(--text-secondary); margin-top: 2px; }
       .desktop-sidebar .sidebar-selection-bar {
         display: none; align-items: center; justify-content: space-between;
-        padding: 10px 16px; background: var(--accent); color: var(--bg-primary);
+        padding: 10px 16px; background: var(--accent); color: #ffffff;
         font-size: 13px; font-weight: 600; border-top: 1px solid var(--border-color);
       }
       .desktop-sidebar .sidebar-selection-bar.visible { display: flex; }
@@ -472,7 +544,7 @@
     }
     .toast-notify {
       padding: 12px 20px; border-radius: var(--radius-lg); font-size: 13px; font-weight: 600;
-      pointer-events: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+      pointer-events: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.15);
       animation: toast-in 0.3s ease, toast-out 0.3s ease 2.7s forwards;
       display: flex; align-items: center; gap: 8px; max-width: 380px;
       backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -494,8 +566,8 @@
     }
     .confirm-overlay.visible { display: flex; }
     .confirm-dialog {
-      background: var(--bg-secondary); border-radius: 16px; padding: 24px;
-      max-width: 360px; width: 90%; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      background: #ffffff; border-radius: 16px; padding: 24px;
+      max-width: 360px; width: 90%; text-align: center; border: 1px solid var(--border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     }
     .confirm-dialog h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
     .confirm-dialog p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
@@ -507,7 +579,7 @@
     .confirm-btn:hover { transform: scale(1.02); }
     .confirm-btn.cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
     .confirm-btn.cancel:hover { background: var(--bg-hover); color: var(--text-primary); }
-    .confirm-btn.ok { background: var(--accent); color: var(--bg-primary); font-weight: 600; }
+    .confirm-btn.ok { background: var(--accent); color: #ffffff; font-weight: 600; }
     .confirm-btn.ok:hover { background: var(--accent-hover); }
     .confirm-btn.danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
     .confirm-btn.danger:hover { background: var(--danger); color: #fff; }
@@ -524,7 +596,7 @@
     .onboarding-card h2 { font-size: 22px; font-weight: 300; color: var(--text-primary); }
     .onboarding-card p { font-size: var(--font-body); color: var(--text-secondary); max-width: 400px; line-height: 1.5; }
     .connect-card {
-      background: var(--bg-secondary); border-radius: var(--radius-lg); padding: 32px;
+      background: #ffffff; border-radius: var(--radius-lg); padding: 32px;
       max-width: 440px; width: 100%; text-align: center; border: 1px solid var(--border-color);
       animation: fadeSlideIn 0.4s ease;
     }
@@ -541,12 +613,12 @@
       font-size: var(--font-small); font-weight: 700; flex-shrink: 0;
     }
     .connect-btn-big {
-      background: var(--accent); color: var(--bg-primary); border: none; padding: 14px 32px;
+      background: var(--accent); color: #ffffff; border: none; padding: 14px 32px;
       border-radius: var(--radius-md); font-size: 16px; font-weight: 700; cursor: pointer;
       transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px;
-      box-shadow: 0 4px 16px rgba(0,200,150,0.3);
+      box-shadow: 0 4px 16px rgba(24,119,242,0.3);
     }
-    .connect-btn-big:hover { background: var(--accent-hover); transform: scale(1.02); box-shadow: 0 6px 24px rgba(0,200,150,0.4); }
+    .connect-btn-big:hover { background: var(--accent-hover); transform: scale(1.02); box-shadow: 0 6px 24px rgba(24,119,242,0.4); }
     .connect-btn-big:active { transform: scale(0.98); }
     .connect-btn-big svg { width: 20px; height: 20px; }
     .onboarding-arrow { color: var(--text-secondary); animation: point-left 1.5s ease-in-out infinite; display: flex; align-items: center; }
@@ -571,7 +643,7 @@
     @keyframes ripple-anim { to { transform: scale(4); opacity: 0; } }
     .ripple-effect {
       position: absolute; border-radius: var(--radius-full);
-      background: rgba(255,255,255,0.15); transform: scale(0);
+      background: rgba(0,0,0,0.08); transform: scale(0);
       animation: ripple-anim 0.5s linear; pointer-events: none;
     }
 
@@ -858,7 +930,7 @@
     }
     .tab-btn.active { color: var(--accent); }
     .tab-btn.active .tab-icon {
-      background: rgba(0,168,132,0.15);
+      background: rgba(24,119,242,0.1);
       border-radius: 12px;
       padding: 2px 10px;
     }
@@ -906,7 +978,7 @@
     }
     .first-open-card .fo-icon {
       width: 80px; height: 80px; border-radius: 50%;
-      background: rgba(0,168,132,0.15);
+      background: var(--accent-glow, rgba(24,119,242,0.1));
       display: flex; align-items: center; justify-content: center;
       margin: 0 auto 20px;
     }
@@ -914,11 +986,11 @@
     .first-open-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
     .first-open-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px; }
     .fo-connect-btn {
-      background: var(--accent); color: var(--bg-primary); border: none;
+      background: var(--accent); color: #ffffff; border: none;
       padding: 14px 32px; border-radius: var(--radius-md);
       font-size: 16px; font-weight: 700; cursor: pointer;
       display: inline-flex; align-items: center; gap: 8px;
-      box-shadow: 0 4px 16px rgba(0,168,132,0.3);
+      box-shadow: 0 4px 16px rgba(24,119,242,0.3);
       transition: all 0.2s ease; width: 100%; justify-content: center;
     }
     .fo-connect-btn:hover { background: var(--accent-hover); transform: scale(1.02); }
@@ -935,11 +1007,11 @@
        UX: Send Tab — Simplified Layout
        ═══════════════════════════════════════════════════════════ */
     .send-btn-wide {
-      background: var(--accent); color: var(--bg-primary); border: none;
+      background: var(--accent); color: #ffffff; border: none;
       padding: 12px 24px; border-radius: var(--radius-md);
       font-size: 14px; font-weight: 700; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; box-shadow: 0 2px 8px rgba(0,168,132,0.3);
+      width: 100%; box-shadow: 0 2px 8px rgba(24,119,242,0.3);
       transition: all 0.2s ease; min-height: 44px;
     }
     .send-btn-wide:hover { background: var(--accent-hover); }
@@ -984,7 +1056,7 @@
     }
     .lead-empty-state .le-icon {
       width: 64px; height: 64px; border-radius: 50%;
-      background: rgba(0,168,132,0.1);
+      background: var(--accent-glow, rgba(24,119,242,0.1));
       display: flex; align-items: center; justify-content: center;
       margin: 0 auto 12px;
     }
@@ -1006,7 +1078,7 @@
       display: flex; gap: 6px; align-items: center;
     }
     .lead-card .lead-reply-primary {
-      background: var(--accent); color: var(--bg-primary); border: none;
+      background: var(--accent); color: #ffffff; border: none;
       padding: 7px 16px; border-radius: var(--radius-md);
       font-size: 12px; font-weight: 700; cursor: pointer;
       display: inline-flex; align-items: center; gap: 4px;
@@ -1048,16 +1120,16 @@
     /* Slide-in detail panel */
     .contact-slide-panel {
       position: fixed; top: 0; right: -100%; width: 100%; max-width: 400px;
-      height: 100vh; height: 100dvh; background: var(--bg-secondary);
+      height: 100vh; height: 100dvh; background: #ffffff;
       z-index: 90; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       overflow-y: auto; border-left: 1px solid var(--border-color);
-      box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.1);
     }
     .contact-slide-panel.open { right: 0; }
     .contact-slide-panel .panel-header {
       display: flex; align-items: center; gap: 12px; padding: 12px 16px;
       border-bottom: 1px solid var(--border-color); position: sticky; top: 0;
-      background: var(--bg-secondary); z-index: 2;
+      background: #ffffff; z-index: 2;
     }
     .contact-slide-panel .panel-back {
       background: none; border: none; color: var(--text-secondary);
@@ -1078,11 +1150,11 @@
     /* Contact card redesign for people tab */
     .contact-card-v2 {
       display: flex; align-items: center; gap: 10px;
-      background: var(--bg-secondary); border-radius: var(--radius-lg);
+      background: #ffffff; border-radius: var(--radius-lg);
       padding: 10px 12px; margin-bottom: 6px; cursor: pointer;
-      transition: all 0.15s ease; border: 1px solid var(--border-color);
+      transition: all 0.15s ease; border: 1px solid var(--border-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
-    .contact-card-v2:hover { background: var(--bg-hover); border-color: rgba(0,200,150,0.2); }
+    .contact-card-v2:hover { background: var(--bg-secondary); border-color: rgba(24,119,242,0.3); }
     .contact-card-v2 .cv2-name { font-size: 13px; color: var(--text-primary); font-weight: 500; }
     .contact-card-v2 .cv2-phone { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
     .contact-card-v2 .cv2-status-badge {
@@ -1099,13 +1171,13 @@
     .fab-new-list {
       position: fixed; bottom: 70px; right: 16px; z-index: 40;
       width: 52px; height: 52px; border-radius: 50%;
-      background: var(--accent); color: var(--bg-primary);
+      background: var(--accent); color: #ffffff;
       border: none; cursor: pointer; display: flex;
       align-items: center; justify-content: center;
-      box-shadow: 0 4px 16px rgba(0,168,132,0.4);
+      box-shadow: 0 4px 16px rgba(24,119,242,0.4);
       transition: all 0.2s ease; font-size: 24px;
     }
-    .fab-new-list:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(0,168,132,0.5); }
+    .fab-new-list:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(24,119,242,0.5); }
     .fab-new-list:active { transform: scale(0.95); }
     .fab-new-list svg { width: 24px; height: 24px; }
     .list-card-broadcast {
@@ -1115,7 +1187,7 @@
       display: inline-flex; align-items: center; gap: 4px;
       transition: all 0.2s ease; white-space: nowrap; min-height: 32px;
     }
-    .list-card-broadcast:hover { background: var(--accent); color: var(--bg-primary); }
+    .list-card-broadcast:hover { background: var(--accent); color: #ffffff; }
     .list-card-broadcast svg { width: 12px; height: 12px; }
 
     /* New list inline form */
@@ -1139,7 +1211,7 @@
     .settings-section {
       margin-bottom: 8px; border-radius: var(--radius-lg);
       border: 1px solid var(--border-color); overflow: hidden;
-      background: var(--bg-secondary);
+      background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
     .settings-section-header {
       display: flex; align-items: center; gap: 10px;
@@ -1193,6 +1265,7 @@
       <div class="sidebar-hdr">
         <div class="sidebar-hdr-title"><span class="wb-accent">WB</span>pro</div>
         <div class="sidebar-hdr-actions">
+          <button class="topbar-btn" onclick="cycleTheme()" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
           <button class="topbar-btn" onclick="toggleLang()" title="Language"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
           <button class="topbar-btn" onclick="loadGroups()" title="Refresh groups"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
         </div>
@@ -1239,6 +1312,7 @@
       </div>
       <div class="topbar-actions">
         <button class="topbar-btn" onclick="loadGroups()" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+        <button class="topbar-btn" id="themeToggleBtn" onclick="cycleTheme()" title="Toggle theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
         <button class="topbar-btn" id="langBtn" onclick="toggleLang()" title="Language"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
         <button class="topbar-btn" onclick="doLogout()" title="Logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
       </div>
@@ -1424,10 +1498,21 @@
           </div>
           <div class="settings-section-body">
             <div style="margin-bottom:12px">
-              <div class="text-label" style="margin-bottom:8px">Theme</div>
+              <div class="text-label" style="margin-bottom:8px" data-i18n="themeLabel">Theme</div>
               <div style="display:flex;gap:8px">
-                <button class="theme-card" id="themeClassic" onclick="setTheme('classic')">
-                  <div class="theme-preview" style="background:#0b141a;border:2px solid var(--accent)">
+                <button class="theme-card" id="themeLight" onclick="setTheme('light')">
+                  <div class="theme-preview" style="background:#ffffff;border:2px solid #ced0d4">
+                    <div style="height:6px;background:#f0f2f5;border-radius:2px;margin-bottom:4px"></div>
+                    <div style="display:flex;gap:4px">
+                      <div style="width:8px;height:8px;border-radius:50%;background:#1877f2"></div>
+                      <div style="flex:1;height:8px;background:#e4e6eb;border-radius:2px"></div>
+                    </div>
+                    <div style="height:6px;background:#1877f2;border-radius:2px;margin-top:auto"></div>
+                  </div>
+                  <span data-i18n="themeLight">Light</span>
+                </button>
+                <button class="theme-card" id="themeDark" onclick="setTheme('dark')">
+                  <div class="theme-preview" style="background:#0b141a;border:2px solid #222e35">
                     <div style="height:6px;background:#1f2c34;border-radius:2px;margin-bottom:4px"></div>
                     <div style="display:flex;gap:4px">
                       <div style="width:8px;height:8px;border-radius:50%;background:#00a884"></div>
@@ -1435,10 +1520,10 @@
                     </div>
                     <div style="height:6px;background:#005c4b;border-radius:2px;margin-top:auto"></div>
                   </div>
-                  <span>WhatsApp</span>
+                  <span data-i18n="themeDark">Dark</span>
                 </button>
                 <button class="theme-card" id="themePro" onclick="setTheme('pro')">
-                  <div class="theme-preview" style="background:#0a0f14;border:2px solid transparent">
+                  <div class="theme-preview" style="background:#0a0f14;border:2px solid #1e2d3a">
                     <div style="height:6px;background:#131a22;border-radius:2px;margin-bottom:4px"></div>
                     <div style="display:flex;gap:4px">
                       <div style="width:8px;height:8px;border-radius:50%;background:#00c896"></div>
@@ -1446,7 +1531,7 @@
                     </div>
                     <div style="height:6px;background:#005e45;border-radius:2px;margin-top:auto"></div>
                   </div>
-                  <span>WBpro Dark</span>
+                  <span data-i18n="themePro">WBpro Dark</span>
                 </button>
               </div>
             </div>
@@ -1876,7 +1961,7 @@
     let kwData = { en: [], he: [] };
     let replyLeadId = null;
     let leadPollTimer = null;
-    let lang = localStorage.getItem('wa-lang') || 'en';
+    let lang = localStorage.getItem('wbpro-lang') || localStorage.getItem('wa-lang') || 'en';
 
     // API Response Cache (30s TTL)
     var _apiCache = {};
@@ -1903,8 +1988,28 @@
 
     const i18n = {
       en: {
+        // Status
         statusOnline: function(n, t) { return n + '/' + t + ' online'; },
         statusNone: 'no accounts',
+        notConnected: 'Not connected',
+        noAccounts: 'No accounts',
+        connected: 'Connected',
+        disconnected: 'Disconnected',
+        scanQR: 'Scan QR',
+        offline: 'Offline',
+        error: 'Error',
+        checkingConnection: 'Checking connection...',
+        connectedCount: function(n, t) { return 'Connected (' + n + '/' + t + ')'; },
+        noAccountsTap: 'No accounts -- tap to add',
+        disconnectedTap: 'Disconnected -- tap to reconnect',
+        connectFirst: 'Connect WhatsApp first to access this tab',
+        // Tab labels
+        tabSend: 'Send',
+        tabLeads: 'Leads',
+        tabPeople: 'People',
+        tabLists: 'Lists',
+        tabSettings: 'Settings',
+        // Compose
         msgLabel: 'Compose message',
         placeholder: 'Type your broadcast message...',
         charLabel: 'chars',
@@ -1914,6 +2019,9 @@
         groupsEmpty: 'No groups',
         groupsError: 'Failed to load',
         members: 'members',
+        selected: 'selected',
+        groupsSelected: function(n) { return n + ' group' + (n !== 1 ? 's' : '') + ' selected'; },
+        // Sending
         sending: 'Sending...',
         sendingProgress: function(done, total) { return 'Sending ' + done + '/' + total + '...'; },
         done: 'Done!',
@@ -1922,7 +2030,23 @@
         errorMsg: function(msg) { return 'Error: ' + msg; },
         sendInfo: 'Select groups & write a message',
         sendReady: function(n) { return '<strong>' + n + '</strong> groups ready'; },
+        sendToGroups: function(n) { return 'Send to ' + n + ' group' + (n !== 1 ? 's' : ''); },
+        writeMessage: 'Write a message above to send',
+        selectGroupsBelow: 'Select groups below to broadcast',
+        confirmBroadcast: 'Confirm Broadcast',
+        confirmBroadcastMsg: function(n) { return 'Send message to ' + n + ' groups?'; },
+        broadcastSent: function(n) { return 'Broadcast sent to ' + n + ' groups!'; },
+        someFailed: 'Some messages failed to send',
+        broadcastFailed: function(msg) { return 'Broadcast failed: ' + msg; },
+        // Accounts
         addAccount: '+ Add',
+        removeAccount: 'Remove Account',
+        removeAccountMsg: function(name) { return 'Remove ' + name + '?'; },
+        remove: 'Remove',
+        failedAddAccount: function(msg) { return 'Failed to add account: ' + msg; },
+        errorRemovingAccount: 'Error removing account',
+        whatsappConnected: 'WhatsApp connected!',
+        // QR
         qrTitle: 'Link Device',
         qrInstructions: 'Open WhatsApp > Linked Devices > Link a Device',
         qrLoading: 'Loading...',
@@ -1930,11 +2054,222 @@
         qrScan: 'Scan with WhatsApp',
         qrWaiting: 'Waiting...',
         qrClose: 'Close',
+        // Leads
         noLeads: 'No leads detected yet. Leads appear when group members mention party keywords.',
+        noLeadsTitle: 'No leads yet',
+        noLeadsDesc: 'Leads are potential customers detected from your WhatsApp group messages. Enable the Lead Scanner in Settings and add keywords to start capturing leads automatically.',
+        liveLeads: 'Live Leads',
+        total: 'Total',
+        today: 'Today',
+        thisWeek: 'This Week',
+        replyDM: 'Reply',
+        dismiss: 'Dismiss',
+        dismissAll: 'Dismiss All',
+        dismissAllMsg: 'Dismiss all leads?',
+        clearAll: 'Clear all',
+        csv: 'CSV',
+        leadsExported: 'Leads exported',
+        allDismissed: 'All leads dismissed',
+        pullRefresh: 'Pull down to refresh',
+        scannerFeed: 'Scanner Feed',
+        lastHour: 'Last Hour',
+        groups: 'Groups',
+        scannerLoading: 'Scanner feed loading...',
+        noScannerActivity: 'No scanner activity yet',
+        // People / Contacts
+        contacts: 'Contacts',
+        contactsCount: function(n) { return 'Contacts (' + n + ')'; },
+        searchContacts: 'Search by name or phone...',
+        allGroups: 'All groups',
+        noContacts: 'No contacts yet. Scrape groups or import a CSV to get started.',
+        scrape: 'Scrape',
+        scrapingContacts: 'Scraping contacts from all groups...',
+        scraped: function(n) { return 'Scraped ' + n + ' contacts'; },
+        scrapeFailed: function(msg) { return 'Scrape failed: ' + msg; },
+        exportContacts: 'Export Contacts',
+        exportLeads: 'Export Leads',
+        export: 'Export',
+        refresh: 'Refresh',
+        importContacts: 'Import Contacts (CSV)',
+        csvMustHave: 'CSV must have a phone column. Optional: name, tag, source',
+        import: 'Import',
+        readingFile: 'Reading file...',
+        importing: function(n) { return 'Importing ' + n + ' contacts...'; },
+        imported: function(n, s) { return 'Imported ' + n + ' contacts' + (s ? ', skipped ' + s : ''); },
+        importComplete: 'Import complete',
+        selectCSV: 'Select a CSV file first',
+        noList: 'No list',
+        // Contact detail
+        firstSeen: 'First seen',
+        lastActive: 'Last active',
+        messages: 'Messages',
+        activity: 'Activity',
+        tags: 'Tags',
+        noTags: 'No tags',
+        addTag: 'Add tag...',
+        tag: 'Tag',
+        tagAdded: 'Tag added',
+        interests: 'Interests',
+        noInterests: 'No interests detected',
+        notes: 'Notes',
+        addNotes: 'Add notes about this contact...',
+        saveNotes: 'Save notes',
+        notesSaved: 'Notes saved!',
+        sendDM: 'Send DM',
+        delete: 'Delete',
+        deleteContact: 'Delete Contact',
+        deleteContactMsg: 'Delete this contact?',
+        contactDeleted: 'Contact deleted',
+        dmSent: 'DM sent!',
+        // Lists
+        noLists: 'No broadcast lists yet. Create one to organize your contacts.',
+        noListsTitle: 'No broadcast lists',
+        noListsDesc: 'Lists let you organize contacts into groups for targeted DM broadcasts. Tap the + button to create your first list.',
+        newListName: 'New broadcast list name...',
+        create: 'Create',
+        listCreated: 'List created',
+        deleteList: 'Delete List',
+        deleteListMsg: 'Delete this broadcast list?',
+        listDeleted: 'List deleted',
+        broadcastDM: 'Broadcast DM to list',
+        typeDMMessage: 'Type message to DM all members...',
+        sendDMs: 'Send DMs',
+        sendingDMs: 'Sending DMs...',
+        addContacts: 'Add contacts',
+        back: 'Back',
+        noMembers: 'No members yet. Click "+ Add contacts" to add some.',
+        addToList: 'Add Contacts to List',
+        searchContactsList: 'Search contacts...',
+        cancel: 'Cancel',
+        addSelected: 'Add Selected',
+        selectAtLeastOne: 'Select at least one contact',
+        membersAdded: 'Members added',
+        broadcast: 'Broadcast',
+        // Settings
+        connection: 'Connection',
+        themeLabel: 'Theme',
+        themeLight: 'Light',
+        themeDark: 'Dark',
+        themePro: 'WBpro Dark',
+        scanner: 'Scanner',
+        leadScanner: 'Lead Scanner',
+        scanGroupMessages: 'Scan group messages for keywords',
+        englishKeywords: 'English Keywords',
+        hebrewKeywords: 'Hebrew Keywords',
+        addKeyword: 'Add keyword...',
+        add: 'Add',
+        topKeywords: 'Top Keywords',
+        noDataYet: 'No data yet',
+        autoReplies: 'Auto-Replies',
+        noRulesYet: 'No rules yet',
+        addNewRule: 'Add new rule:',
+        keywordsCommaSep: 'Keywords (comma-separated)',
+        autoResponseMsg: 'Auto-response message...',
+        addRule: 'Add Rule',
+        ruleAdded: 'Rule added',
+        deleteRule: 'Delete Rule',
+        deleteRuleMsg: 'Delete this auto-response rule?',
+        ruleDeleted: 'Rule deleted',
+        schedule: 'Schedule',
+        quietHours: 'Quiet Hours',
+        quietHoursDesc: "Bot won't auto-respond during these hours",
+        start: 'Start',
+        end: 'End',
+        save: 'Save',
+        saved: 'Saved!',
+        cooldown: 'Cooldown',
+        groupCooldown: 'Group cooldown:',
+        min: 'min',
+        activeCooldowns: 'Active Cooldowns',
+        noActiveCooldowns: 'No active cooldowns',
+        resetAll: 'Reset All',
+        resetCooldowns: 'Reset Cooldowns',
+        resetCooldownsMsg: 'Reset all cooldowns?',
+        reset: 'Reset',
+        cooldownsReset: 'Cooldowns reset',
+        data: 'Data',
+        blocklist: 'Blocklist',
+        noBlocked: 'No blocked numbers',
+        block: 'Block',
+        unblock: 'Unblock',
+        numberBlocked: 'Number blocked',
+        numberUnblocked: 'Number unblocked',
+        // Templates
+        quickTemplates: 'Quick Templates',
+        noTemplates: 'No templates saved. Save a message as template for quick reuse.',
+        saveAsTemplate: 'Save as Template',
+        templateName: 'Template name:',
+        templateSaved: 'Template saved!',
+        writeMessageFirst: 'Write a message first',
+        deleteTemplate: 'Delete Template',
+        deleteTemplateMsg: 'Delete this template?',
+        templateDeleted: 'Template deleted',
+        // Schedule
+        scheduleBroadcast: 'Schedule Broadcast',
+        pickDateTime: 'Pick a date & time',
+        scheduleNameOpt: 'Schedule name (optional)',
+        scheduleSave: 'Schedule',
+        broadcastScheduled: 'Broadcast scheduled',
+        selectOneGroup: 'Select at least one group',
+        pendingSchedules: 'Pending schedules:',
+        cancelSchedule: 'Cancel Schedule',
+        cancelScheduleMsg: 'Cancel this scheduled broadcast?',
+        scheduleCancelled: 'Schedule cancelled',
+        // History
+        recentBroadcasts: 'Recent Broadcasts',
+        noBroadcasts: 'No broadcasts sent yet.',
+        sent: 'sent',
+        failed: 'failed',
+        // More
+        moreOptions: 'More options',
+        connectWhatsApp: 'Connect WhatsApp',
+        connectDesc: 'Link your WhatsApp account to load groups and start broadcasting messages.',
+        step1: 'Open WhatsApp on your phone',
+        step2: 'Go to Settings > Linked Devices',
+        step3: 'Tap "Link a Device" and scan QR code',
+        selectGroupsSidebar: 'Select groups to broadcast',
+        selectGroupsSidebarDesc: 'Choose groups from the sidebar on the left, then compose your message.',
+        compose: 'Compose',
+        noGroupsFound: 'No groups found',
+        connectToSeeGroups: 'Connect WhatsApp to see your groups',
+        showHidden: function(n) { return 'Show ' + n + ' hidden groups'; },
+        hide: 'Hide',
+        loading: 'Loading...',
+        contactNotFound: 'Contact not found',
+        confirm: 'Confirm',
+        areYouSure: 'Are you sure?',
+        ok: 'OK',
+        minLeft: function(n) { return n + ' min left'; },
+        // Quiet hours saved
+        quietHoursSaved: 'Quiet hours saved',
+        cooldownSaved: 'Cooldown saved',
+        // Search
+        searchGroups: 'Search groups...',
+        noGroupsMatch: function(q) { return 'No groups match "' + q + '"'; },
       },
       he: {
+        // Status
         statusOnline: function(n, t) { return n + '/' + t + ' \u05DE\u05D7\u05D5\u05D1\u05E8\u05D9\u05DD'; },
         statusNone: '\u05D0\u05D9\u05DF \u05D7\u05E9\u05D1\u05D5\u05E0\u05D5\u05EA',
+        notConnected: '\u05DC\u05D0 \u05DE\u05D7\u05D5\u05D1\u05E8',
+        noAccounts: '\u05D0\u05D9\u05DF \u05D7\u05E9\u05D1\u05D5\u05E0\u05D5\u05EA',
+        connected: '\u05DE\u05D7\u05D5\u05D1\u05E8',
+        disconnected: '\u05DE\u05E0\u05D5\u05EA\u05E7',
+        scanQR: '\u05E1\u05E8\u05D5\u05E7 QR',
+        offline: '\u05DC\u05D0 \u05DE\u05E7\u05D5\u05D5\u05DF',
+        error: '\u05E9\u05D2\u05D9\u05D0\u05D4',
+        checkingConnection: '\u05D1\u05D5\u05D3\u05E7 \u05D7\u05D9\u05D1\u05D5\u05E8...',
+        connectedCount: function(n, t) { return '\u05DE\u05D7\u05D5\u05D1\u05E8 (' + n + '/' + t + ')'; },
+        noAccountsTap: '\u05D0\u05D9\u05DF \u05D7\u05E9\u05D1\u05D5\u05E0\u05D5\u05EA -- \u05DC\u05D7\u05E5 \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3',
+        disconnectedTap: '\u05DE\u05E0\u05D5\u05EA\u05E7 -- \u05DC\u05D7\u05E5 \u05DC\u05D4\u05EA\u05D7\u05D1\u05E8 \u05DE\u05D7\u05D3\u05E9',
+        connectFirst: '\u05D7\u05D1\u05E8 \u05D0\u05EA WhatsApp \u05E7\u05D5\u05D3\u05DD \u05DC\u05D2\u05E9\u05EA \u05DC\u05DC\u05E9\u05D5\u05E0\u05D9\u05EA \u05D6\u05D5',
+        // Tab labels
+        tabSend: '\u05E9\u05DC\u05D7',
+        tabLeads: '\u05DC\u05D9\u05D3\u05D9\u05DD',
+        tabPeople: '\u05D0\u05E0\u05E9\u05D9\u05DD',
+        tabLists: '\u05E8\u05E9\u05D9\u05DE\u05D5\u05EA',
+        tabSettings: '\u05D4\u05D2\u05D3\u05E8\u05D5\u05EA',
+        // Compose
         msgLabel: '\u05DB\u05EA\u05D5\u05D1 \u05D4\u05D5\u05D3\u05E2\u05D4',
         placeholder: '\u05DB\u05EA\u05D1\u05D5 \u05D0\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D4...',
         charLabel: '\u05EA\u05D5\u05D5\u05D9\u05DD',
@@ -1942,8 +2277,11 @@
         selectAll: '\u05D1\u05D7\u05E8 \u05D4\u05DB\u05DC',
         groupsLoading: '\u05D8\u05D5\u05E2\u05DF...',
         groupsEmpty: '\u05D0\u05D9\u05DF \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA',
-        groupsError: '\u05E9\u05D2\u05D9\u05D0\u05D4',
+        groupsError: '\u05E9\u05D2\u05D9\u05D0\u05D4 \u05D1\u05D8\u05E2\u05D9\u05E0\u05D4',
         members: '\u05D7\u05D1\u05E8\u05D9\u05DD',
+        selected: '\u05E0\u05D1\u05D7\u05E8\u05D5',
+        groupsSelected: function(n) { return n + ' \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05E0\u05D1\u05D7\u05E8\u05D5'; },
+        // Sending
         sending: '\u05E9\u05D5\u05DC\u05D7...',
         sendingProgress: function(done, total) { return '\u05E9\u05D5\u05DC\u05D7 ' + done + '/' + total + '...'; },
         done: '\u05D4\u05D5\u05E9\u05DC\u05DD!',
@@ -1952,15 +2290,220 @@
         errorMsg: function(msg) { return '\u05E9\u05D2\u05D9\u05D0\u05D4: ' + msg; },
         sendInfo: '\u05D1\u05D7\u05E8 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05D5\u05DB\u05EA\u05D1 \u05D4\u05D5\u05D3\u05E2\u05D4',
         sendReady: function(n) { return '<strong>' + n + '</strong> \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05DE\u05D5\u05DB\u05E0\u05D5\u05EA'; },
+        sendToGroups: function(n) { return '\u05E9\u05DC\u05D7 \u05DC-' + n + ' \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA'; },
+        writeMessage: '\u05DB\u05EA\u05D1\u05D5 \u05D4\u05D5\u05D3\u05E2\u05D4 \u05DC\u05DE\u05E2\u05DC\u05D4 \u05DB\u05D3\u05D9 \u05DC\u05E9\u05DC\u05D5\u05D7',
+        selectGroupsBelow: '\u05D1\u05D7\u05E8\u05D5 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05DC\u05DE\u05D8\u05D4 \u05DC\u05E9\u05D3\u05E8',
+        confirmBroadcast: '\u05D0\u05D9\u05E9\u05D5\u05E8 \u05E9\u05D9\u05D3\u05D5\u05E8',
+        confirmBroadcastMsg: function(n) { return '\u05DC\u05E9\u05DC\u05D5\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D4 \u05DC-' + n + ' \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA?'; },
+        broadcastSent: function(n) { return '\u05E9\u05D5\u05D3\u05E8 \u05E0\u05E9\u05DC\u05D7 \u05DC-' + n + ' \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA!'; },
+        someFailed: '\u05D7\u05DC\u05E7 \u05DE\u05D4\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05E0\u05DB\u05E9\u05DC\u05D5',
+        broadcastFailed: function(msg) { return '\u05E9\u05D9\u05D3\u05D5\u05E8 \u05E0\u05DB\u05E9\u05DC: ' + msg; },
+        // Accounts
         addAccount: '+ \u05D4\u05D5\u05E1\u05E3',
+        removeAccount: '\u05D4\u05E1\u05E8 \u05D7\u05E9\u05D1\u05D5\u05DF',
+        removeAccountMsg: function(name) { return '\u05DC\u05D4\u05E1\u05D9\u05E8 \u05D0\u05EA ' + name + '?'; },
+        remove: '\u05D4\u05E1\u05E8',
+        failedAddAccount: function(msg) { return '\u05E0\u05DB\u05E9\u05DC \u05D1\u05D4\u05D5\u05E1\u05E4\u05EA \u05D7\u05E9\u05D1\u05D5\u05DF: ' + msg; },
+        errorRemovingAccount: '\u05E9\u05D2\u05D9\u05D0\u05D4 \u05D1\u05D4\u05E1\u05E8\u05EA \u05D7\u05E9\u05D1\u05D5\u05DF',
+        whatsappConnected: 'WhatsApp \u05DE\u05D7\u05D5\u05D1\u05E8!',
+        // QR
         qrTitle: '\u05E7\u05D9\u05E9\u05D5\u05E8 \u05DE\u05DB\u05E9\u05D9\u05E8',
         qrInstructions: '\u05E4\u05EA\u05D7 WhatsApp > \u05D4\u05EA\u05E7\u05E0\u05D9\u05DD \u05DE\u05E7\u05D5\u05E9\u05E8\u05D9\u05DD > \u05E7\u05E9\u05E8 \u05D4\u05EA\u05E7\u05DF',
         qrLoading: '\u05D8\u05D5\u05E2\u05DF...',
-        qrConnected: '\u05DE\u05D7\u05D5\u05D1\u05E8!',
+        qrConnected: '\u05DE\u05D7\u05D5\u05D1\u05E8! \u05E1\u05D2\u05D5\u05E8 \u05D7\u05DC\u05D5\u05DF \u05D6\u05D4.',
         qrScan: '\u05E1\u05E8\u05D5\u05E7 \u05E2\u05DD WhatsApp',
         qrWaiting: '\u05DE\u05DE\u05EA\u05D9\u05DF...',
         qrClose: '\u05E1\u05D2\u05D5\u05E8',
+        // Leads
         noLeads: '\u05E2\u05D3\u05D9\u05D9\u05DF \u05D0\u05D9\u05DF \u05DC\u05D9\u05D3\u05D9\u05DD. \u05DC\u05D9\u05D3\u05D9\u05DD \u05DE\u05D5\u05E4\u05D9\u05E2\u05D9\u05DD \u05DB\u05D0\u05E9\u05E8 \u05DE\u05D6\u05D4\u05D9\u05DD \u05DE\u05D9\u05DC\u05D5\u05EA \u05DE\u05E4\u05EA\u05D7.',
+        noLeadsTitle: '\u05D0\u05D9\u05DF \u05DC\u05D9\u05D3\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF',
+        noLeadsDesc: '\u05DC\u05D9\u05D3\u05D9\u05DD \u05D4\u05DD \u05DC\u05E7\u05D5\u05D7\u05D5\u05EA \u05E4\u05D5\u05D8\u05E0\u05E6\u05D9\u05D0\u05DC\u05D9\u05D9\u05DD \u05E9\u05D6\u05D5\u05D4\u05D5 \u05DE\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05D4\u05E7\u05D1\u05D5\u05E6\u05D5\u05EA. \u05D4\u05E4\u05E2\u05DC \u05D0\u05EA \u05E1\u05D5\u05E8\u05E7 \u05D4\u05DC\u05D9\u05D3\u05D9\u05DD \u05D1\u05D4\u05D2\u05D3\u05E8\u05D5\u05EA \u05D5\u05D4\u05D5\u05E1\u05E3 \u05DE\u05D9\u05DC\u05D5\u05EA \u05DE\u05E4\u05EA\u05D7.',
+        liveLeads: '\u05DC\u05D9\u05D3\u05D9\u05DD \u05D7\u05D9\u05D9\u05DD',
+        total: '\u05E1\u05D4\u05F4\u05DB',
+        today: '\u05D4\u05D9\u05D5\u05DD',
+        thisWeek: '\u05D4\u05E9\u05D1\u05D5\u05E2',
+        replyDM: '\u05D4\u05E9\u05D1',
+        dismiss: '\u05D3\u05D7\u05D4',
+        dismissAll: '\u05D3\u05D7\u05D4 \u05D4\u05DB\u05DC',
+        dismissAllMsg: '\u05DC\u05D3\u05D7\u05D5\u05EA \u05D0\u05EA \u05DB\u05DC \u05D4\u05DC\u05D9\u05D3\u05D9\u05DD?',
+        clearAll: '\u05E0\u05E7\u05D4 \u05D4\u05DB\u05DC',
+        csv: 'CSV',
+        leadsExported: '\u05DC\u05D9\u05D3\u05D9\u05DD \u05D9\u05D5\u05E6\u05D0\u05D5',
+        allDismissed: '\u05DB\u05DC \u05D4\u05DC\u05D9\u05D3\u05D9\u05DD \u05E0\u05D3\u05D7\u05D5',
+        pullRefresh: '\u05DE\u05E9\u05D5\u05DA \u05DC\u05DE\u05D8\u05D4 \u05DC\u05E8\u05E2\u05E0\u05DF',
+        scannerFeed: '\u05E4\u05D9\u05D3 \u05E1\u05D5\u05E8\u05E7',
+        lastHour: '\u05E9\u05E2\u05D4 \u05D0\u05D7\u05E8\u05D5\u05E0\u05D4',
+        groups: '\u05E7\u05D1\u05D5\u05E6\u05D5\u05EA',
+        scannerLoading: '\u05E4\u05D9\u05D3 \u05E1\u05D5\u05E8\u05E7 \u05E0\u05D8\u05E2\u05DF...',
+        noScannerActivity: '\u05D0\u05D9\u05DF \u05E4\u05E2\u05D9\u05DC\u05D5\u05EA \u05E1\u05D5\u05E8\u05E7 \u05E2\u05D3\u05D9\u05D9\u05DF',
+        // People / Contacts
+        contacts: '\u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8',
+        contactsCount: function(n) { return '\u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8 (' + n + ')'; },
+        searchContacts: '\u05D7\u05E4\u05E9 \u05DC\u05E4\u05D9 \u05E9\u05DD \u05D0\u05D5 \u05D8\u05DC\u05E4\u05D5\u05DF...',
+        allGroups: '\u05DB\u05DC \u05D4\u05E7\u05D1\u05D5\u05E6\u05D5\u05EA',
+        noContacts: '\u05D0\u05D9\u05DF \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8 \u05E2\u05D3\u05D9\u05D9\u05DF. \u05E1\u05E8\u05D5\u05E7 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05D0\u05D5 \u05D9\u05D9\u05D1\u05D0 CSV.',
+        scrape: '\u05E1\u05E8\u05D5\u05E7',
+        scrapingContacts: '\u05E1\u05D5\u05E8\u05E7 \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8 \u05DE\u05DB\u05DC \u05D4\u05E7\u05D1\u05D5\u05E6\u05D5\u05EA...',
+        scraped: function(n) { return '\u05E0\u05E1\u05E8\u05E7\u05D5 ' + n + ' \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8'; },
+        scrapeFailed: function(msg) { return '\u05E1\u05E8\u05D9\u05E7\u05D4 \u05E0\u05DB\u05E9\u05DC\u05D4: ' + msg; },
+        exportContacts: '\u05D9\u05D9\u05E6\u05D0 \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8',
+        exportLeads: '\u05D9\u05D9\u05E6\u05D0 \u05DC\u05D9\u05D3\u05D9\u05DD',
+        export: '\u05D9\u05D9\u05E6\u05D0',
+        refresh: '\u05E8\u05E2\u05E0\u05DF',
+        importContacts: '\u05D9\u05D9\u05D1\u05D0 \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8 (CSV)',
+        csvMustHave: 'CSV \u05D7\u05D9\u05D9\u05D1 \u05DC\u05DB\u05DC\u05D5\u05DC \u05E2\u05DE\u05D5\u05D3\u05EA phone. \u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9: name, tag, source',
+        import: '\u05D9\u05D9\u05D1\u05D0',
+        readingFile: '\u05E7\u05D5\u05E8\u05D0 \u05E7\u05D5\u05D1\u05E5...',
+        importing: function(n) { return '\u05DE\u05D9\u05D9\u05D1\u05D0 ' + n + ' \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8...'; },
+        imported: function(n, s) { return '\u05D9\u05D5\u05D1\u05D0\u05D5 ' + n + ' \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8' + (s ? ', \u05D3\u05D5\u05DC\u05D2\u05D5 ' + s : ''); },
+        importComplete: '\u05D9\u05D9\u05D1\u05D5\u05D0 \u05D4\u05D5\u05E9\u05DC\u05DD',
+        selectCSV: '\u05D1\u05D7\u05E8 \u05E7\u05D5\u05D1\u05E5 CSV \u05E7\u05D5\u05D3\u05DD',
+        noList: '\u05DC\u05DC\u05D0 \u05E8\u05E9\u05D9\u05DE\u05D4',
+        // Contact detail
+        firstSeen: '\u05E0\u05E8\u05D0\u05D4 \u05DC\u05E8\u05D0\u05E9\u05D5\u05E0\u05D4',
+        lastActive: '\u05E4\u05E2\u05D9\u05DC \u05DC\u05D0\u05D7\u05E8\u05D5\u05E0\u05D4',
+        messages: '\u05D4\u05D5\u05D3\u05E2\u05D5\u05EA',
+        activity: '\u05E4\u05E2\u05D9\u05DC\u05D5\u05EA',
+        tags: '\u05EA\u05D2\u05D9\u05D5\u05EA',
+        noTags: '\u05D0\u05D9\u05DF \u05EA\u05D2\u05D9\u05D5\u05EA',
+        addTag: '\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D2...',
+        tag: '\u05EA\u05D2',
+        tagAdded: '\u05EA\u05D2 \u05E0\u05D5\u05E1\u05E3',
+        interests: '\u05EA\u05D7\u05D5\u05DE\u05D9 \u05E2\u05E0\u05D9\u05D9\u05DF',
+        noInterests: '\u05DC\u05D0 \u05D6\u05D5\u05D4\u05D5 \u05EA\u05D7\u05D5\u05DE\u05D9 \u05E2\u05E0\u05D9\u05D9\u05DF',
+        notes: '\u05D4\u05E2\u05E8\u05D5\u05EA',
+        addNotes: '\u05D4\u05D5\u05E1\u05E3 \u05D4\u05E2\u05E8\u05D5\u05EA \u05E2\u05DC \u05D0\u05D9\u05E9 \u05E7\u05E9\u05E8 \u05D6\u05D4...',
+        saveNotes: '\u05E9\u05DE\u05D5\u05E8 \u05D4\u05E2\u05E8\u05D5\u05EA',
+        notesSaved: '\u05D4\u05E2\u05E8\u05D5\u05EA \u05E0\u05E9\u05DE\u05E8\u05D5!',
+        sendDM: '\u05E9\u05DC\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D4',
+        delete: '\u05DE\u05D7\u05E7',
+        deleteContact: '\u05DE\u05D7\u05E7 \u05D0\u05D9\u05E9 \u05E7\u05E9\u05E8',
+        deleteContactMsg: '\u05DC\u05DE\u05D7\u05D5\u05E7 \u05D0\u05D9\u05E9 \u05E7\u05E9\u05E8 \u05D6\u05D4?',
+        contactDeleted: '\u05D0\u05D9\u05E9 \u05E7\u05E9\u05E8 \u05E0\u05DE\u05D7\u05E7',
+        dmSent: '\u05D4\u05D5\u05D3\u05E2\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4!',
+        // Lists
+        noLists: '\u05D0\u05D9\u05DF \u05E8\u05E9\u05D9\u05DE\u05D5\u05EA \u05E9\u05D9\u05D3\u05D5\u05E8 \u05E2\u05D3\u05D9\u05D9\u05DF. \u05E6\u05D5\u05E8 \u05D0\u05D7\u05EA \u05DC\u05D0\u05E8\u05D2\u05D5\u05DF \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8.',
+        noListsTitle: '\u05D0\u05D9\u05DF \u05E8\u05E9\u05D9\u05DE\u05D5\u05EA \u05E9\u05D9\u05D3\u05D5\u05E8',
+        noListsDesc: '\u05E8\u05E9\u05D9\u05DE\u05D5\u05EA \u05DE\u05D0\u05E4\u05E9\u05E8\u05D5\u05EA \u05DC\u05D0\u05E8\u05D2\u05DF \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8 \u05DC\u05E9\u05D9\u05D3\u05D5\u05E8\u05D9 DM \u05DE\u05DE\u05D5\u05E7\u05D3\u05D9\u05DD. \u05DC\u05D7\u05E5 + \u05DC\u05D9\u05E6\u05D9\u05E8\u05EA \u05E8\u05E9\u05D9\u05DE\u05D4 \u05E8\u05D0\u05E9\u05D5\u05E0\u05D4.',
+        newListName: '\u05E9\u05DD \u05E8\u05E9\u05D9\u05DE\u05EA \u05E9\u05D9\u05D3\u05D5\u05E8 \u05D7\u05D3\u05E9\u05D4...',
+        create: '\u05E6\u05D5\u05E8',
+        listCreated: '\u05E8\u05E9\u05D9\u05DE\u05D4 \u05E0\u05D5\u05E6\u05E8\u05D4',
+        deleteList: '\u05DE\u05D7\u05E7 \u05E8\u05E9\u05D9\u05DE\u05D4',
+        deleteListMsg: '\u05DC\u05DE\u05D7\u05D5\u05E7 \u05E8\u05E9\u05D9\u05DE\u05EA \u05E9\u05D9\u05D3\u05D5\u05E8 \u05D6\u05D5?',
+        listDeleted: '\u05E8\u05E9\u05D9\u05DE\u05D4 \u05E0\u05DE\u05D7\u05E7\u05D4',
+        broadcastDM: '\u05E9\u05D3\u05E8 DM \u05DC\u05E8\u05E9\u05D9\u05DE\u05D4',
+        typeDMMessage: '\u05DB\u05EA\u05D1\u05D5 \u05D4\u05D5\u05D3\u05E2\u05D4 \u05DC\u05E9\u05DC\u05D9\u05D7\u05D4 \u05DC\u05DB\u05DC \u05D4\u05D7\u05D1\u05E8\u05D9\u05DD...',
+        sendDMs: '\u05E9\u05DC\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA',
+        sendingDMs: '\u05E9\u05D5\u05DC\u05D7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA...',
+        addContacts: '\u05D4\u05D5\u05E1\u05E3 \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8',
+        back: '\u05D7\u05D6\u05D5\u05E8',
+        noMembers: '\u05D0\u05D9\u05DF \u05D7\u05D1\u05E8\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF. \u05DC\u05D7\u05E5 "+ \u05D4\u05D5\u05E1\u05E3 \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8" \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3.',
+        addToList: '\u05D4\u05D5\u05E1\u05E3 \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8 \u05DC\u05E8\u05E9\u05D9\u05DE\u05D4',
+        searchContactsList: '\u05D7\u05E4\u05E9 \u05D0\u05E0\u05E9\u05D9 \u05E7\u05E9\u05E8...',
+        cancel: '\u05D1\u05D9\u05D8\u05D5\u05DC',
+        addSelected: '\u05D4\u05D5\u05E1\u05E3 \u05E0\u05D1\u05D7\u05E8\u05D9\u05DD',
+        selectAtLeastOne: '\u05D1\u05D7\u05E8 \u05DC\u05E4\u05D7\u05D5\u05EA \u05D0\u05D9\u05E9 \u05E7\u05E9\u05E8 \u05D0\u05D7\u05D3',
+        membersAdded: '\u05D7\u05D1\u05E8\u05D9\u05DD \u05E0\u05D5\u05E1\u05E4\u05D5',
+        broadcast: '\u05E9\u05D3\u05E8',
+        // Settings
+        connection: '\u05D7\u05D9\u05D1\u05D5\u05E8',
+        themeLabel: '\u05E2\u05E8\u05DB\u05EA \u05E0\u05D5\u05E9\u05D0',
+        themeLight: '\u05D1\u05D4\u05D9\u05E8',
+        themeDark: '\u05DB\u05D4\u05D4',
+        themePro: 'WBpro \u05DB\u05D4\u05D4',
+        scanner: '\u05E1\u05D5\u05E8\u05E7',
+        leadScanner: '\u05E1\u05D5\u05E8\u05E7 \u05DC\u05D9\u05D3\u05D9\u05DD',
+        scanGroupMessages: '\u05E1\u05E8\u05D5\u05E7 \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA \u05E7\u05D1\u05D5\u05E6\u05D4 \u05DC\u05DE\u05D9\u05DC\u05D5\u05EA \u05DE\u05E4\u05EA\u05D7',
+        englishKeywords: '\u05DE\u05D9\u05DC\u05D5\u05EA \u05DE\u05E4\u05EA\u05D7 \u05D1\u05D0\u05E0\u05D2\u05DC\u05D9\u05EA',
+        hebrewKeywords: '\u05DE\u05D9\u05DC\u05D5\u05EA \u05DE\u05E4\u05EA\u05D7 \u05D1\u05E2\u05D1\u05E8\u05D9\u05EA',
+        addKeyword: '\u05D4\u05D5\u05E1\u05E3 \u05DE\u05D9\u05DC\u05D4...',
+        add: '\u05D4\u05D5\u05E1\u05E3',
+        topKeywords: '\u05DE\u05D9\u05DC\u05D5\u05EA \u05DE\u05D5\u05D1\u05D9\u05DC\u05D5\u05EA',
+        noDataYet: '\u05D0\u05D9\u05DF \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF',
+        autoReplies: '\u05DE\u05E2\u05E0\u05D5\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05D5\u05EA',
+        noRulesYet: '\u05D0\u05D9\u05DF \u05DB\u05DC\u05DC\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF',
+        addNewRule: '\u05D4\u05D5\u05E1\u05E3 \u05DB\u05DC\u05DC \u05D7\u05D3\u05E9:',
+        keywordsCommaSep: '\u05DE\u05D9\u05DC\u05D5\u05EA \u05DE\u05E4\u05EA\u05D7 (\u05DE\u05D5\u05E4\u05E8\u05D3\u05D5\u05EA \u05D1\u05E4\u05E1\u05D9\u05E7)',
+        autoResponseMsg: '\u05D4\u05D5\u05D3\u05E2\u05EA \u05DE\u05E2\u05E0\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA...',
+        addRule: '\u05D4\u05D5\u05E1\u05E3 \u05DB\u05DC\u05DC',
+        ruleAdded: '\u05DB\u05DC\u05DC \u05E0\u05D5\u05E1\u05E3',
+        deleteRule: '\u05DE\u05D7\u05E7 \u05DB\u05DC\u05DC',
+        deleteRuleMsg: '\u05DC\u05DE\u05D7\u05D5\u05E7 \u05DB\u05DC\u05DC \u05DE\u05E2\u05E0\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05D6\u05D4?',
+        ruleDeleted: '\u05DB\u05DC\u05DC \u05E0\u05DE\u05D7\u05E7',
+        schedule: '\u05EA\u05D6\u05DE\u05D5\u05DF',
+        quietHours: '\u05E9\u05E2\u05D5\u05EA \u05E9\u05E7\u05D8',
+        quietHoursDesc: '\u05D4\u05D1\u05D5\u05D8 \u05DC\u05D0 \u05D9\u05D2\u05D9\u05D1 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA \u05D1\u05E9\u05E2\u05D5\u05EA \u05D0\u05DC\u05D4',
+        start: '\u05D4\u05EA\u05D7\u05DC\u05D4',
+        end: '\u05E1\u05D9\u05D5\u05DD',
+        save: '\u05E9\u05DE\u05D5\u05E8',
+        saved: '\u05E0\u05E9\u05DE\u05E8!',
+        cooldown: '\u05D4\u05DE\u05EA\u05E0\u05D4',
+        groupCooldown: '\u05D4\u05DE\u05EA\u05E0\u05EA \u05E7\u05D1\u05D5\u05E6\u05D4:',
+        min: '\u05D3\u05E7\u05F3',
+        activeCooldowns: '\u05D4\u05DE\u05EA\u05E0\u05D5\u05EA \u05E4\u05E2\u05D9\u05DC\u05D5\u05EA',
+        noActiveCooldowns: '\u05D0\u05D9\u05DF \u05D4\u05DE\u05EA\u05E0\u05D5\u05EA \u05E4\u05E2\u05D9\u05DC\u05D5\u05EA',
+        resetAll: '\u05D0\u05E4\u05E1 \u05D4\u05DB\u05DC',
+        resetCooldowns: '\u05D0\u05E4\u05E1 \u05D4\u05DE\u05EA\u05E0\u05D5\u05EA',
+        resetCooldownsMsg: '\u05DC\u05D0\u05E4\u05E1 \u05D0\u05EA \u05DB\u05DC \u05D4\u05D4\u05DE\u05EA\u05E0\u05D5\u05EA?',
+        reset: '\u05D0\u05E4\u05E1',
+        cooldownsReset: '\u05D4\u05DE\u05EA\u05E0\u05D5\u05EA \u05D0\u05D5\u05E4\u05E1\u05D5',
+        data: '\u05E0\u05EA\u05D5\u05E0\u05D9\u05DD',
+        blocklist: '\u05E8\u05E9\u05D9\u05DE\u05EA \u05D7\u05E1\u05D5\u05DE\u05D9\u05DD',
+        noBlocked: '\u05D0\u05D9\u05DF \u05DE\u05E1\u05E4\u05E8\u05D9\u05DD \u05D7\u05E1\u05D5\u05DE\u05D9\u05DD',
+        block: '\u05D7\u05E1\u05D5\u05DD',
+        unblock: '\u05D1\u05D8\u05DC \u05D7\u05E1\u05D9\u05DE\u05D4',
+        numberBlocked: '\u05DE\u05E1\u05E4\u05E8 \u05E0\u05D7\u05E1\u05DD',
+        numberUnblocked: '\u05D7\u05E1\u05D9\u05DE\u05D4 \u05D1\u05D5\u05D8\u05DC\u05D4',
+        // Templates
+        quickTemplates: '\u05EA\u05D1\u05E0\u05D9\u05D5\u05EA \u05DE\u05D4\u05D9\u05E8\u05D5\u05EA',
+        noTemplates: '\u05D0\u05D9\u05DF \u05EA\u05D1\u05E0\u05D9\u05D5\u05EA \u05E9\u05DE\u05D5\u05E8\u05D5\u05EA. \u05E9\u05DE\u05D5\u05E8 \u05D4\u05D5\u05D3\u05E2\u05D4 \u05DB\u05EA\u05D1\u05E0\u05D9\u05EA \u05DC\u05E9\u05D9\u05DE\u05D5\u05E9 \u05DE\u05D4\u05D9\u05E8.',
+        saveAsTemplate: '\u05E9\u05DE\u05D5\u05E8 \u05DB\u05EA\u05D1\u05E0\u05D9\u05EA',
+        templateName: '\u05E9\u05DD \u05EA\u05D1\u05E0\u05D9\u05EA:',
+        templateSaved: '\u05EA\u05D1\u05E0\u05D9\u05EA \u05E0\u05E9\u05DE\u05E8\u05D4!',
+        writeMessageFirst: '\u05DB\u05EA\u05D1\u05D5 \u05D4\u05D5\u05D3\u05E2\u05D4 \u05E7\u05D5\u05D3\u05DD',
+        deleteTemplate: '\u05DE\u05D7\u05E7 \u05EA\u05D1\u05E0\u05D9\u05EA',
+        deleteTemplateMsg: '\u05DC\u05DE\u05D7\u05D5\u05E7 \u05EA\u05D1\u05E0\u05D9\u05EA \u05D6\u05D5?',
+        templateDeleted: '\u05EA\u05D1\u05E0\u05D9\u05EA \u05E0\u05DE\u05D7\u05E7\u05D4',
+        // Schedule
+        scheduleBroadcast: '\u05EA\u05D6\u05DE\u05DF \u05E9\u05D9\u05D3\u05D5\u05E8',
+        pickDateTime: '\u05D1\u05D7\u05E8 \u05EA\u05D0\u05E8\u05D9\u05DA \u05D5\u05E9\u05E2\u05D4',
+        scheduleNameOpt: '\u05E9\u05DD \u05EA\u05D6\u05DE\u05D5\u05DF (\u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9)',
+        scheduleSave: '\u05EA\u05D6\u05DE\u05DF',
+        broadcastScheduled: '\u05E9\u05D9\u05D3\u05D5\u05E8 \u05EA\u05D5\u05D6\u05DE\u05DF',
+        selectOneGroup: '\u05D1\u05D7\u05E8 \u05DC\u05E4\u05D7\u05D5\u05EA \u05E7\u05D1\u05D5\u05E6\u05D4 \u05D0\u05D7\u05EA',
+        pendingSchedules: '\u05EA\u05D6\u05DE\u05D5\u05E0\u05D9\u05DD \u05DE\u05DE\u05EA\u05D9\u05E0\u05D9\u05DD:',
+        cancelSchedule: '\u05D1\u05D8\u05DC \u05EA\u05D6\u05DE\u05D5\u05DF',
+        cancelScheduleMsg: '\u05DC\u05D1\u05D8\u05DC \u05E9\u05D9\u05D3\u05D5\u05E8 \u05DE\u05EA\u05D5\u05D6\u05DE\u05DF \u05D6\u05D4?',
+        scheduleCancelled: '\u05EA\u05D6\u05DE\u05D5\u05DF \u05D1\u05D5\u05D8\u05DC',
+        // History
+        recentBroadcasts: '\u05E9\u05D9\u05D3\u05D5\u05E8\u05D9\u05DD \u05D0\u05D7\u05E8\u05D5\u05E0\u05D9\u05DD',
+        noBroadcasts: '\u05D0\u05D9\u05DF \u05E9\u05D9\u05D3\u05D5\u05E8\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF.',
+        sent: '\u05E0\u05E9\u05DC\u05D7',
+        failed: '\u05E0\u05DB\u05E9\u05DC',
+        // More
+        moreOptions: '\u05D0\u05E4\u05E9\u05E8\u05D5\u05D9\u05D5\u05EA \u05E0\u05D5\u05E1\u05E4\u05D5\u05EA',
+        connectWhatsApp: '\u05D7\u05D1\u05E8 \u05D0\u05EA WhatsApp',
+        connectDesc: '\u05E7\u05E9\u05E8 \u05D0\u05EA \u05D7\u05E9\u05D1\u05D5\u05DF \u05D4-WhatsApp \u05E9\u05DC\u05DA \u05DC\u05D8\u05E2\u05D9\u05E0\u05EA \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05D5\u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05D5\u05D3\u05E2\u05D5\u05EA.',
+        step1: '\u05E4\u05EA\u05D7 \u05D0\u05EA WhatsApp \u05D1\u05D8\u05DC\u05E4\u05D5\u05DF',
+        step2: '\u05DC\u05DA \u05DC\u05D4\u05D2\u05D3\u05E8\u05D5\u05EA > \u05D4\u05EA\u05E7\u05E0\u05D9\u05DD \u05DE\u05E7\u05D5\u05E9\u05E8\u05D9\u05DD',
+        step3: '\u05DC\u05D7\u05E5 "\u05E7\u05E9\u05E8 \u05D4\u05EA\u05E7\u05DF" \u05D5\u05E1\u05E8\u05D5\u05E7 \u05D0\u05EA \u05E7\u05D5\u05D3 \u05D4-QR',
+        selectGroupsSidebar: '\u05D1\u05D7\u05E8 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05DC\u05E9\u05D9\u05D3\u05D5\u05E8',
+        selectGroupsSidebarDesc: '\u05D1\u05D7\u05E8 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05DE\u05E1\u05E8\u05D2\u05DC \u05D4\u05E6\u05D3 \u05D4\u05E9\u05DE\u05D0\u05DC\u05D9, \u05D5\u05D0\u05D6 \u05DB\u05EA\u05D5\u05D1 \u05D0\u05EA \u05D4\u05D4\u05D5\u05D3\u05E2\u05D4.',
+        compose: '\u05DB\u05EA\u05D5\u05D1',
+        noGroupsFound: '\u05DC\u05D0 \u05E0\u05DE\u05E6\u05D0\u05D5 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA',
+        connectToSeeGroups: '\u05D7\u05D1\u05E8 \u05D0\u05EA WhatsApp \u05DC\u05E8\u05D0\u05D5\u05EA \u05D0\u05EA \u05D4\u05E7\u05D1\u05D5\u05E6\u05D5\u05EA',
+        showHidden: function(n) { return '\u05D4\u05E6\u05D2 ' + n + ' \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05DE\u05D5\u05E1\u05EA\u05E8\u05D5\u05EA'; },
+        hide: '\u05D4\u05E1\u05EA\u05E8',
+        loading: '\u05D8\u05D5\u05E2\u05DF...',
+        contactNotFound: '\u05D0\u05D9\u05E9 \u05E7\u05E9\u05E8 \u05DC\u05D0 \u05E0\u05DE\u05E6\u05D0',
+        confirm: '\u05D0\u05D9\u05E9\u05D5\u05E8',
+        areYouSure: '\u05D4\u05D0\u05DD \u05D0\u05EA\u05D4 \u05D1\u05D8\u05D5\u05D7?',
+        ok: '\u05D0\u05D9\u05E9\u05D5\u05E8',
+        minLeft: function(n) { return n + ' \u05D3\u05E7\u05F3 \u05E0\u05D5\u05EA\u05E8\u05D5'; },
+        quietHoursSaved: '\u05E9\u05E2\u05D5\u05EA \u05E9\u05E7\u05D8 \u05E0\u05E9\u05DE\u05E8\u05D5',
+        cooldownSaved: '\u05D4\u05DE\u05EA\u05E0\u05D4 \u05E0\u05E9\u05DE\u05E8\u05D4',
+        searchGroups: '\u05D7\u05E4\u05E9 \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA...',
+        noGroupsMatch: function(q) { return '\u05D0\u05D9\u05DF \u05E7\u05D1\u05D5\u05E6\u05D5\u05EA \u05E9\u05EA\u05D5\u05D0\u05DE\u05D5\u05EA "' + q + '"'; },
       }
     };
 
@@ -1971,20 +2514,57 @@
       var isRTL = lang === 'he';
       document.documentElement.lang = lang;
       document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+      // QR modal
       document.getElementById('qrTitle').textContent = t('qrTitle');
       document.getElementById('qrInstructions').textContent = t('qrInstructions');
       document.getElementById('qrCloseBtn').textContent = t('qrClose');
+      // Compose
       document.getElementById('msgLabel').textContent = t('msgLabel');
       var msgEl = document.getElementById('msgInput'); if (msgEl) msgEl.placeholder = t('placeholder');
       document.getElementById('charLabel').textContent = t('charLabel');
       document.getElementById('groupsLabel').innerHTML = t('groupsLabel', selected.size);
       document.getElementById('selectAllBtn').textContent = t('selectAll');
+      // Tab labels
+      var tabTexts = {
+        'tabBroadcast': 'tabSend',
+        'tabLeads': 'tabLeads',
+        'tabContacts': 'tabPeople',
+        'tabLists': 'tabLists',
+        'tabKeywords': 'tabSettings'
+      };
+      Object.keys(tabTexts).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        // Keep the icon and badge, just update the text node
+        var nodes = el.childNodes;
+        for (var i = 0; i < nodes.length; i++) {
+          if (nodes[i].nodeType === 3 && nodes[i].textContent.trim()) {
+            nodes[i].textContent = t(tabTexts[id]);
+          }
+        }
+      });
+      // Sidebar search
+      var sbSearch = document.getElementById('sidebarSearchInput');
+      if (sbSearch) sbSearch.placeholder = t('searchGroups');
+      var sbLabel = document.getElementById('sidebarSelectAllLabel');
+      if (sbLabel) sbLabel.textContent = t('selectAll');
+      // Settings section titles (data-i18n attributes)
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        if (i18n[lang][key]) el.textContent = t(key);
+      });
+      // Contact search placeholder
+      var cs = document.getElementById('contactSearch');
+      if (cs) cs.placeholder = t('searchContacts');
+      // Update language button label
+      var langBtnEl = document.getElementById('langBtn');
+      if (langBtnEl) langBtnEl.title = lang === 'en' ? 'Switch to Hebrew' : 'Switch to English';
       updateSendBtn();
       renderAccounts();
       renderGroups();
     }
 
-    function toggleLang() { lang = lang === 'en' ? 'he' : 'en'; localStorage.setItem('wa-lang', lang); applyLang(); }
+    function toggleLang() { lang = lang === 'en' ? 'he' : 'en'; localStorage.setItem('wbpro-lang', lang); applyLang(); }
 
     // ── Tabs (lazy load) ──
     function switchTab(tab) {
@@ -3531,15 +4111,60 @@
 
     // ── Theme Switcher ──
     function setTheme(theme) {
-      document.documentElement.className = theme === 'pro' ? 'theme-pro' : '';
+      // Valid themes: 'light', 'dark', 'pro'
+      if (theme === 'dark') {
+        document.documentElement.className = 'theme-dark';
+        document.querySelector('meta[name="theme-color"]').content = '#0b141a';
+      } else if (theme === 'pro') {
+        document.documentElement.className = 'theme-pro';
+        document.querySelector('meta[name="theme-color"]').content = '#0a0f14';
+      } else {
+        document.documentElement.className = '';
+        theme = 'light';
+        document.querySelector('meta[name="theme-color"]').content = '#ffffff';
+      }
+      // Preserve RTL direction
+      if (lang === 'he') {
+        document.documentElement.dir = 'rtl';
+        document.documentElement.lang = 'he';
+      } else {
+        document.documentElement.dir = 'ltr';
+        document.documentElement.lang = 'en';
+      }
       localStorage.setItem('wbpro-theme', theme);
-      document.getElementById('themeClassic').className = 'theme-card' + (theme === 'classic' ? ' active' : '');
-      document.getElementById('themePro').className = 'theme-card' + (theme === 'pro' ? ' active' : '');
+      var lightEl = document.getElementById('themeLight');
+      var darkEl = document.getElementById('themeDark');
+      var proEl = document.getElementById('themePro');
+      if (lightEl) lightEl.className = 'theme-card' + (theme === 'light' ? ' active' : '');
+      if (darkEl) darkEl.className = 'theme-card' + (theme === 'dark' ? ' active' : '');
+      if (proEl) proEl.className = 'theme-card' + (theme === 'pro' ? ' active' : '');
+      updateThemeToggleIcon(theme);
+    }
+
+    function updateThemeToggleIcon(theme) {
+      var btn = document.getElementById('themeToggleBtn');
+      if (!btn) return;
+      if (theme === 'light') {
+        btn.innerHTML = icon('sun', 18);
+        btn.title = 'Switch to dark mode';
+      } else {
+        btn.innerHTML = icon('moon', 18);
+        btn.title = 'Switch to light mode';
+      }
+    }
+
+    function cycleTheme() {
+      var current = localStorage.getItem('wbpro-theme') || 'light';
+      if (current === 'light') setTheme('dark');
+      else if (current === 'dark') setTheme('pro');
+      else setTheme('light');
     }
 
     // Load saved theme on startup
     (function() {
-      var saved = localStorage.getItem('wbpro-theme') || 'classic';
+      var saved = localStorage.getItem('wbpro-theme') || 'light';
+      // Migration: map old 'classic' to 'dark' (preserving existing user preference)
+      if (saved === 'classic') saved = 'dark';
       setTheme(saved);
     })();
 
