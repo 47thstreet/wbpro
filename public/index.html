@@ -842,7 +842,10 @@
     <div class="topbar">
       <div class="topbar-avatar"></div>
       <div class="topbar-info">
-        <div class="topbar-title" id="subtitle"><span class="wb-accent">WB</span>pro<span class="wb-dot"></span><span id="statusText" style="font-size:12px;font-weight:400;color:var(--text-secondary);font-family:var(--font-mono)">connecting...</span></div>
+        <div>
+          <div class="topbar-title"><span class="wb-accent">WB</span>pro</div>
+          <div class="topbar-sub" id="topbarSub">connecting...</div>
+        </div>
       </div>
       <div class="topbar-actions">
         <button class="topbar-btn" onclick="loadGroups()" title="Refresh"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
@@ -1521,14 +1524,27 @@
       var bar = document.getElementById('accountsBar');
       var chips = accountsList.map(function(a) {
         var dotCls = a.status === 'ready' ? 'on' : (a.status === 'qr' ? 'qr' : '');
-        var label = a.phone ? (esc(a.name) + ' (' + esc(a.phone.slice(-4)) + ')') : esc(a.name);
-        return '<button class="acc-chip" onclick="connectAccount(\'' + a.id + '\')">'
+        var displayName = a.pushname || a.name || a.id;
+        if (displayName === 'Default' && !a.pushname) displayName = a.phone ? a.phone : 'Main';
+        var label = displayName;
+        if (a.phone && a.pushname) label = esc(a.pushname) + ' <span style="opacity:0.5;font-size:10px">' + esc(a.phone) + '</span>';
+        else if (a.phone) label = esc(a.phone);
+        else label = esc(displayName);
+        var statusText = a.status === 'ready' ? 'Connected' : (a.status === 'qr' ? 'Scan QR' : (a.status === 'error' ? 'Error' : 'Offline'));
+        return '<button class="acc-chip" onclick="connectAccount(\'' + a.id + '\')" title="' + statusText + '">'
           + '<span class="cd ' + dotCls + '"></span>'
           + '<span>' + label + '</span>'
-          + '<span class="cx" onclick="event.stopPropagation();removeAccount(\'' + a.id + '\')">' + icon('x', 12) + '</span>'
+          + (a.id !== 'default' ? '<span class="cx" onclick="event.stopPropagation();removeAccount(\'' + a.id + '\')">' + icon('x', 12) + '</span>' : '')
           + '</button>';
       }).join('');
-      bar.innerHTML = chips + '<button class="acc-chip add-chip" onclick="addAccount()" id="addBtn">' + t('addAccount') + '</button>';
+      bar.innerHTML = chips + '<button class="acc-chip add-chip" onclick="addAccount()" id="addBtn">' + icon('plus', 14) + ' ' + t('addAccount') + '</button>';
+      // Update topbar subtitle with active account info
+      var active = accountsList.find(function(a) { return a.status === 'ready'; });
+      var sub = document.getElementById('topbarSub');
+      if (sub) {
+        if (active) sub.textContent = (active.pushname || active.phone || 'Connected');
+        else sub.textContent = accountsList.length ? 'Not connected' : 'No accounts';
+      }
     }
 
     async function addAccount() {
@@ -1554,9 +1570,17 @@
     }
 
     function updateTopStatus() {
-      var online = accountsList.filter(function(a) { return a.status === 'ready'; }).length;
-      var statusEl = document.getElementById('statusText');
-      if (statusEl) statusEl.textContent = accountsList.length === 0 ? t('statusNone') : t('statusOnline', online, accountsList.length);
+      var active = accountsList.find(function(a) { return a.status === 'ready'; });
+      var sub = document.getElementById('topbarSub');
+      if (!sub) return;
+      if (active) {
+        var name = active.pushname || active.phone || 'Connected';
+        sub.innerHTML = '<span style="color:var(--accent)">' + icon('check-circle', 10) + '</span> ' + esc(name) + (active.phone && active.pushname ? ' <span style="opacity:0.5">' + esc(active.phone) + '</span>' : '');
+      } else if (accountsList.length) {
+        sub.textContent = 'Not connected — tap account to scan QR';
+      } else {
+        sub.textContent = 'No accounts';
+      }
     }
 
     // ── Groups ──

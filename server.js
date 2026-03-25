@@ -1475,11 +1475,28 @@ function setupClientEvents(accountId, client) {
     console.log(`[${accountId}] QR ready`);
   });
 
-  client.on('ready', () => {
+  client.on('ready', async () => {
     acc.qr = null;
     acc.ready = true;
     acc.status = 'ready';
-    console.log(`[${accountId}] WhatsApp connected!`);
+    // Pull phone number and display name from WhatsApp profile
+    try {
+      const info = client.info;
+      if (info) {
+        acc.phone = info.wid?.user ? '+' + info.wid.user : null;
+        acc.pushname = info.pushname || null;
+        acc.platform = info.platform || null;
+        // Update the account name to the WhatsApp display name if it's still "Default"
+        if (acc.name === 'Default' && info.pushname) {
+          acc.name = info.pushname;
+        }
+        console.log(`[${accountId}] WhatsApp connected! Phone: ${acc.phone}, Name: ${acc.pushname}`);
+      }
+    } catch (e) {
+      console.log(`[${accountId}] WhatsApp connected! (couldn't read profile: ${e.message})`);
+    }
+    // Save updated account info
+    try { saveJSON(ACCOUNTS_FILE, Array.from(accounts.entries()).map(([id, a]) => ({ id, name: a.name, phone: a.phone, pushname: a.pushname }))); } catch {}
   });
 
   client.on('authenticated', () => {
@@ -1855,7 +1872,16 @@ app.get('/api/accounts', (req, res) => {
     let tbpStatus = acc.status;
     if (acc.ready) tbpStatus = 'ready';
     else if (acc.qr || acc.status === 'waiting_for_qr_scan') tbpStatus = 'qr';
-    list.push({ id, name: acc.name, status: tbpStatus, ready: acc.ready, hasQr: !!acc.qr, phone: acc.phone || null });
+    list.push({
+      id,
+      name: acc.pushname || acc.name || id,
+      status: tbpStatus,
+      ready: acc.ready,
+      hasQr: !!acc.qr,
+      phone: acc.phone || null,
+      pushname: acc.pushname || null,
+      platform: acc.platform || null,
+    });
   }
   res.json({ accounts: list });
 });
