@@ -75,7 +75,7 @@
     .tab-btn .tab-icon svg { width: 18px; height: 18px; }
     .tab-btn.active { color: var(--accent); }
     .tab-btn.active svg { stroke: var(--accent); }
-    .tab-btn.active::after { content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: 3px; background: var(--accent); border-radius: 0 0 3px 3px; }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: 4px; left: 25%; right: 25%; height: 3px; background: var(--accent); border-radius: 3px; }
     .tab-btn .badge { position: absolute; top: 2px; right: calc(50% - 20px); background: var(--danger); color: #fff; font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: var(--radius-md); min-width: 14px; text-align: center; }
     .app { padding-bottom: 48px; }
 
@@ -794,6 +794,396 @@
       flex-direction: column;
       gap: 4px;
     }
+
+    /* ═══════════════════════════════════════════════════════════
+       UX: Micro-interactions & Touch Targets
+       ═══════════════════════════════════════════════════════════ */
+    /* 8. Micro-interactions */
+    button:active, .wa-icon-btn:active, .kw-add-btn:active, .send-btn:active,
+    .lead-btn:active, .acc-chip:active, .tpl-pill:active, .confirm-btn:active,
+    .connect-btn-big:active, .reply-send:active, .modal-close:active {
+      transform: scale(0.97) !important;
+      filter: brightness(0.9);
+    }
+    .toggle-switch { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .toggle-switch:active::after { width: 22px; }
+    .toggle-switch.on:active::after { transform: translateX(16px); width: 22px; }
+
+    /* Checkbox animation */
+    input[type="checkbox"] {
+      transition: all 0.2s ease;
+    }
+    input[type="checkbox"]:checked {
+      animation: checkPop 0.25s ease;
+    }
+    @keyframes checkPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Pulse loading skeleton */
+    .ux-pulse {
+      animation: skeleton-pulse 1.8s ease-in-out infinite;
+    }
+
+    /* Success flash */
+    @keyframes successFlash {
+      0% { box-shadow: 0 0 0 0 rgba(0,168,132,0.5); }
+      50% { box-shadow: 0 0 16px 4px rgba(0,168,132,0.3); }
+      100% { box-shadow: 0 0 0 0 transparent; }
+    }
+    .success-flash { animation: successFlash 0.6s ease; }
+
+    /* 10. Touch targets */
+    .lead-btn, .wa-icon-btn, .modal-close, .kw-add-btn, .rule-del, .list-del,
+    .block-rm, .sched-cancel, .tpl-pill, .kw-tag .kw-x {
+      min-height: 36px;
+      min-width: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .group-item input[type=checkbox],
+    .sb-group-row input[type=checkbox],
+    .add-member-item input[type=checkbox] {
+      width: 22px; height: 22px; cursor: pointer;
+    }
+
+    /* 7. Navigation — active tab pill background */
+    .tab-btn {
+      position: relative;
+      transition: color 0.2s ease;
+      padding: 6px 2px 8px;
+    }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active .tab-icon {
+      background: rgba(0,168,132,0.15);
+      border-radius: 12px;
+      padding: 2px 10px;
+    }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 25%;
+      right: 25%;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 3px;
+      top: auto;
+    }
+    /* Badge pulse animation */
+    @keyframes badgePulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    .badge-pulse {
+      animation: badgePulse 0.4s ease;
+    }
+    /* Tab fade transition */
+    .tab-content {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .tab-content.active {
+      opacity: 1;
+      animation: fadeSlideIn 0.25s ease;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       UX: First Open / Onboarding Overlay
+       ═══════════════════════════════════════════════════════════ */
+    .first-open-overlay {
+      position: absolute; inset: 0; z-index: 30;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-primary);
+      padding: 24px;
+    }
+    .first-open-card {
+      text-align: center; max-width: 340px; width: 100%;
+    }
+    .first-open-card .fo-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(0,168,132,0.15);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .first-open-card .fo-icon svg { width: 40px; height: 40px; stroke: var(--accent); }
+    .first-open-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary); }
+    .first-open-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 24px; }
+    .fo-connect-btn {
+      background: var(--accent); color: var(--bg-primary); border: none;
+      padding: 14px 32px; border-radius: var(--radius-md);
+      font-size: 16px; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,168,132,0.3);
+      transition: all 0.2s ease; width: 100%; justify-content: center;
+    }
+    .fo-connect-btn:hover { background: var(--accent-hover); transform: scale(1.02); }
+    .fo-connect-btn:active { transform: scale(0.97); }
+    .fo-connect-btn svg { width: 20px; height: 20px; }
+
+    /* Disabled tab styling */
+    .tab-btn.disabled-tab {
+      opacity: 0.35;
+      pointer-events: auto;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       UX: Send Tab — Simplified Layout
+       ═══════════════════════════════════════════════════════════ */
+    .send-btn-wide {
+      background: var(--accent); color: var(--bg-primary); border: none;
+      padding: 12px 24px; border-radius: var(--radius-md);
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; box-shadow: 0 2px 8px rgba(0,168,132,0.3);
+      transition: all 0.2s ease; min-height: 44px;
+    }
+    .send-btn-wide:hover { background: var(--accent-hover); }
+    .send-btn-wide:disabled {
+      background: var(--bg-tertiary); color: var(--text-muted);
+      cursor: not-allowed; box-shadow: none;
+    }
+    .send-btn-wide svg { width: 18px; height: 18px; }
+    .selected-count-header {
+      font-size: 12px; color: var(--text-secondary);
+      font-weight: 600; letter-spacing: 0.02em;
+    }
+    .selected-count-header .count-num {
+      color: var(--accent); font-family: 'JetBrains Mono', monospace;
+    }
+    .send-hint {
+      text-align: center; padding: 12px; color: var(--text-muted);
+      font-size: 12px; font-style: italic;
+    }
+    /* More options collapsible */
+    .more-options-toggle {
+      background: none; border: 1px solid var(--border-color);
+      color: var(--text-secondary); font-size: 12px; padding: 8px 16px;
+      border-radius: var(--radius-pill); cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      margin: 12px auto 0; transition: all 0.2s ease;
+    }
+    .more-options-toggle:hover { border-color: var(--text-muted); color: var(--text-primary); }
+    .more-options-toggle svg { width: 14px; height: 14px; transition: transform 0.2s ease; }
+    .more-options-toggle.expanded svg { transform: rotate(180deg); }
+    .more-options-content {
+      max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+    }
+    .more-options-content.expanded { max-height: 2000px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       UX: Leads Tab — Actionable Cards
+       ═══════════════════════════════════════════════════════════ */
+    .lead-empty-state {
+      text-align: center; padding: 32px 16px;
+      color: var(--text-muted);
+    }
+    .lead-empty-state .le-icon {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: rgba(0,168,132,0.1);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 12px;
+    }
+    .lead-empty-state .le-icon svg { width: 28px; height: 28px; stroke: var(--accent); opacity: 0.6; }
+    .lead-empty-state h3 { font-size: 15px; color: var(--text-primary); margin-bottom: 6px; font-weight: 600; }
+    .lead-empty-state p { font-size: 12px; line-height: 1.5; max-width: 280px; margin: 0 auto; }
+    .pull-refresh-hint {
+      text-align: center; font-size: 10px; color: var(--text-muted);
+      padding: 4px; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+
+    /* Lead card redesign — group name prominent, primary reply */
+    .lead-card .lead-group-big {
+      font-size: 13px; color: var(--accent); font-weight: 600;
+      display: flex; align-items: center; gap: 4px; margin-bottom: 2px;
+    }
+    .lead-card .lead-group-big svg { width: 14px; height: 14px; }
+    .lead-card .lead-actions-redesign {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .lead-card .lead-reply-primary {
+      background: var(--accent); color: var(--bg-primary); border: none;
+      padding: 7px 16px; border-radius: var(--radius-md);
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px;
+      transition: all 0.2s ease; min-height: 36px;
+    }
+    .lead-card .lead-reply-primary:hover { background: var(--accent-hover); }
+    .lead-card .lead-action-secondary {
+      background: var(--bg-tertiary); color: var(--text-secondary); border: none;
+      padding: 5px 10px; border-radius: var(--radius-md);
+      font-size: 11px; cursor: pointer; transition: all 0.2s ease; min-height: 36px;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .lead-card .lead-action-secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+    /* ═══════════════════════════════════════════════════════════
+       UX: People Tab — Slide-in Panel
+       ═══════════════════════════════════════════════════════════ */
+    .contacts-search-sticky {
+      position: sticky; top: 0; z-index: 5; background: var(--bg-primary);
+      padding: 4px 0 8px;
+    }
+    .contact-status-pills {
+      display: flex; gap: 6px; overflow-x: auto; padding: 4px 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    .contact-status-pills::-webkit-scrollbar { display: none; }
+    .contact-status-pill {
+      flex-shrink: 0; padding: 5px 12px; border-radius: var(--radius-pill);
+      border: 1px solid var(--border-color); background: none;
+      color: var(--text-secondary); font-size: 11px; cursor: pointer;
+      transition: all 0.2s ease; font-weight: 500;
+    }
+    .contact-status-pill.active {
+      background: var(--accent-dark); color: var(--accent);
+      border-color: var(--accent);
+    }
+    .contact-status-pill:hover { border-color: var(--text-muted); }
+
+    /* Slide-in detail panel */
+    .contact-slide-panel {
+      position: fixed; top: 0; right: -100%; width: 100%; max-width: 400px;
+      height: 100vh; height: 100dvh; background: var(--bg-secondary);
+      z-index: 90; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto; border-left: 1px solid var(--border-color);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.4);
+    }
+    .contact-slide-panel.open { right: 0; }
+    .contact-slide-panel .panel-header {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color); position: sticky; top: 0;
+      background: var(--bg-secondary); z-index: 2;
+    }
+    .contact-slide-panel .panel-back {
+      background: none; border: none; color: var(--text-secondary);
+      cursor: pointer; padding: 8px; display: flex; align-items: center;
+      min-height: 36px; min-width: 36px; justify-content: center;
+      border-radius: var(--radius-md); transition: all 0.2s ease;
+    }
+    .contact-slide-panel .panel-back:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .contact-slide-panel .panel-back svg { width: 20px; height: 20px; }
+    .contact-slide-panel .panel-body { padding: 16px; }
+    .contact-slide-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      z-index: 89; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .contact-slide-overlay.open { opacity: 1; pointer-events: auto; }
+
+    /* Contact card redesign for people tab */
+    .contact-card-v2 {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg-secondary); border-radius: var(--radius-lg);
+      padding: 10px 12px; margin-bottom: 6px; cursor: pointer;
+      transition: all 0.15s ease; border: 1px solid var(--border-color);
+    }
+    .contact-card-v2:hover { background: var(--bg-hover); border-color: rgba(0,200,150,0.2); }
+    .contact-card-v2 .cv2-name { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+    .contact-card-v2 .cv2-phone { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+    .contact-card-v2 .cv2-status-badge {
+      margin-left: auto; flex-shrink: 0;
+      padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;
+    }
+    .cv2-status-badge.hot { background: #dc262620; color: var(--danger); }
+    .cv2-status-badge.warm { background: #f59e0b20; color: #f59e0b; }
+    .cv2-status-badge.cold { background: var(--bg-tertiary); color: var(--text-secondary); }
+
+    /* ═══════════════════════════════════════════════════════════
+       UX: Lists Tab — FAB + Clear Cards
+       ═══════════════════════════════════════════════════════════ */
+    .fab-new-list {
+      position: fixed; bottom: 70px; right: 16px; z-index: 40;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--accent); color: var(--bg-primary);
+      border: none; cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,168,132,0.4);
+      transition: all 0.2s ease; font-size: 24px;
+    }
+    .fab-new-list:hover { transform: scale(1.1); box-shadow: 0 6px 24px rgba(0,168,132,0.5); }
+    .fab-new-list:active { transform: scale(0.95); }
+    .fab-new-list svg { width: 24px; height: 24px; }
+    .list-card-broadcast {
+      background: var(--accent-dark); color: var(--accent); border: none;
+      padding: 6px 12px; border-radius: var(--radius-md);
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px;
+      transition: all 0.2s ease; white-space: nowrap; min-height: 32px;
+    }
+    .list-card-broadcast:hover { background: var(--accent); color: var(--bg-primary); }
+    .list-card-broadcast svg { width: 12px; height: 12px; }
+
+    /* New list inline form */
+    .new-list-form {
+      position: fixed; bottom: 130px; right: 16px; z-index: 41;
+      background: var(--bg-secondary); border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg); padding: 12px; width: 260px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      display: none;
+    }
+    .new-list-form.open { display: block; animation: fadeSlideIn 0.2s ease; }
+    .new-list-form input {
+      width: 100%; margin-bottom: 8px; border-radius: var(--radius-md);
+      padding: 8px 12px; font-size: 13px;
+    }
+    .new-list-form .form-row { display: flex; gap: 6px; }
+
+    /* ═══════════════════════════════════════════════════════════
+       UX: Settings Tab — Collapsible Sections
+       ═══════════════════════════════════════════════════════════ */
+    .settings-section {
+      margin-bottom: 8px; border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color); overflow: hidden;
+      background: var(--bg-secondary);
+    }
+    .settings-section-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; cursor: pointer;
+      transition: background 0.15s ease; user-select: none;
+    }
+    .settings-section-header:hover { background: var(--bg-hover); }
+    .settings-section-header .ssh-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .settings-section-header .ssh-icon svg { width: 14px; height: 14px; }
+    .settings-section-header .ssh-title {
+      font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1;
+    }
+    .settings-section-header .ssh-chevron {
+      color: var(--text-secondary); transition: transform 0.2s ease;
+    }
+    .settings-section-header .ssh-chevron svg { width: 14px; height: 14px; }
+    .settings-section.expanded .settings-section-header .ssh-chevron {
+      transform: rotate(180deg);
+    }
+    .settings-section-body {
+      max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
+      padding: 0 14px;
+    }
+    .settings-section.expanded .settings-section-body {
+      max-height: 2000px; padding: 0 14px 14px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       UX: Information Hierarchy
+       ═══════════════════════════════════════════════════════════ */
+    .text-primary { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+    .text-secondary { font-size: 11px; color: #8696a0; }
+    .text-micro { font-size: 9px; color: var(--text-muted); }
+    .text-label {
+      font-size: 10px; text-transform: uppercase; color: var(--accent);
+      letter-spacing: 0.06em; font-weight: 600;
+    }
+    .text-stat {
+      font-family: 'JetBrains Mono', monospace; color: var(--accent);
+    }
   </style>
 </head>
 <body>
@@ -889,6 +1279,7 @@
     <div class="chat-area">
       <!-- BROADCAST TAB -->
       <div class="tab-content active" id="panelBroadcast">
+        <!-- Step 1: Compose message -->
         <div class="bubble">
           <div class="bubble-label" id="msgLabel">Compose message</div>
           <div class="emoji-bar" id="emojiBarMobile"></div>
@@ -896,9 +1287,13 @@
           <div class="char-count"><span id="charCount">0</span> <span id="charLabel">chars</span></div>
         </div>
 
+        <!-- Step 2: Select groups -->
         <div class="bubble">
           <div class="groups-header">
-            <div class="bubble-label" style="margin:0" id="groupsLabel">Groups (0)</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="bubble-label" style="margin:0">Groups</div>
+              <span class="selected-count-header" id="groupsLabel"><span class="count-num">0</span> selected</span>
+            </div>
             <div style="display:flex;gap:6px">
               <button class="wa-icon-btn" onclick="scrapeGroupContacts()" id="scrapeBtn" title="Scrape contacts from all groups" aria-label="Scrape contacts from all groups"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Scrape</button>
               <button class="wa-link" onclick="selectAll()" id="selectAllBtn">Select all</button>
@@ -913,6 +1308,14 @@
           </div>
         </div>
 
+        <!-- Step 3: Send button (prominent, full-width) -->
+        <div style="padding:4px 0">
+          <button class="send-btn-wide" id="sendBtnWide" onclick="send()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span id="sendBtnWideLabel">Select groups below to broadcast</span>
+          </button>
+        </div>
+
         <div id="progressWrap" class="progress" style="display:none">
           <div class="progress-text" id="progressText">Sending...</div>
           <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
@@ -920,51 +1323,59 @@
 
         <div id="result" style="display:none" class="toast"></div>
 
-        <!-- Message Templates -->
-        <div class="bubble" style="margin-top:8px">
-          <div class="bubble-label">Quick Templates</div>
-          <div id="templatePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
-            <span class="empty" style="padding:8px;font-size:12px">No templates saved. Save a message as template for quick reuse.</span>
+        <!-- More options: templates, schedule, history -->
+        <button class="more-options-toggle" id="moreOptionsToggle" onclick="toggleMoreOptions()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          More options
+        </button>
+        <div class="more-options-content" id="moreOptionsContent">
+          <!-- Message Templates -->
+          <div class="bubble" style="margin-top:8px">
+            <div class="bubble-label">Quick Templates</div>
+            <div id="templatePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+              <span class="empty" style="padding:8px;font-size:12px">No templates saved. Save a message as template for quick reuse.</span>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="wa-icon-btn" onclick="saveAsTemplate()" title="Save current message as template"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save as Template</button>
+              <button class="wa-icon-btn" onclick="loadTemplates()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+            </div>
           </div>
-          <div style="display:flex;gap:6px">
-            <button class="wa-icon-btn" onclick="saveAsTemplate()" title="Save current message as template"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save as Template</button>
-            <button class="wa-icon-btn" onclick="loadTemplates()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
-          </div>
-        </div>
 
-        <!-- Scheduled Broadcasts -->
-        <div class="bubble" style="margin-top:8px">
-          <div class="groups-header">
-            <div class="bubble-label" style="margin:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Schedule Broadcast</div>
-            <button class="toggle-switch" id="scheduleToggle" onclick="toggleScheduleUI()" title="Toggle schedule" aria-label="Toggle schedule"></button>
-          </div>
-          <div id="scheduleUI" style="display:none;margin-top:10px">
-            <div style="display:flex;gap:6px;margin-bottom:8px">
-              <input type="datetime-local" id="scheduleDateTime" style="flex:1;background:var(--bg-tertiary);border:none;border-radius:var(--radius-md);padding:8px 10px;color:var(--text-primary);font-size:13px;font-family:inherit" />
+          <!-- Scheduled Broadcasts -->
+          <div class="bubble" style="margin-top:8px">
+            <div class="groups-header">
+              <div class="bubble-label" style="margin:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Schedule Broadcast</div>
+              <button class="toggle-switch" id="scheduleToggle" onclick="toggleScheduleUI()" title="Toggle schedule" aria-label="Toggle schedule"></button>
             </div>
-            <div style="display:flex;gap:6px;margin-bottom:8px">
-              <input type="text" id="scheduleName" placeholder="Schedule name (optional)" style="flex:1;border-radius:var(--radius-md);padding:8px 10px;font-size:13px" />
+            <div id="scheduleUI" style="display:none;margin-top:10px">
+              <div style="display:flex;gap:6px;margin-bottom:8px">
+                <input type="datetime-local" id="scheduleDateTime" style="flex:1;background:var(--bg-tertiary);border:none;border-radius:var(--radius-md);padding:8px 10px;color:var(--text-primary);font-size:13px;font-family:inherit" />
+              </div>
+              <div style="display:flex;gap:6px;margin-bottom:8px">
+                <input type="text" id="scheduleName" placeholder="Schedule name (optional)" style="flex:1;border-radius:var(--radius-md);padding:8px 10px;font-size:13px" />
+              </div>
+              <button class="kw-add-btn" onclick="createSchedule()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Schedule</button>
             </div>
-            <button class="kw-add-btn" onclick="createSchedule()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Schedule</button>
+            <div id="pendingSchedules" style="margin-top:10px"></div>
           </div>
-          <div id="pendingSchedules" style="margin-top:10px"></div>
-        </div>
 
-        <!-- Broadcast History -->
-        <div class="bubble" style="margin-top:8px">
-          <details id="historyDetails">
-            <summary style="cursor:pointer;user-select:none">
-              <span class="bubble-label" style="display:inline;margin:0">Recent Broadcasts</span>
-            </summary>
-            <div id="historyList" style="margin-top:8px">
-              <div class="empty" style="padding:8px;font-size:12px">No broadcasts sent yet.</div>
-            </div>
-          </details>
+          <!-- Broadcast History -->
+          <div class="bubble" style="margin-top:8px">
+            <details id="historyDetails">
+              <summary style="cursor:pointer;user-select:none">
+                <span class="bubble-label" style="display:inline;margin:0">Recent Broadcasts</span>
+              </summary>
+              <div id="historyList" style="margin-top:8px">
+                <div class="empty" style="padding:8px;font-size:12px">No broadcasts sent yet.</div>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
 
       <!-- LEADS TAB -->
       <div class="tab-content" id="panelLeads">
+        <div class="pull-refresh-hint" id="leadsRefreshHint">Pull down to refresh</div>
         <div class="stats-row" id="leadStats">
           <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total</div></div>
           <div class="stat-card"><div class="stat-num" id="statToday">0</div><div class="stat-label">Today</div></div>
@@ -1003,185 +1414,230 @@
       <!-- SETTINGS TAB (was Keywords) -->
       <div class="tab-content" id="panelKeywords">
 
-        <div class="bubble" style="margin-bottom:12px">
-          <div class="bubble-label">Theme</div>
-          <div style="display:flex;gap:8px">
-            <button class="theme-card" id="themeClassic" onclick="setTheme('classic')">
-              <div class="theme-preview" style="background:#0b141a;border:2px solid var(--accent)">
-                <div style="height:6px;background:#1f2c34;border-radius:2px;margin-bottom:4px"></div>
-                <div style="display:flex;gap:4px">
-                  <div style="width:8px;height:8px;border-radius:50%;background:#00a884"></div>
-                  <div style="flex:1;height:8px;background:#2a3942;border-radius:2px"></div>
-                </div>
-                <div style="height:6px;background:#005c4b;border-radius:2px;margin-top:auto"></div>
+        <!-- Connection section — expanded by default -->
+        <div class="settings-section expanded" id="settingsConnection">
+          <div class="settings-section-header" onclick="toggleSettingsSection('settingsConnection')">
+            <div class="ssh-icon" style="background:var(--accent-dark);color:var(--accent)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+            <div class="ssh-title">Connection</div>
+            <div class="ssh-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+          </div>
+          <div class="settings-section-body">
+            <div style="margin-bottom:12px">
+              <div class="text-label" style="margin-bottom:8px">Theme</div>
+              <div style="display:flex;gap:8px">
+                <button class="theme-card" id="themeClassic" onclick="setTheme('classic')">
+                  <div class="theme-preview" style="background:#0b141a;border:2px solid var(--accent)">
+                    <div style="height:6px;background:#1f2c34;border-radius:2px;margin-bottom:4px"></div>
+                    <div style="display:flex;gap:4px">
+                      <div style="width:8px;height:8px;border-radius:50%;background:#00a884"></div>
+                      <div style="flex:1;height:8px;background:#2a3942;border-radius:2px"></div>
+                    </div>
+                    <div style="height:6px;background:#005c4b;border-radius:2px;margin-top:auto"></div>
+                  </div>
+                  <span>WhatsApp</span>
+                </button>
+                <button class="theme-card" id="themePro" onclick="setTheme('pro')">
+                  <div class="theme-preview" style="background:#0a0f14;border:2px solid transparent">
+                    <div style="height:6px;background:#131a22;border-radius:2px;margin-bottom:4px"></div>
+                    <div style="display:flex;gap:4px">
+                      <div style="width:8px;height:8px;border-radius:50%;background:#00c896"></div>
+                      <div style="flex:1;height:8px;background:#1c2630;border-radius:2px"></div>
+                    </div>
+                    <div style="height:6px;background:#005e45;border-radius:2px;margin-top:auto"></div>
+                  </div>
+                  <span>WBpro Dark</span>
+                </button>
               </div>
-              <span>WhatsApp</span>
-            </button>
-            <button class="theme-card" id="themePro" onclick="setTheme('pro')">
-              <div class="theme-preview" style="background:#0a0f14;border:2px solid transparent">
-                <div style="height:6px;background:#131a22;border-radius:2px;margin-bottom:4px"></div>
-                <div style="display:flex;gap:4px">
-                  <div style="width:8px;height:8px;border-radius:50%;background:#00c896"></div>
-                  <div style="flex:1;height:8px;background:#1c2630;border-radius:2px"></div>
-                </div>
-                <div style="height:6px;background:#005e45;border-radius:2px;margin-top:auto"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scanner section -->
+        <div class="settings-section" id="settingsScanner">
+          <div class="settings-section-header" onclick="toggleSettingsSection('settingsScanner')">
+            <div class="ssh-icon" style="background:#f0b42920;color:var(--warning)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <div class="ssh-title">Scanner</div>
+            <div class="ssh-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+          </div>
+          <div class="settings-section-body">
+            <div class="toggle-row" style="margin-bottom:12px;border:none;box-shadow:none;padding:0">
+              <div>
+                <div class="toggle-label">Lead Scanner</div>
+                <div class="toggle-sub">Scan group messages for keywords</div>
               </div>
-              <span>WBpro Dark</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="toggle-row">
-          <div>
-            <div class="toggle-label">Lead Scanner</div>
-            <div class="toggle-sub">Scan group messages for event keywords</div>
-          </div>
-          <button class="toggle-switch on" id="scannerToggle" onclick="toggleScanner()" title="Toggle lead scanner" aria-label="Toggle lead scanner"></button>
-        </div>
-
-        <div class="bubble">
-          <div class="kw-section">
-            <div class="kw-section-title">English Keywords</div>
-            <div class="kw-tags" id="kwTagsEn"></div>
-            <div class="kw-add-row">
-              <input type="text" id="kwInputEn" placeholder="Add keyword..." onkeydown="if(event.key==='Enter')addKeyword('en')" />
-              <button class="kw-add-btn" onclick="addKeyword('en')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add</button>
+              <button class="toggle-switch on" id="scannerToggle" onclick="toggleScanner()" title="Toggle lead scanner" aria-label="Toggle lead scanner"></button>
             </div>
-          </div>
 
-          <div class="kw-section" style="margin-top:16px">
-            <div class="kw-section-title">Hebrew Keywords</div>
-            <div class="kw-tags" id="kwTagsHe"></div>
-            <div class="kw-add-row">
-              <input type="text" id="kwInputHe" placeholder="...הוסף מילה" dir="rtl" onkeydown="if(event.key==='Enter')addKeyword('he')" />
-              <button class="kw-add-btn" onclick="addKeyword('he')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add</button>
+            <div class="kw-section">
+              <div class="kw-section-title">English Keywords</div>
+              <div class="kw-tags" id="kwTagsEn"></div>
+              <div class="kw-add-row">
+                <input type="text" id="kwInputEn" placeholder="Add keyword..." onkeydown="if(event.key==='Enter')addKeyword('en')" />
+                <button class="kw-add-btn" onclick="addKeyword('en')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add</button>
+              </div>
+            </div>
+
+            <div class="kw-section" style="margin-top:16px">
+              <div class="kw-section-title">Hebrew Keywords</div>
+              <div class="kw-tags" id="kwTagsHe"></div>
+              <div class="kw-add-row">
+                <input type="text" id="kwInputHe" placeholder="...הוסף מילה" dir="rtl" onkeydown="if(event.key==='Enter')addKeyword('he')" />
+                <button class="kw-add-btn" onclick="addKeyword('he')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add</button>
+              </div>
+            </div>
+
+            <div style="margin-top:12px">
+              <div class="text-label" style="margin-bottom:6px">Top Keywords</div>
+              <div id="topKeywords" class="empty">No data yet</div>
             </div>
           </div>
         </div>
 
-        <div class="bubble" style="margin-top:8px">
-          <div class="bubble-label">Top Keywords</div>
-          <div id="topKeywords" class="empty">No data yet</div>
-        </div>
-
-        <!-- Auto-Response Rules -->
-        <div class="bubble" style="margin-top:12px">
-          <div class="groups-header">
-            <div class="bubble-label" style="margin:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg> Auto-Response Rules</div>
-            <button class="wa-icon-btn" onclick="loadAutoRules()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+        <!-- Auto-Replies section -->
+        <div class="settings-section" id="settingsAutoReplies">
+          <div class="settings-section-header" onclick="toggleSettingsSection('settingsAutoReplies')">
+            <div class="ssh-icon" style="background:rgba(0,168,132,0.15);color:var(--accent)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg></div>
+            <div class="ssh-title">Auto-Replies</div>
+            <div class="ssh-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
           </div>
-          <div id="autoRulesList" style="margin-top:8px">
-            <div class="empty" style="padding:8px;font-size:12px">No rules yet</div>
-          </div>
-          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-color)">
-            <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">Add new rule:</div>
-            <input type="text" id="ruleKeywords" placeholder="Keywords (comma-separated)" style="margin-bottom:6px;border-radius:var(--radius-md);padding:8px 10px;font-size:13px" />
-            <textarea id="ruleResponse" rows="2" style="min-height:50px;margin-bottom:6px;font-size:13px" placeholder="Auto-response message..."></textarea>
-            <button class="kw-add-btn" onclick="addAutoRule()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Rule</button>
-          </div>
-        </div>
-
-        <!-- Quiet Hours -->
-        <div class="bubble" style="margin-top:12px">
-          <div class="bubble-label"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> Quiet Hours</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">During quiet hours, bot won't auto-respond in groups</div>
-          <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
-            <div style="flex:1">
-              <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">Start</div>
-              <input type="time" id="quietStart" value="02:00" style="width:100%;background:var(--bg-tertiary);border:none;border-radius:var(--radius-md);padding:8px 10px;color:var(--text-primary);font-size:14px;font-family:inherit" />
+          <div class="settings-section-body">
+            <div id="autoRulesList" style="margin-bottom:8px">
+              <div class="empty" style="padding:8px;font-size:12px">No rules yet</div>
             </div>
-            <div style="flex:1">
-              <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">End</div>
-              <input type="time" id="quietEnd" value="10:00" style="width:100%;background:var(--bg-tertiary);border:none;border-radius:var(--radius-md);padding:8px 10px;color:var(--text-primary);font-size:14px;font-family:inherit" />
-            </div>
-          </div>
-          <button class="kw-add-btn" onclick="saveQuietHours()">Save</button>
-          <span id="quietSaveStatus" style="font-size:12px;color:var(--text-secondary);margin-left:8px"></span>
-        </div>
-
-        <!-- Blocklist -->
-        <div class="bubble" style="margin-top:12px">
-          <div class="groups-header">
-            <div class="bubble-label" style="margin:0"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Blocklist</div>
-            <button class="wa-icon-btn" onclick="loadBlocklist()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
-          </div>
-          <div id="blocklistItems" style="margin-top:8px">
-            <div class="empty" style="padding:8px;font-size:12px">No blocked numbers</div>
-          </div>
-          <div class="kw-add-row" style="margin-top:8px">
-            <input type="text" id="blockPhoneInput" placeholder="+972501234567" style="flex:1;border-radius:var(--radius-pill);padding:8px 12px;font-size:13px" onkeydown="if(event.key==='Enter')addToBlocklist()" />
-            <button class="kw-add-btn" onclick="addToBlocklist()">Block</button>
-          </div>
-        </div>
-
-        <!-- Cooldown Settings -->
-        <div class="bubble" style="margin-top:12px">
-          <div class="bubble-label"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Cooldown Settings</div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div style="font-size:13px;color:var(--text-primary);white-space:nowrap">Group cooldown:</div>
-            <input type="range" id="cooldownSlider" min="5" max="120" value="30" oninput="document.getElementById('cooldownVal').textContent=this.value" style="flex:1;accent-color:var(--accent)" />
-            <div style="font-size:14px;font-weight:700;color:var(--accent);min-width:50px;text-align:center"><span id="cooldownVal">30</span> min</div>
-          </div>
-          <button class="kw-add-btn" onclick="saveCooldown()">Save</button>
-          <span id="cooldownSaveStatus" style="font-size:12px;color:var(--text-secondary);margin-left:8px"></span>
-          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-color)">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-              <div style="font-size:12px;color:var(--text-secondary)">Active Cooldowns</div>
-              <button class="wa-icon-btn" onclick="resetCooldowns()" style="font-size:11px">Reset All</button>
-            </div>
-            <div id="activeCooldowns">
-              <div class="empty" style="padding:8px;font-size:12px">No active cooldowns</div>
+            <div style="padding-top:10px;border-top:1px solid var(--border-color)">
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">Add new rule:</div>
+              <input type="text" id="ruleKeywords" placeholder="Keywords (comma-separated)" style="margin-bottom:6px;border-radius:var(--radius-md);padding:8px 10px;font-size:13px" />
+              <textarea id="ruleResponse" rows="2" style="min-height:50px;margin-bottom:6px;font-size:13px" placeholder="Auto-response message..."></textarea>
+              <button class="kw-add-btn" onclick="addAutoRule()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Rule</button>
             </div>
           </div>
         </div>
+
+        <!-- Schedule section -->
+        <div class="settings-section" id="settingsSchedule">
+          <div class="settings-section-header" onclick="toggleSettingsSection('settingsSchedule')">
+            <div class="ssh-icon" style="background:rgba(99,102,241,0.15);color:#818cf8"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div>
+            <div class="ssh-title">Schedule</div>
+            <div class="ssh-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+          </div>
+          <div class="settings-section-body">
+            <div style="margin-bottom:12px">
+              <div class="text-label" style="margin-bottom:8px">Quiet Hours</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-bottom:10px">Bot won't auto-respond during these hours</div>
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+                <div style="flex:1">
+                  <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">Start</div>
+                  <input type="time" id="quietStart" value="02:00" style="width:100%;background:var(--bg-tertiary);border:none;border-radius:var(--radius-md);padding:8px 10px;color:var(--text-primary);font-size:14px;font-family:inherit" />
+                </div>
+                <div style="flex:1">
+                  <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px">End</div>
+                  <input type="time" id="quietEnd" value="10:00" style="width:100%;background:var(--bg-tertiary);border:none;border-radius:var(--radius-md);padding:8px 10px;color:var(--text-primary);font-size:14px;font-family:inherit" />
+                </div>
+              </div>
+              <button class="kw-add-btn" onclick="saveQuietHours()">Save</button>
+              <span id="quietSaveStatus" style="font-size:12px;color:var(--text-secondary);margin-left:8px"></span>
+            </div>
+
+            <div style="padding-top:12px;border-top:1px solid var(--border-color)">
+              <div class="text-label" style="margin-bottom:8px">Cooldown</div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <div style="font-size:13px;color:var(--text-primary);white-space:nowrap">Group cooldown:</div>
+                <input type="range" id="cooldownSlider" min="5" max="120" value="30" oninput="document.getElementById('cooldownVal').textContent=this.value" style="flex:1;accent-color:var(--accent)" />
+                <div style="font-size:14px;font-weight:700;color:var(--accent);min-width:50px;text-align:center"><span id="cooldownVal">30</span> min</div>
+              </div>
+              <button class="kw-add-btn" onclick="saveCooldown()">Save</button>
+              <span id="cooldownSaveStatus" style="font-size:12px;color:var(--text-secondary);margin-left:8px"></span>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border-color)">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <div style="font-size:12px;color:var(--text-secondary)">Active Cooldowns</div>
+                  <button class="wa-icon-btn" onclick="resetCooldowns()" style="font-size:11px">Reset All</button>
+                </div>
+                <div id="activeCooldowns">
+                  <div class="empty" style="padding:8px;font-size:12px">No active cooldowns</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Data section -->
+        <div class="settings-section" id="settingsData">
+          <div class="settings-section-header" onclick="toggleSettingsSection('settingsData')">
+            <div class="ssh-icon" style="background:var(--danger-bg);color:var(--danger)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+            <div class="ssh-title">Data</div>
+            <div class="ssh-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+          </div>
+          <div class="settings-section-body">
+            <div class="text-label" style="margin-bottom:8px">Blocklist</div>
+            <div id="blocklistItems" style="margin-bottom:8px">
+              <div class="empty" style="padding:8px;font-size:12px">No blocked numbers</div>
+            </div>
+            <div class="kw-add-row" style="margin-bottom:12px">
+              <input type="text" id="blockPhoneInput" placeholder="+972501234567" style="flex:1;border-radius:var(--radius-pill);padding:8px 12px;font-size:13px" onkeydown="if(event.key==='Enter')addToBlocklist()" />
+              <button class="kw-add-btn" onclick="addToBlocklist()">Block</button>
+            </div>
+            <div style="padding-top:12px;border-top:1px solid var(--border-color)">
+              <div class="text-label" style="margin-bottom:8px">Export</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="wa-icon-btn" onclick="exportContacts()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export Contacts</button>
+                <button class="wa-icon-btn" onclick="exportLeads()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export Leads</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
       <!-- CONTACTS TAB -->
       <div class="tab-content" id="panelContacts">
+        <div class="contacts-search-sticky">
+          <input type="text" id="contactSearch" placeholder="Search by name or phone..." aria-label="Search contacts" oninput="searchContacts()" style="width:100%;border-radius:var(--radius-pill);padding:8px 14px;font-size:13px;margin-bottom:6px" />
+          <div style="display:flex;gap:6px;align-items:center">
+            <select id="contactGroupFilter" onchange="filterByGroup()" aria-label="Filter by group" style="background:var(--bg-tertiary);border:none;color:var(--text-primary);border-radius:var(--radius-pill);padding:8px 10px;font-size:12px;max-width:160px;flex-shrink:0">
+              <option value="">All groups</option>
+            </select>
+            <div style="flex:1"></div>
+            <button class="wa-icon-btn" onclick="exportContacts()" title="Export" aria-label="Export contacts"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+            <button class="wa-icon-btn" onclick="loadContacts()" title="Refresh" aria-label="Refresh contacts"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+          </div>
+        </div>
+
         <div class="stats-row" id="contactStats">
           <div class="stat-card"><div class="stat-num" id="cStatTotal">0</div><div class="stat-label">Total</div></div>
           <div class="stat-card"><div class="stat-num" id="cStatToday">0</div><div class="stat-label">Today</div></div>
           <div class="stat-card"><div class="stat-num" id="cStatWeek">0</div><div class="stat-label">This Week</div></div>
         </div>
 
-        <div class="bubble" style="padding:10px 12px">
-          <div style="display:flex;gap:6px">
-            <input type="text" id="contactSearch" placeholder="Search by name or phone..." aria-label="Search contacts" oninput="searchContacts()" style="flex:1;border-radius:var(--radius-pill);padding:8px 14px;font-size:13px" />
-            <select id="contactGroupFilter" onchange="filterByGroup()" aria-label="Filter by group" style="background:var(--bg-tertiary);border:none;color:var(--text-primary);border-radius:var(--radius-pill);padding:8px 10px;font-size:12px;max-width:140px">
-              <option value="">All groups</option>
-            </select>
-          </div>
-        </div>
-
         <div style="display:flex;justify-content:space-between;align-items:center;margin:8px 0">
           <div class="bubble-label" style="margin:0" id="contactsCount">Contacts (0)</div>
-          <div style="display:flex;gap:6px">
-            <button class="wa-icon-btn" onclick="exportContacts()" title="Export contacts as CSV" aria-label="Export contacts as CSV"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> CSV</button>
-            <button class="wa-icon-btn" onclick="loadContacts()" title="Refresh contacts" aria-label="Refresh contacts"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
-          </div>
         </div>
 
         <div id="contactsList"></div>
 
-        <!-- CSV Import -->
-        <div class="bubble" style="margin-top:12px">
-          <div class="bubble-label">Import Contacts (CSV)</div>
-          <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">CSV must have a <strong>phone</strong> column. Optional: name, tag, source</p>
-          <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
-            <input type="file" id="csvFileInput" accept=".csv" style="font-size:12px;color:var(--text-secondary);flex:1" />
-            <select id="csvTargetList" style="background:var(--bg-tertiary);border:none;color:var(--text-primary);border-radius:var(--radius-md);padding:6px 8px;font-size:12px">
-              <option value="">No list</option>
-            </select>
+        <!-- CSV Import (collapsed into a details) -->
+        <details style="margin-top:12px">
+          <summary style="cursor:pointer;user-select:none;font-size:12px;color:var(--text-secondary);padding:8px 0">
+            <span style="display:inline-flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Import Contacts (CSV)</span>
+          </summary>
+          <div class="bubble" style="margin-top:4px">
+            <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">CSV must have a <strong>phone</strong> column. Optional: name, tag, source</p>
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+              <input type="file" id="csvFileInput" accept=".csv" style="font-size:12px;color:var(--text-secondary);flex:1" />
+              <select id="csvTargetList" style="background:var(--bg-tertiary);border:none;color:var(--text-primary);border-radius:var(--radius-md);padding:6px 8px;font-size:12px">
+                <option value="">No list</option>
+              </select>
+            </div>
+            <button class="kw-add-btn" onclick="importCSV()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Import</button>
+            <div id="importResult" style="font-size:12px;margin-top:6px;display:none"></div>
           </div>
-          <button class="kw-add-btn" onclick="importCSV()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Import</button>
-          <div id="importResult" style="font-size:12px;margin-top:6px;display:none"></div>
-        </div>
+        </details>
       </div>
 
       <!-- LISTS TAB -->
       <div class="tab-content" id="panelLists">
-        <div style="display:flex;gap:6px;margin-bottom:12px">
+        <!-- Hidden new list form — shown by FAB -->
+        <div style="display:none;gap:6px;margin-bottom:12px" id="newListFormInline">
           <input type="text" id="newListName" placeholder="New broadcast list name..." aria-label="New list name" style="flex:1;border-radius:var(--radius-pill);padding:8px 14px;font-size:13px" onkeydown="if(event.key==='Enter')createList()" />
           <button class="kw-add-btn" onclick="createList()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Create</button>
         </div>
@@ -1213,6 +1669,9 @@
 
           <div id="listMembersList"></div>
         </div>
+
+        <!-- FAB for new list -->
+        <button class="fab-new-list" id="fabNewList" onclick="toggleNewListForm()" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
       </div>
     </div>
 
@@ -1289,6 +1748,21 @@
           <button class="modal-close" onclick="closeAddMembers()">Cancel</button>
           <button class="reply-send" onclick="confirmAddMembers()">Add Selected</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Slide-in Contact Detail Panel -->
+    <div class="contact-slide-overlay" id="contactSlideOverlay" onclick="closeContactSlide()"></div>
+    <div class="contact-slide-panel" id="contactSlidePanel">
+      <div class="panel-header">
+        <button class="panel-back" onclick="closeContactSlide()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+        <div style="flex:1">
+          <div id="csName" style="font-size:15px;font-weight:600;color:var(--text-primary)"></div>
+          <div id="csPhone" style="font-size:11px;color:var(--text-secondary)"></div>
+        </div>
+      </div>
+      <div class="panel-body" id="csBody">
+        <!-- populated by JS -->
       </div>
     </div>
 
@@ -1509,7 +1983,9 @@
       document.querySelectorAll('.tab-content').forEach(function(p) { p.classList.remove('active'); });
       document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
       document.getElementById('panel' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-      document.getElementById('bottomBar').style.display = tab === 'broadcast' ? '' : 'none';
+      // bottomBar replaced by wide send button in broadcast panel
+      var fabEl = document.getElementById('fabNewList');
+      if (fabEl) fabEl.style.display = (tab === 'lists') ? 'flex' : 'none';
 
       // Lazy load: only fetch data first time or refresh
       if (tab === 'leads') { loadLeads(); loadLeadStats(); loadScannerFeed(); loadScannerStats(); }
@@ -1707,6 +2183,8 @@
       var ids = Array.from(selected);
       document.getElementById('sendBtn').disabled = true;
       document.getElementById('sendLabel').innerHTML = '<span class="spinner"></span> ' + t('sending');
+      var wBtn = document.getElementById('sendBtnWide');
+      if (wBtn) { wBtn.disabled = true; document.getElementById('sendBtnWideLabel').innerHTML = '<span class="spinner"></span> Sending...'; }
       document.getElementById('result').style.display = 'none';
       document.getElementById('progressWrap').style.display = 'block';
       document.getElementById('progressBar').style.width = '0%';
@@ -1725,6 +2203,8 @@
       document.getElementById('progressWrap').style.display = 'none';
       document.getElementById('sendBtn').disabled = false;
       document.getElementById('sendLabel').textContent = t('sendInfo');
+      var wBtn2 = document.getElementById('sendBtnWide');
+      if (wBtn2) { wBtn2.disabled = false; updateSendBtn(); }
     }
 
     // ── QR Modal ──
@@ -2311,7 +2791,7 @@
       activeListId = null;
       document.getElementById('listDetail').style.display = 'none';
       document.getElementById('listsContainer').style.display = '';
-      document.getElementById('newListName').parentElement.style.display = 'flex';
+      document.getElementById('newListName').parentElement.style.display = 'none';
       renderLists();
     }
 
@@ -3051,6 +3531,336 @@
     (function() {
       var saved = localStorage.getItem('wbpro-theme') || 'classic';
       setTheme(saved);
+    })();
+
+    // ================================================================
+    // UX: More Options Toggle (Send Tab)
+    // ================================================================
+    function toggleMoreOptions() {
+      var btn = document.getElementById('moreOptionsToggle');
+      var content = document.getElementById('moreOptionsContent');
+      btn.classList.toggle('expanded');
+      content.classList.toggle('expanded');
+    }
+
+    // ================================================================
+    // UX: Settings Collapsible Sections
+    // ================================================================
+    function toggleSettingsSection(id) {
+      var section = document.getElementById(id);
+      if (!section) return;
+      section.classList.toggle('expanded');
+    }
+
+    // ================================================================
+    // UX: New List Form (FAB toggle)
+    // ================================================================
+    function toggleNewListForm() {
+      var form = document.getElementById('newListFormInline');
+      if (form.style.display === 'flex') {
+        form.style.display = 'none';
+      } else {
+        form.style.display = 'flex';
+        document.getElementById('newListName').focus();
+      }
+    }
+
+    // ================================================================
+    // UX: Contact Slide Panel
+    // ================================================================
+    function openContactSlide(jid) {
+      activeContactJid = jid;
+      var overlay = document.getElementById('contactSlideOverlay');
+      var panel = document.getElementById('contactSlidePanel');
+      overlay.classList.add('open');
+      panel.classList.add('open');
+      // Load contact detail into panel
+      loadContactSlideDetail(jid);
+    }
+
+    function closeContactSlide() {
+      document.getElementById('contactSlideOverlay').classList.remove('open');
+      document.getElementById('contactSlidePanel').classList.remove('open');
+      activeContactJid = null;
+    }
+
+    async function loadContactSlideDetail(jid) {
+      var body = document.getElementById('csBody');
+      body.innerHTML = '<div class="ux-pulse" style="padding:24px;text-align:center;color:var(--text-secondary)">Loading...</div>';
+      try {
+        var r = await fetch('/api/contacts/detail?jid=' + encodeURIComponent(jid));
+        var d = await r.json();
+        if (d.error) { body.innerHTML = '<div class="empty">Contact not found</div>'; return; }
+        var c = d.contact;
+        document.getElementById('csName').textContent = c.name || c.phone;
+        document.getElementById('csPhone').textContent = c.phone;
+
+        var actColors = { hot: 'var(--danger-dark)', warm: '#f59e0b', cold: 'var(--text-secondary)' };
+        var userTags = (c.tags || []).filter(function(t) { return !t.startsWith('group:'); });
+
+        body.innerHTML = ''
+          + '<div style="margin-bottom:16px">'
+          + '<div class="cm-info-row">' + icon('calendar', 14) + ' First seen: ' + new Date(c.firstSeen).toLocaleDateString() + '</div>'
+          + '<div class="cm-info-row">' + icon('clock', 14) + ' Last active: ' + timeAgo(c.lastSeen) + '</div>'
+          + '<div class="cm-info-row">' + icon('message', 14) + ' Messages: ' + c.messageCount + '</div>'
+          + '<div class="cm-info-row">' + icon('zap', 14) + ' Activity: <span style="color:' + (actColors[c.activityLevel] || 'var(--text-secondary)') + ';font-weight:700">' + c.activityScore + '/100 (' + c.activityLevel + ')</span></div>'
+          + '</div>'
+          + '<div style="margin-bottom:16px">'
+          + '<div class="text-label" style="margin-bottom:6px">Groups</div>'
+          + ((c.groups || []).map(function(g) {
+              return '<div style="padding:3px 0;display:flex;align-items:center;gap:4px;font-size:12px">' + icon('message', 12) + ' ' + esc(g.group_name) + ' <span style="color:var(--text-muted)">(' + g.message_count + ' msgs)</span></div>';
+            }).join('') || '<span style="color:var(--text-muted);font-size:12px">None</span>')
+          + '</div>'
+          + '<div style="margin-bottom:16px">'
+          + '<div class="text-label" style="margin-bottom:6px">Tags</div>'
+          + '<div class="kw-tags" style="margin-bottom:6px">'
+          + (userTags.map(function(t) {
+              return '<span class="kw-tag">' + esc(t) + '<button class="kw-x" onclick="removeContactTag(\'' + esc(t).replace(/'/g, "\\'") + '\');loadContactSlideDetail(\'' + jid.replace(/'/g, "\\'") + '\')">' + icon('x', 12) + '</button></span>';
+            }).join('') || '<span style="color:var(--text-muted);font-size:12px">No tags</span>')
+          + '</div>'
+          + '<div class="kw-add-row">'
+          + '<input type="text" id="csTagInput" placeholder="Add tag..." style="font-size:12px;border-radius:var(--radius-pill);padding:6px 10px" onkeydown="if(event.key===\'Enter\')addContactTagSlide()" />'
+          + '<button class="kw-add-btn" onclick="addContactTagSlide()" style="font-size:12px;padding:6px 10px">' + icon('plus', 12) + ' Tag</button>'
+          + '</div></div>'
+          + '<div style="margin-bottom:16px">'
+          + '<div class="text-label" style="margin-bottom:6px">Interests</div>'
+          + '<div class="kw-tags">'
+          + ((c.interests || []).map(function(i) {
+              return '<span class="lead-kw-tag">' + esc(i) + '</span>';
+            }).join('') || '<span style="color:var(--text-muted);font-size:12px">No interests detected</span>')
+          + '</div></div>'
+          + '<div style="margin-bottom:16px">'
+          + '<div class="text-label" style="margin-bottom:6px">Notes</div>'
+          + '<textarea id="csNotes" rows="2" style="min-height:40px;font-size:13px" placeholder="Add notes...">' + esc(c.notes || '') + '</textarea>'
+          + '<button class="wa-icon-btn" onclick="saveContactNotesSlide()" style="margin-top:4px;font-size:11px">' + icon('save', 12) + ' Save notes</button>'
+          + '</div>'
+          + '<div style="display:flex;gap:6px;border-top:1px solid var(--border-color);padding-top:12px">'
+          + '<button class="lead-reply-primary" style="flex:1" onclick="dmContact()">' + icon('message-circle', 14) + ' Send DM</button>'
+          + '<button class="lead-action-secondary" onclick="deleteContact()" style="color:var(--danger)">' + icon('trash', 12) + ' Delete</button>'
+          + '</div>';
+      } catch (e) {
+        body.innerHTML = '<div class="empty">Failed to load contact: ' + e.message + '</div>';
+      }
+    }
+
+    async function addContactTagSlide() {
+      var input = document.getElementById('csTagInput');
+      var tag = input.value.trim();
+      if (!tag || !activeContactJid) return;
+      try {
+        await fetch('/api/contacts/tag', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jid: activeContactJid, tag: tag }) });
+        input.value = '';
+        loadContactSlideDetail(activeContactJid);
+        showToast('Tag added', 'success');
+      } catch (e) { showToast('Failed to add tag', 'error'); }
+    }
+
+    async function saveContactNotesSlide() {
+      if (!activeContactJid) return;
+      var notes = document.getElementById('csNotes').value;
+      try {
+        await fetch('/api/contacts/notes', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jid: activeContactJid, notes: notes }) });
+        showToast('Notes saved!', 'success');
+      } catch (e) { showToast('Failed to save notes', 'error'); }
+    }
+
+    // ================================================================
+    // UX: Override openContact to use slide panel on mobile
+    // ================================================================
+    var _originalOpenContact = openContact;
+    openContact = function(jid) {
+      if (window.innerWidth <= 768) {
+        openContactSlide(jid);
+      } else {
+        _originalOpenContact(jid);
+      }
+    };
+
+    // ================================================================
+    // UX: First Open Experience
+    // ================================================================
+    var _firstOpenShown = false;
+    function updateFirstOpenExperience() {
+      var existing = document.getElementById('firstOpenOverlay');
+      var online = accountsList.filter(function(a) { return a.status === 'ready'; }).length;
+
+      if (online > 0 && existing) {
+        existing.remove();
+        _firstOpenShown = false;
+        // Re-enable tabs
+        document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('disabled-tab'); });
+        // Auto switch to Send tab and show success toast
+        switchTab('broadcast');
+        return;
+      }
+
+      if (online > 0 || _firstOpenShown) return;
+      if (accountsList.length > 0) return; // has accounts, just not connected yet - don't block
+
+      // Gray out non-Send tabs
+      ['tabLeads', 'tabContacts', 'tabLists', 'tabKeywords'].forEach(function(id) {
+        var btn = document.getElementById(id);
+        if (btn) btn.classList.add('disabled-tab');
+      });
+    }
+
+    // Hook into tab switching for disabled tabs
+    var _origSwitchTab = switchTab;
+    switchTab = function(tab) {
+      var online = accountsList.filter(function(a) { return a.status === 'ready'; }).length;
+      if (online === 0 && accountsList.length === 0 && tab !== 'broadcast' && tab !== 'keywords') {
+        showToast('Connect WhatsApp first to access this tab', 'warning');
+        return;
+      }
+      _origSwitchTab(tab);
+    };
+
+    // ================================================================
+    // UX: Updated send button (wide)
+    // ================================================================
+    var _origUpdateSendBtn = updateSendBtn;
+    updateSendBtn = function() {
+      _origUpdateSendBtn();
+      // Also update the wide send button
+      var msg = document.getElementById('msgInput').value.trim();
+      var ready = msg && selected.size > 0;
+      var wideBtn = document.getElementById('sendBtnWide');
+      var wideLabel = document.getElementById('sendBtnWideLabel');
+      if (wideBtn) {
+        wideBtn.disabled = !ready;
+        if (ready) {
+          wideLabel.textContent = 'Send to ' + selected.size + ' group' + (selected.size !== 1 ? 's' : '');
+        } else if (selected.size > 0 && !msg) {
+          wideLabel.textContent = 'Write a message above to send';
+        } else {
+          wideLabel.textContent = 'Select groups below to broadcast';
+        }
+      }
+    };
+
+    // ================================================================
+    // UX: Updated groups label (selected count)
+    // ================================================================
+    var _origToggle = toggle;
+    toggle = function(id) {
+      _origToggle(id);
+      updateGroupsLabelUX();
+    };
+    var _origSelectAll = selectAll;
+    selectAll = function() {
+      _origSelectAll();
+      updateGroupsLabelUX();
+    };
+    function updateGroupsLabelUX() {
+      var el = document.getElementById('groupsLabel');
+      if (el) {
+        el.innerHTML = '<span class="count-num">' + selected.size + '</span> selected';
+      }
+    }
+
+    // ================================================================
+    // UX: Updated lead rendering with redesigned cards
+    // ================================================================
+    var _origLoadLeads = loadLeads;
+    loadLeads = async function() {
+      try {
+        var d = await cachedFetch('/api/leads', 10000);
+        var list = d.leads || [];
+        leadCount = list.length;
+        updateLeadBadge();
+        var el = document.getElementById('leadsList');
+        if (!list.length) {
+          el.innerHTML = '<div class="lead-empty-state">'
+            + '<div class="le-icon">' + icon('search', 28) + '</div>'
+            + '<h3>No leads yet</h3>'
+            + '<p>Leads are potential customers detected from your WhatsApp group messages. Enable the Lead Scanner in Settings and add keywords to start capturing leads automatically.</p>'
+            + '</div>';
+          return;
+        }
+        el.innerHTML = list.map(function(l) {
+          return '<div class="lead-card" id="lead-' + l.id + '">'
+            + '<div class="lead-group-big">' + icon('message-circle', 14) + ' ' + esc(l.groupName) + '</div>'
+            + '<div class="lead-header"><div class="lead-sender">' + esc(l.senderName) + '</div>'
+            + '<div class="lead-time">' + timeAgo(l.timestamp) + '</div></div>'
+            + '<div class="lead-msg">' + highlightMsg(l.message, l.matchedKeywords) + '</div>'
+            + '<div class="lead-keywords">' + l.matchedKeywords.map(function(kw) { return '<span class="lead-kw-tag">' + esc(kw) + '</span>'; }).join('') + '</div>'
+            + '<div class="lead-actions-redesign">'
+            + '<button class="lead-reply-primary" onclick="openReply(\'' + l.id + '\',\'' + esc(l.senderName).replace(/'/g, "\\'") + '\')">' + icon('reply', 14) + ' Reply</button>'
+            + '<button class="lead-action-secondary" onclick="dismissLead(\'' + l.id + '\')">' + icon('x', 12) + ' Dismiss</button>'
+            + '</div></div>';
+        }).join('');
+      } catch (e) { showToast('Failed to load leads', 'error'); }
+    };
+
+    // ================================================================
+    // UX: Updated list rendering with broadcast button + last used
+    // ================================================================
+    var _origRenderLists = renderLists;
+    renderLists = function() {
+      var el = document.getElementById('listsContainer');
+      if (document.getElementById('listDetail').style.display !== 'none') return;
+      if (!allLists.length) {
+        el.innerHTML = '<div class="lead-empty-state">'
+          + '<div class="le-icon">' + icon('clipboard', 28) + '</div>'
+          + '<h3>No broadcast lists</h3>'
+          + '<p>Lists let you organize contacts into groups for targeted DM broadcasts. Tap the + button to create your first list.</p>'
+          + '</div>';
+        return;
+      }
+      el.innerHTML = allLists.map(function(l) {
+        var lastUsed = l.last_used_at ? timeAgo(l.last_used_at) : 'Never';
+        return '<div class="list-card" onclick="openList(\'' + l.id + '\')">'
+          + '<div class="list-icon">' + icon('megaphone', 20) + '</div>'
+          + '<div class="list-info"><div class="list-name">' + esc(l.name) + '</div>'
+          + '<div class="list-meta">' + l.member_count + ' contacts &middot; Last used: ' + lastUsed + '</div></div>'
+          + '<div class="list-actions">'
+          + '<button class="list-card-broadcast" onclick="event.stopPropagation();openList(\'' + l.id + '\')">' + icon('send', 12) + ' Broadcast</button>'
+          + '<button class="list-del" onclick="event.stopPropagation();deleteList(\'' + l.id + '\')" title="Delete">' + icon('trash', 16) + '</button>'
+          + '</div></div>';
+      }).join('');
+    };
+
+    // ================================================================
+    // UX: Badge pulse on count change
+    // ================================================================
+    var _origUpdateLeadBadge = updateLeadBadge;
+    var _prevLeadCount = 0;
+    updateLeadBadge = function() {
+      _origUpdateLeadBadge();
+      var badge = document.getElementById('leadBadge');
+      if (leadCount !== _prevLeadCount && leadCount > 0 && badge) {
+        badge.classList.remove('badge-pulse');
+        void badge.offsetWidth; // force reflow
+        badge.classList.add('badge-pulse');
+      }
+      _prevLeadCount = leadCount;
+    };
+
+    // ================================================================
+    // UX: First open hook into refreshAccounts
+    // ================================================================
+    var _origRefreshAccounts = refreshAccounts;
+    refreshAccounts = async function() {
+      await _origRefreshAccounts();
+      updateFirstOpenExperience();
+    };
+
+    // ================================================================
+    // UX: CSV Import inside New List (for lists tab)
+    // ================================================================
+    // Existing functionality kept — CSV import moved into contacts tab as collapsed detail
+
+    // ================================================================
+    // UX: Initialize
+    // ================================================================
+    updateFirstOpenExperience();
+    updateGroupsLabelUX();
+
+    // Override the hide for bottom bar — use wide button instead
+    var _origBottomBarSwitch = null;
+    (function() {
+      var bottomBar = document.getElementById('bottomBar');
+      if (bottomBar) bottomBar.style.display = 'none';
     })();
   </script>
 </body>
