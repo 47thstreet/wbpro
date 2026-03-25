@@ -2251,18 +2251,45 @@ app.post('/api/whatsapp/broadcast-events', async (req, res) => {
 // ─── Kartis Webhook Receiver ────────────────────────────────────────────
 
 app.post('/api/webhooks/kartis', async (req, res) => {
-  // Verify webhook secret
-  const secret = req.headers['x-webhook-secret'];
-  if (!KARTIS_WEBHOOK_SECRET || secret !== KARTIS_WEBHOOK_SECRET) {
-    console.warn('Kartis webhook: invalid or missing secret');
-    return res.status(401).json({ error: 'Invalid webhook secret' });
+  // Verify HMAC-SHA256 signature (X-Kartis-Signature header)
+  if (!KARTIS_WEBHOOK_SECRET) {
+    console.warn('Kartis webhook: KARTIS_WEBHOOK_SECRET not configured');
+    return res.status(500).json({ error: 'Webhook secret not configured' });
   }
 
-  const { event, data } = req.body;
-  console.log(`Kartis webhook received: ${event}`, data?.name || '');
+  const signature = req.headers['x-kartis-signature'];
+  if (!signature) {
+    // Fallback: also accept legacy x-webhook-secret for backward compat
+    const legacySecret = req.headers['x-webhook-secret'];
+    if (!legacySecret || legacySecret !== KARTIS_WEBHOOK_SECRET) {
+      console.warn('Kartis webhook: missing signature header');
+      return res.status(401).json({ error: 'Missing or invalid signature' });
+    }
+  } else {
+    const rawBody = JSON.stringify(req.body);
+    const expected = crypto.createHmac('sha256', KARTIS_WEBHOOK_SECRET).update(rawBody).digest('hex');
+    const sigValue = signature.startsWith('sha256=') ? signature.slice(7) : signature;
+    if (!crypto.timingSafeEqual(Buffer.from(sigValue, 'hex'), Buffer.from(expected, 'hex'))) {
+      console.warn('Kartis webhook: signature mismatch');
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+  }
 
-  if (event !== 'event.published') {
-    return res.json({ ok: true, skipped: true, reason: `Unhandled event: ${event}` });
+  // Accept both payload formats:
+  //   New: { type, timestamp, data: { event } }
+  //   Legacy: { event, data }
+  const payload = req.body;
+  const eventType = payload.type || payload.event;
+  const eventData = payload.data?.event || payload.data;
+
+  console.log(`Kartis webhook received: ${eventType}`, eventData?.name || '');
+
+  // Respond 200 immediately, process async
+  res.json({ ok: true, received: eventType });
+
+  if (eventType !== 'event.published') {
+    console.log(`Kartis webhook: skipping unhandled event type "${eventType}"`);
+    return;
   }
 
   // Find a ready account to broadcast from
@@ -2275,36 +2302,76 @@ app.post('/api/webhooks/kartis', async (req, res) => {
   }
   if (!acc || !acc.ready) {
     console.warn('Kartis webhook: no ready WhatsApp account for broadcast');
-    return res.status(503).json({ error: 'No connected WhatsApp account' });
+    return;
   }
 
   try {
-    // Get all groups from the connected account
+    // Get groups — prefer tagged groups (kartis/events), fallback to all
     const chats = await acc.client.getChats();
-    const groupIds = chats.filter(c => c.isGroup).map(c => c.id._serialized);
+    const allGroupIds = chats.filter(c => c.isGroup).map(c => c.id._serialized);
+    const groupTags = loadJSON(GROUP_TAGS_FILE, {});
+
+    const taggedGroupIds = allGroupIds.filter(gid => {
+      const tags = groupTags[gid] || [];
+      return tags.includes('kartis') || tags.includes('events') || tags.includes('auto-announce');
+    });
+
+    const groupIds = taggedGroupIds.length > 0 ? taggedGroupIds : allGroupIds;
+    const targetType = taggedGroupIds.length > 0 ? 'tagged' : 'all';
 
     if (groupIds.length === 0) {
       console.warn('Kartis webhook: no groups to broadcast to');
-      return res.json({ ok: true, skipped: true, reason: 'No groups available' });
+      return;
     }
 
-    // Format event message from webhook data
-    const d = data.date ? new Date(data.date) : null;
-    const dateStr = d ? d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA';
-    const message = `🎉 *${data.name || 'New Event'}*\n\n` +
-      `📅 ${dateStr}${data.time ? ' | ' + data.time : ''}\n` +
-      `${data.venue ? '📍 ' + data.venue + '\n' : ''}` +
-      `${data.ticketUrl ? '🎟️ Tickets: ' + data.ticketUrl + '\n' : ''}` +
-      `\n_The Best Parties 🐙_`;
+    // Format message using existing event-announcement template if available
+    const templates = loadJSON(TEMPLATES_FILE, []);
+    const tpl = templates.find(t => t.id === 'event-announcement');
+    let message;
+
+    if (tpl && eventData) {
+      // Build event object compatible with formatEventWithTemplate
+      const ev = {
+        name: eventData.name || 'New Event',
+        date: eventData.date || new Date().toISOString(),
+        time: eventData.time || '',
+        venue: eventData.venue || '',
+        location: eventData.location || '',
+        price: eventData.price || '',
+        ticketUrl: eventData.ticketUrl || eventData.slug
+          ? `https://kartis-astro.vercel.app/en/event/${eventData.slug}`
+          : `${KARTIS_URL}/events`,
+      };
+      message = formatEventWithTemplate(ev, tpl.message);
+    } else {
+      // Fallback inline format
+      const d = eventData?.date ? new Date(eventData.date) : null;
+      const dateStr = d ? d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA';
+      const ticketUrl = eventData?.slug
+        ? `https://kartis-astro.vercel.app/en/event/${eventData.slug}`
+        : eventData?.ticketUrl || '';
+      message = `🎉 *${eventData?.name || 'New Event'}*\n\n` +
+        `📅 ${dateStr}${eventData?.time ? ' | ' + eventData.time : ''}\n` +
+        `${eventData?.venue ? '📍 ' + eventData.venue + '\n' : ''}` +
+        `${ticketUrl ? '🎟️ Tickets: ' + ticketUrl + '\n' : ''}` +
+        `\n_The Best Parties 🐙_`;
+    }
 
     const broadcastId = crypto.randomUUID();
-    const result = await executeBroadcast(accountId, groupIds, message, broadcastId, `Webhook: ${data.name || 'New Event'}`);
-    console.log(`Kartis webhook broadcast complete: sent=${result.sent}, failed=${result.failed}`);
+    const result = await executeBroadcast(accountId, groupIds, message, broadcastId, `Webhook: ${eventData?.name || 'New Event'}`);
+    console.log(`Kartis webhook broadcast complete: target=${targetType} (${groupIds.length} groups), sent=${result.sent}, failed=${result.failed}`);
 
-    res.json({ ok: true, broadcastId, ...result });
+    // Track announced event
+    const announced = loadJSON(ANNOUNCED_FILE, {});
+    announced[eventData?.id || eventData?.name || broadcastId] = {
+      announcedAt: new Date().toISOString(),
+      type: 'webhook',
+      source: 'kartis',
+    };
+    saveJSON(ANNOUNCED_FILE, announced);
+
   } catch (err) {
     console.error('Kartis webhook broadcast error:', err.message);
-    res.status(500).json({ error: err.message });
   }
 });
 
