@@ -11,7 +11,13 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET;
 const KARTIS_EVENTS_URL = process.env.KARTIS_EVENTS_URL || 'https://kartis-astro.vercel.app/api/cms/public-events';
+const KARTIS_URL = process.env.KARTIS_URL || 'https://kartis-astro.vercel.app';
+const KARTIS_WEBHOOK_SECRET = process.env.KARTIS_WEBHOOK_SECRET;
+const WBPRO_URL = process.env.WBPRO_URL || 'https://wbpro.onrender.com';
 const TBP_URL = process.env.TBP_URL || 'https://tbp-website-astro.vercel.app';
+
+// ─── Webhook Registration State ─────────────────────────────────────────
+let webhookRegistered = false;
 
 if (!JWT_SECRET) {
   console.warn('WARNING: JWT_SECRET not set — external API auth disabled');
@@ -54,6 +60,7 @@ const CRM_FILE = path.join(DATA_DIR, 'crm.json');
 const BLOCKLIST_FILE = path.join(DATA_DIR, 'blocklist.json');
 const LISTS_FILE = path.join(DATA_DIR, 'lists.json');
 const BROADCAST_LISTS_FILE = path.join(DATA_DIR, 'broadcast-lists.json');
+const ANNOUNCED_FILE = path.join(DATA_DIR, 'announced.json');
 
 // ─── Cooldown System ─────────────────────────────────────────────────────
 const groupCooldowns = new Map(); // groupId -> timestamp
@@ -798,6 +805,114 @@ async function formatEventsForBroadcast(max = 5) {
   return `🎉 *The Best Parties — אירועים קרובים*\n\n${list}\n\n_כל האירועים_ ➡️ ${TBP_URL}/events`;
 }
 
+// ─── Default Event Templates ────────────────────────────────────────────
+
+const DEFAULT_EVENT_TEMPLATES = [
+  {
+    id: 'event-announcement',
+    name: 'Event Announcement',
+    message: '🎉 *{{eventName}}*\n\n📅 {{date}} | {{time}}\n📍 {{venue}}, {{location}}\n💰 Starting at {{price}}\n\n🎟️ Get tickets: {{ticketUrl}}\n\n_The Best Parties 🐙_',
+  },
+  {
+    id: 'last-chance',
+    name: 'Last Chance',
+    message: '⚡ *LAST CHANCE* — {{eventName}}\n\nHappening {{date}}! Don\'t miss out.\n\n🎟️ Tickets selling fast: {{ticketUrl}}\n\n_The Best Parties_',
+  },
+  {
+    id: 'recap-hype',
+    name: 'Recap Hype',
+    message: '🔥 *{{eventName}}* was INSANE!\n\nNext one is coming... Stay tuned 👀\n\nFollow us for updates ➡️ instagram.com/thebestparties.ofc\n\n_The Best Parties_',
+  },
+];
+
+function seedDefaultTemplates() {
+  const templates = loadJSON(TEMPLATES_FILE, []);
+  if (templates.length > 0) return; // Don't overwrite existing templates
+  console.log('Seeding default event templates...');
+  saveJSON(TEMPLATES_FILE, DEFAULT_EVENT_TEMPLATES);
+}
+
+// ─── Auto-Announce Scheduler ────────────────────────────────────────────
+
+function formatEventWithTemplate(event, templateMessage) {
+  const d = new Date(event.date);
+  const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+  const variables = {
+    eventName: event.name || 'TBA',
+    date: dateStr,
+    time: event.time || 'TBA',
+    venue: event.venue || 'TBA',
+    location: event.location || '',
+    price: event.price || 'Free',
+    ticketUrl: event.ticketUrl || `${TBP_URL}/events`,
+  };
+  return applyTemplate(templateMessage, variables);
+}
+
+async function checkAutoAnnounce() {
+  const settings = loadJSON(SETTINGS_FILE, {});
+  if (!settings.autoAnnounceEnabled) return;
+
+  try {
+    const events = await fetchEvents();
+    const now = new Date();
+    const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const announced = loadJSON(ANNOUNCED_FILE, {});
+
+    // Find events in the next 24 hours that haven't been announced
+    const upcoming = events.filter(e => {
+      try {
+        const eventDate = new Date(e.date);
+        return eventDate >= now && eventDate <= in24h && !announced[e.id || e.name];
+      } catch { return false; }
+    });
+
+    if (upcoming.length === 0) return;
+
+    // Get the "Last Chance" template
+    const templates = loadJSON(TEMPLATES_FILE, []);
+    const lastChanceTpl = templates.find(t => t.id === 'last-chance');
+    if (!lastChanceTpl) {
+      console.warn('Auto-announce: "last-chance" template not found, skipping');
+      return;
+    }
+
+    // Get all groups from the first ready account
+    let acc = null, accountId = null;
+    for (const [id, a] of accounts) {
+      if (a.ready) { acc = a; accountId = id; break; }
+    }
+    if (!acc) { console.warn('Auto-announce: no ready account'); return; }
+
+    const chats = await acc.client.getChats();
+    const groupIds = chats.filter(c => c.isGroup).map(c => c.id._serialized);
+    if (groupIds.length === 0) return;
+
+    for (const event of upcoming) {
+      const message = formatEventWithTemplate(event, lastChanceTpl.message);
+      const broadcastId = crypto.randomUUID();
+      try {
+        await executeBroadcast(accountId, groupIds, message, broadcastId, `Auto: Last Chance — ${event.name}`);
+        announced[event.id || event.name] = { announcedAt: new Date().toISOString(), type: 'last-chance' };
+        saveJSON(ANNOUNCED_FILE, announced);
+        console.log(`Auto-announced: ${event.name}`);
+      } catch (err) {
+        console.error(`Auto-announce failed for ${event.name}:`, err.message);
+      }
+    }
+  } catch (err) {
+    console.error('Auto-announce check failed:', err.message);
+  }
+}
+
+// Check every hour
+let autoAnnounceInterval = null;
+function startAutoAnnounceSchedule() {
+  if (autoAnnounceInterval) clearInterval(autoAnnounceInterval);
+  autoAnnounceInterval = setInterval(checkAutoAnnounce, 60 * 60 * 1000);
+  console.log('Auto-announce scheduler started (hourly)');
+}
+
 // ─── Party keywords for auto-response (default rule) ─────────────────────
 
 const PARTY_KEYWORDS = [
@@ -878,6 +993,7 @@ app.get('/api/status', (req, res, next) => { req.url = '/api/whatsapp/status' + 
 app.get('/api/qr', (req, res, next) => { req.url = '/api/whatsapp/qr' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
 app.get('/api/groups', (req, res, next) => { req.url = '/api/whatsapp/groups' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
 app.post('/api/broadcast', (req, res, next) => { req.url = '/api/whatsapp/broadcast'; next(); });
+app.post('/api/auto-announce', (req, res, next) => { req.url = '/api/whatsapp/auto-announce'; next(); });
 
 // --- Accounts DELETE with ?id= query param (TBP style) ---
 app.delete('/api/accounts', (req, res, next) => {
@@ -1838,7 +1954,11 @@ setInterval(checkScheduledBroadcasts, 30000);
 
 app.get('/health', (req, res) => {
   const defaultAcc = accounts.get('default');
-  res.json({ status: 'ok', whatsapp: defaultAcc ? defaultAcc.status : 'no_accounts' });
+  res.json({
+    status: 'ok',
+    whatsapp: defaultAcc ? defaultAcc.status : 'no_accounts',
+    webhook_registered: webhookRegistered,
+  });
 });
 
 // ─── Account Management ─────────────────────────────────────────────────
@@ -2008,6 +2128,54 @@ app.post('/api/whatsapp/broadcast-events', async (req, res) => {
     const broadcastId = crypto.randomUUID();
     const result = await executeBroadcast(accountId, chatIds, message, broadcastId, 'Event Broadcast');
     res.json({ ...result, message, broadcastId });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ─── Auto-Announce Endpoint ─────────────────────────────────────────────
+
+app.post('/api/whatsapp/auto-announce', async (req, res) => {
+  const accountId = req.body.account || 'default';
+  const acc = accounts.get(accountId);
+  if (!acc) return res.status(404).json({ error: `Account "${accountId}" not found` });
+  if (!acc.ready) return res.status(503).json({ error: 'Not connected' });
+
+  const templateName = req.body.template || 'event-announcement';
+  const maxEvents = req.body.maxEvents || 3;
+  let groupIds = req.body.groupIds;
+
+  // Resolve template
+  const templates = loadJSON(TEMPLATES_FILE, []);
+  const tpl = templates.find(t => t.id === templateName);
+  if (!tpl) return res.status(404).json({ error: `Template "${templateName}" not found` });
+
+  try {
+    // If no groupIds, use all groups
+    if (!groupIds || !Array.isArray(groupIds) || groupIds.length === 0) {
+      const chats = await acc.client.getChats();
+      groupIds = chats.filter(c => c.isGroup).map(c => c.id._serialized);
+    }
+
+    if (groupIds.length === 0) return res.status(400).json({ error: 'No groups available' });
+
+    // Fetch events and format with template
+    const events = await fetchEvents();
+    const upcoming = getUpcoming(events).slice(0, maxEvents);
+    if (upcoming.length === 0) return res.json({ ok: true, sent: 0, message: 'No upcoming events' });
+
+    const messages = upcoming.map(e => formatEventWithTemplate(e, tpl.message));
+    const fullMessage = messages.join('\n\n───────────────\n\n');
+
+    const broadcastId = crypto.randomUUID();
+    const result = await executeBroadcast(accountId, groupIds, fullMessage, broadcastId, `Auto-Announce: ${tpl.name}`);
+
+    // Track announced events
+    const announced = loadJSON(ANNOUNCED_FILE, {});
+    for (const e of upcoming) {
+      announced[e.id || e.name] = { announcedAt: new Date().toISOString(), type: templateName };
+    }
+    saveJSON(ANNOUNCED_FILE, announced);
+
+    res.json({ ...result, broadcastId, eventsAnnounced: upcoming.length, message: fullMessage });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -2260,6 +2428,7 @@ app.get('/api/whatsapp/settings', (req, res) => {
     quietEnd: end,
     cooldownMinutes: getCooldownMinutes(),
     isQuietNow: isQuietHours(),
+    autoAnnounceEnabled: false,
     ...crmSettings,
     ...settings,
   });
@@ -2267,7 +2436,7 @@ app.get('/api/whatsapp/settings', (req, res) => {
 
 app.put('/api/whatsapp/settings', (req, res) => {
   const settings = loadJSON(SETTINGS_FILE, {});
-  const { quietStart, quietEnd, cooldownMinutes, autoDmEnabled, autoDmTemplate, autoDmCooldownHours, scrapeIntervalHours } = req.body;
+  const { quietStart, quietEnd, cooldownMinutes, autoDmEnabled, autoDmTemplate, autoDmCooldownHours, scrapeIntervalHours, autoAnnounceEnabled } = req.body;
   if (quietStart !== undefined) settings.quietStart = quietStart;
   if (quietEnd !== undefined) settings.quietEnd = quietEnd;
   if (cooldownMinutes !== undefined) settings.cooldownMinutes = Number(cooldownMinutes);
@@ -2278,6 +2447,7 @@ app.put('/api/whatsapp/settings', (req, res) => {
     settings.scrapeIntervalHours = Number(scrapeIntervalHours);
     startScrapeSchedule(); // Restart schedule with new interval
   }
+  if (autoAnnounceEnabled !== undefined) settings.autoAnnounceEnabled = Boolean(autoAnnounceEnabled);
   saveJSON(SETTINGS_FILE, settings);
   res.json({ ok: true, settings });
 });
@@ -3144,8 +3314,10 @@ app.listen(PORT, '0.0.0.0', () => {
   leads.initLeads(DATA_DIR);
   loadCRM();
   loadBroadcastLists();
+  seedDefaultTemplates();
   loadAndInitAccounts();
   startScrapeSchedule();
+  startAutoAnnounceSchedule();
   // Initial scrape 60s after startup (give clients time to connect)
   setTimeout(() => scrapeAllGroups(), 60000);
 });
