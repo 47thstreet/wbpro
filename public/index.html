@@ -3,28 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#1f2c34" />
+  <meta name="theme-color" content="#0a0f14" />
   <title>WBpro</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
     :root {
-      --bg-primary: #0b141a;
-      --bg-secondary: #1f2c34;
-      --bg-tertiary: #2a3942;
-      --bg-hover: #374045;
-      --bg-selected: #0c332c;
-      --border-color: #222e35;
-      --text-primary: #e9edef;
-      --text-secondary: #8696a0;
-      --text-muted: #64748b;
-      --accent: #00a884;
-      --accent-hover: #06cf9c;
-      --accent-dark: #005c4b;
+      --bg-primary: #0a0f14;
+      --bg-secondary: #131a22;
+      --bg-tertiary: #1c2630;
+      --bg-hover: #243040;
+      --bg-selected: #0d2a1f;
+      --border-color: #1e2d3a;
+      --text-primary: #ecf0f5;
+      --text-secondary: #7b8fa3;
+      --text-muted: #4a5d72;
+      --accent: #00c896;
+      --accent-hover: #00e6aa;
+      --accent-dark: #005e45;
       --danger: #f15c6d;
       --danger-dark: #dc2626;
       --danger-bg: #3b1c1e;
       --warning: #f0b429;
       --warning-bg: #3b3420;
-      --success-bg: #0c332c;
+      --success-bg: #0d2a1f;
       --radius-sm: 4px;
       --radius-md: 8px;
       --radius-lg: 12px;
@@ -42,28 +43,30 @@
     body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg-primary); color: var(--text-primary); height: 100vh; height: 100dvh; -webkit-text-size-adjust: 100%; }
     .app { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; position: relative; }
 
-    .topbar { background: var(--bg-secondary); padding: 10px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; flex-shrink: 0; }
-    .topbar-avatar { width: 40px; height: 40px; background: var(--accent); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .topbar { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(19,26,34,0.85); padding: 0 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; height: 52px; border-bottom: 1px solid; border-image: linear-gradient(90deg, transparent 0%, rgba(0,200,150,0.2) 20%, rgba(0,200,150,0.2) 80%, transparent 100%) 1; flex-shrink: 0; }
+    .topbar-avatar { display: none; }
     .topbar-info { flex: 1; }
-    .topbar-title { font-size: var(--font-heading); font-weight: 500; color: var(--text-primary); }
-    .topbar-sub { font-size: var(--font-small); color: var(--text-secondary); margin-top: 1px; display: flex; align-items: center; gap: 4px; }
-    .topbar-actions { display: flex; gap: 4px; }
-    .topbar-btn { background: none; border: none; color: #aebac1; font-size: 13px; padding: 8px; border-radius: var(--radius-full); cursor: pointer; transition: background 0.15s; display: flex; align-items: center; justify-content: center; }
-    .topbar-btn:hover { background: #ffffff10; }
+    .topbar-title { font-size: var(--font-heading); font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+    .topbar-title .wb-accent { color: var(--accent); font-weight: 700; }
+    .topbar-title .wb-dot { display: inline-block; width: 3px; height: 3px; border-radius: 50%; background: var(--text-muted); margin: 0 8px; vertical-align: middle; }
+    .topbar-sub { font-size: 11px; color: var(--text-secondary); margin-top: 1px; display: flex; align-items: center; gap: 4px; font-family: var(--font-mono); }
+    .topbar-actions { display: flex; gap: 2px; }
+    .topbar-btn { background: none; border: none; color: var(--text-secondary); font-size: 13px; padding: 8px; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
+    .topbar-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
     .topbar-btn svg { width: 18px; height: 18px; }
 
-    .accounts-bar { display: flex; gap: 6px; padding: 8px 16px; background: #111b21; overflow-x: auto; }
+    .accounts-bar { display: flex; gap: 6px; padding: 8px 16px; background: var(--bg-primary); overflow-x: auto; }
     .accounts-bar::-webkit-scrollbar { display: none; }
-    .acc-chip { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--bg-tertiary); border-radius: var(--radius-pill); font-size: var(--font-small); cursor: pointer; flex-shrink: 0; transition: all 0.15s; color: var(--text-primary); border: none; }
-    .acc-chip:hover { background: var(--bg-hover); }
-    .acc-chip .cd { width: 7px; height: 7px; border-radius: var(--radius-full); background: var(--text-secondary); flex-shrink: 0; }
-    .acc-chip .cd.on { background: var(--accent); }
+    .acc-chip { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: transparent; border: 1px solid var(--border-color); border-radius: var(--radius-pill); font-size: var(--font-small); cursor: pointer; flex-shrink: 0; transition: all 0.2s ease; color: var(--text-primary); }
+    .acc-chip:hover { background: var(--bg-hover); border-color: var(--text-muted); }
+    .acc-chip .cd { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--text-muted); flex-shrink: 0; transition: all 0.2s ease; }
+    .acc-chip .cd.on { background: var(--accent); box-shadow: 0 0 6px rgba(0,200,150,0.4); }
     .acc-chip .cd.qr { background: var(--warning); }
     .acc-chip .cx { color: var(--text-secondary); font-size: var(--font-micro); margin-left: 2px; padding: 2px; line-height: 1; display: flex; align-items: center; }
     .acc-chip .cx:hover { color: var(--danger); }
     .acc-chip .cx svg { width: 12px; height: 12px; }
-    .add-chip { background: var(--accent-dark); font-weight: 500; }
-    .add-chip:hover { background: var(--accent-hover); }
+    .add-chip { background: transparent; border: 1px solid var(--accent-dark); color: var(--accent); font-weight: 600; }
+    .add-chip:hover { background: var(--accent-dark); border-color: var(--accent); color: var(--text-primary); }
 
     /* Bottom Nav */
     .tab-bar { display: flex; background: var(--bg-secondary); border-top: 1px solid var(--border-color); position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; max-width: 500px; margin: 0 auto; }
@@ -105,8 +108,8 @@
     .group-name { font-size: 15px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .group-count { font-size: var(--font-small); color: var(--text-secondary); margin-top: 1px; }
     .group-acct { font-size: var(--font-micro); color: var(--accent); }
-    .empty { text-align: center; padding: 24px; color: var(--text-secondary); font-size: var(--font-body); display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .empty svg { width: 32px; height: 32px; stroke: var(--text-secondary); opacity: 0.5; }
+    .empty { text-align: center; padding: 24px; color: var(--text-muted); font-size: var(--font-body); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .empty svg { width: 32px; height: 32px; stroke: var(--text-muted); opacity: 0.4; }
 
     .wa-link { color: var(--accent); background: none; border: none; font-size: 13px; cursor: pointer; font-weight: 500; padding: 0; }
     .wa-link:hover { text-decoration: underline; }
@@ -190,7 +193,7 @@
     .kw-add-btn:hover { background: var(--accent-hover); transform: scale(1.02); }
     .kw-add-btn svg { width: 14px; height: 14px; }
 
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); border-radius: var(--radius-md); padding: var(--pad-card); margin-bottom: 12px; }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); border-radius: var(--radius-lg); padding: var(--pad-card); margin-bottom: 12px; border: 1px solid var(--border-color); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
     .toggle-label { font-size: var(--font-body); color: var(--text-primary); }
     .toggle-sub { font-size: 11px; color: var(--text-secondary); }
     .toggle-switch { width: 44px; height: 24px; background: var(--bg-tertiary); border-radius: 12px; position: relative; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--border-color); flex-shrink: 0; }
@@ -275,7 +278,7 @@
     .hist-item .hist-failed { color: var(--danger); display: flex; align-items: center; gap: 3px; font-family: var(--font-mono); }
 
     /* Auto-rule items */
-    .rule-item { display: flex; align-items: flex-start; gap: 8px; background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 10px; margin-bottom: 6px; }
+    .rule-item { display: flex; align-items: flex-start; gap: 8px; background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 10px; margin-bottom: 6px; border: 1px solid var(--border-color); }
     .rule-info { flex: 1; min-width: 0; }
     .rule-keywords { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
     .rule-kw { font-size: var(--font-micro); background: #00a88420; color: var(--accent); padding: 2px 6px; border-radius: var(--radius-sm); }
@@ -596,6 +599,62 @@
     }
     /* Prevent horizontal overflow */
     .app, .chat-area, .tab-content { max-width: 100%; overflow-x: hidden; }
+
+    /* ═══════════════════════════════════════════════════════════
+       THEME: WBpro Dark (Premium)
+       ═══════════════════════════════════════════════════════════ */
+    .theme-pro {
+      --bg-primary: #0a0f14;
+      --bg-secondary: #131a22;
+      --bg-tertiary: #1c2630;
+      --bg-hover: #243040;
+      --bg-selected: #0d2a1f;
+      --border-color: #1e2d3a;
+      --text-primary: #ecf0f5;
+      --text-secondary: #7b8fa3;
+      --text-muted: #4a5d72;
+      --accent: #00c896;
+      --accent-hover: #00e6aa;
+      --accent-dark: #005e45;
+      --danger: #f15c6d;
+      --warning: #f0b429;
+    }
+    .theme-pro body { font-family: 'DM Sans', sans-serif; }
+    .theme-pro .stat-number, .theme-pro .stat-num, .theme-pro .badge, .theme-pro .char-count, .theme-pro .mono { font-family: 'JetBrains Mono', monospace; }
+    .theme-pro .topbar, .theme-pro .tab-bar { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); background: rgba(19,26,34,0.85); }
+    .theme-pro .bubble:hover, .theme-pro .lead-card:hover, .theme-pro .contact-card:hover, .theme-pro .list-card:hover, .theme-pro .stat-card:hover { box-shadow: 0 0 0 1px rgba(0,200,150,0.1); }
+    .theme-pro button:hover { transform: scale(1.02); }
+    .theme-pro .send-btn { box-shadow: 0 4px 15px rgba(0,200,150,0.3); }
+    .theme-pro .send-btn:hover { box-shadow: 0 6px 20px rgba(0,200,150,0.4); }
+
+    /* Theme Switcher Cards */
+    .theme-card {
+      flex: 1;
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .theme-card:hover { border-color: var(--accent); }
+    .theme-card.active { border-color: var(--accent); color: var(--accent); background: var(--bg-selected); }
+    .theme-preview {
+      width: 100%;
+      aspect-ratio: 16/10;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
   </style>
 </head>
 <body>
@@ -801,6 +860,35 @@
 
       <!-- SETTINGS TAB (was Keywords) -->
       <div class="tab-content" id="panelKeywords">
+
+        <div class="bubble" style="margin-bottom:12px">
+          <div class="bubble-label">Theme</div>
+          <div style="display:flex;gap:8px">
+            <button class="theme-card" id="themeClassic" onclick="setTheme('classic')">
+              <div class="theme-preview" style="background:#0b141a;border:2px solid var(--accent)">
+                <div style="height:6px;background:#1f2c34;border-radius:2px;margin-bottom:4px"></div>
+                <div style="display:flex;gap:4px">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#00a884"></div>
+                  <div style="flex:1;height:8px;background:#2a3942;border-radius:2px"></div>
+                </div>
+                <div style="height:6px;background:#005c4b;border-radius:2px;margin-top:auto"></div>
+              </div>
+              <span>WhatsApp</span>
+            </button>
+            <button class="theme-card" id="themePro" onclick="setTheme('pro')">
+              <div class="theme-preview" style="background:#0a0f14;border:2px solid transparent">
+                <div style="height:6px;background:#131a22;border-radius:2px;margin-bottom:4px"></div>
+                <div style="display:flex;gap:4px">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#00c896"></div>
+                  <div style="flex:1;height:8px;background:#1c2630;border-radius:2px"></div>
+                </div>
+                <div style="height:6px;background:#005e45;border-radius:2px;margin-top:auto"></div>
+              </div>
+              <span>WBpro Dark</span>
+            </button>
+          </div>
+        </div>
+
         <div class="toggle-row">
           <div>
             <div class="toggle-label">Lead Scanner</div>
@@ -2787,6 +2875,20 @@
       document.querySelectorAll('svg:not([aria-hidden])').forEach(function(svg) { svg.setAttribute('aria-hidden', 'true'); });
     });
     _ariaObserver.observe(document.body, { childList: true, subtree: true });
+
+    // ── Theme Switcher ──
+    function setTheme(theme) {
+      document.documentElement.className = theme === 'pro' ? 'theme-pro' : '';
+      localStorage.setItem('wbpro-theme', theme);
+      document.getElementById('themeClassic').className = 'theme-card' + (theme === 'classic' ? ' active' : '');
+      document.getElementById('themePro').className = 'theme-card' + (theme === 'pro' ? ' active' : '');
+    }
+
+    // Load saved theme on startup
+    (function() {
+      var saved = localStorage.getItem('wbpro-theme') || 'classic';
+      setTheme(saved);
+    })();
   </script>
 </body>
 </html>
