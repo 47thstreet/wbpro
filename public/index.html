@@ -201,6 +201,65 @@
     .swipe-inner.swiping { transition: none; }
     .swipe-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: #dc2626; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
     .swipe-delete:hover { background: #ef4444; }
+
+    /* Template pills */
+    .tpl-pill { display: inline-block; background: #2a3942; color: #e9edef; padding: 6px 12px; border-radius: 16px; font-size: 12px; cursor: pointer; border: none; transition: all 0.15s; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tpl-pill:hover { background: #374045; }
+    .tpl-pill .tpl-x { color: #8696a0; font-size: 10px; margin-left: 4px; }
+    .tpl-pill .tpl-x:hover { color: #f15c6d; }
+
+    /* Schedule / history items */
+    .sched-item { display: flex; align-items: center; gap: 8px; background: #2a3942; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 12px; }
+    .sched-item .sched-time { color: #00a884; font-weight: 600; white-space: nowrap; }
+    .sched-item .sched-name { color: #e9edef; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sched-item .sched-cancel { background: none; border: none; color: #8696a0; cursor: pointer; font-size: 12px; padding: 2px 6px; }
+    .sched-item .sched-cancel:hover { color: #f15c6d; }
+
+    .hist-item { background: #1f2c34; border-radius: 8px; padding: 10px; margin-bottom: 6px; font-size: 12px; }
+    .hist-item .hist-time { color: #8696a0; font-size: 11px; }
+    .hist-item .hist-msg { color: #d1d7db; margin: 4px 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .hist-item .hist-stats { display: flex; gap: 10px; font-size: 11px; }
+    .hist-item .hist-sent { color: #00a884; }
+    .hist-item .hist-failed { color: #f15c6d; }
+
+    /* Auto-rule items */
+    .rule-item { display: flex; align-items: flex-start; gap: 8px; background: #2a3942; border-radius: 8px; padding: 10px; margin-bottom: 6px; }
+    .rule-info { flex: 1; min-width: 0; }
+    .rule-keywords { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+    .rule-kw { font-size: 10px; background: #00a88420; color: #00a884; padding: 2px 6px; border-radius: 4px; }
+    .rule-response { font-size: 12px; color: #d1d7db; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .rule-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+    .rule-del { background: none; border: none; color: #8696a0; cursor: pointer; font-size: 14px; }
+    .rule-del:hover { color: #f15c6d; }
+
+    /* Blocklist items */
+    .block-item { display: flex; align-items: center; justify-content: space-between; background: #2a3942; border-radius: 8px; padding: 8px 10px; margin-bottom: 4px; font-size: 13px; }
+    .block-item .block-phone { color: #e9edef; }
+    .block-item .block-rm { background: none; border: none; color: #8696a0; cursor: pointer; font-size: 12px; }
+    .block-item .block-rm:hover { color: #f15c6d; }
+
+    /* Cooldown items */
+    .cd-item { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #222e35; }
+    .cd-item:last-child { border-bottom: none; }
+    .cd-item .cd-group { flex: 1; color: #e9edef; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cd-item .cd-remaining { color: #f0b429; font-weight: 600; }
+
+    /* Scanner feed items */
+    .scan-item { background: #1f2c34; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; font-size: 12px; border-left: 2px solid #f0b429; }
+    .scan-item .scan-time { color: #8696a0; font-size: 10px; }
+    .scan-item .scan-group { color: #00a884; font-size: 11px; }
+    .scan-item .scan-msg { color: #d1d7db; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Group activity indicators */
+    .group-activity { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 6px; flex-shrink: 0; }
+    .group-activity.hot { background: #dc2626; }
+    .group-activity.warm { background: #f59e0b; }
+    .group-activity.cold { background: #8696a0; }
+
+    details summary { list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+    details[open] summary .bubble-label::before { content: '\25BC '; font-size: 10px; }
+    details:not([open]) summary .bubble-label::before { content: '\25B6 '; font-size: 10px; }
   </style>
 </head>
 <body>
@@ -388,6 +447,77 @@
         <div class="bubble" style="margin-top:8px">
           <div class="bubble-label">Top Keywords</div>
           <div id="topKeywords" class="empty">No data yet</div>
+        </div>
+
+        <!-- ── Auto-Response Rules ── -->
+        <div class="bubble" style="margin-top:12px">
+          <div class="groups-header">
+            <div class="bubble-label" style="margin:0">&#x1F916; Auto-Response Rules</div>
+            <button class="wa-icon-btn" onclick="loadAutoRules()">&#x21BB;</button>
+          </div>
+          <div id="autoRulesList" style="margin-top:8px">
+            <div class="empty" style="padding:8px;font-size:12px">No rules yet</div>
+          </div>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #222e35">
+            <div style="font-size:12px;color:#8696a0;margin-bottom:6px">Add new rule:</div>
+            <input type="text" id="ruleKeywords" placeholder="Keywords (comma-separated)" style="margin-bottom:6px;border-radius:8px;padding:8px 10px;font-size:13px" />
+            <textarea id="ruleResponse" rows="2" style="min-height:50px;margin-bottom:6px;font-size:13px" placeholder="Auto-response message..."></textarea>
+            <button class="kw-add-btn" onclick="addAutoRule()">+ Add Rule</button>
+          </div>
+        </div>
+
+        <!-- ── Quiet Hours ── -->
+        <div class="bubble" style="margin-top:12px">
+          <div class="bubble-label">&#x1F319; Quiet Hours</div>
+          <div style="font-size:12px;color:#8696a0;margin-bottom:10px">During quiet hours, bot won't auto-respond in groups</div>
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+            <div style="flex:1">
+              <div style="font-size:11px;color:#8696a0;margin-bottom:4px">Start</div>
+              <input type="time" id="quietStart" value="02:00" style="width:100%;background:#2a3942;border:none;border-radius:8px;padding:8px 10px;color:#e9edef;font-size:14px;font-family:inherit" />
+            </div>
+            <div style="flex:1">
+              <div style="font-size:11px;color:#8696a0;margin-bottom:4px">End</div>
+              <input type="time" id="quietEnd" value="10:00" style="width:100%;background:#2a3942;border:none;border-radius:8px;padding:8px 10px;color:#e9edef;font-size:14px;font-family:inherit" />
+            </div>
+          </div>
+          <button class="kw-add-btn" onclick="saveQuietHours()">Save</button>
+          <span id="quietSaveStatus" style="font-size:12px;color:#8696a0;margin-left:8px"></span>
+        </div>
+
+        <!-- ── Blocklist ── -->
+        <div class="bubble" style="margin-top:12px">
+          <div class="groups-header">
+            <div class="bubble-label" style="margin:0">&#x1F6AB; Blocklist</div>
+            <button class="wa-icon-btn" onclick="loadBlocklist()">&#x21BB;</button>
+          </div>
+          <div id="blocklistItems" style="margin-top:8px">
+            <div class="empty" style="padding:8px;font-size:12px">No blocked numbers</div>
+          </div>
+          <div class="kw-add-row" style="margin-top:8px">
+            <input type="text" id="blockPhoneInput" placeholder="+972501234567" style="flex:1;border-radius:20px;padding:8px 12px;font-size:13px" onkeydown="if(event.key==='Enter')addToBlocklist()" />
+            <button class="kw-add-btn" onclick="addToBlocklist()">Block</button>
+          </div>
+        </div>
+
+        <!-- ── Cooldown Settings ── -->
+        <div class="bubble" style="margin-top:12px">
+          <div class="bubble-label">&#x23F1; Cooldown Settings</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="font-size:13px;color:#e9edef;white-space:nowrap">Group cooldown:</div>
+            <input type="range" id="cooldownSlider" min="5" max="120" value="30" oninput="document.getElementById('cooldownVal').textContent=this.value" style="flex:1;accent-color:#00a884" />
+            <div style="font-size:14px;font-weight:700;color:#00a884;min-width:50px;text-align:center"><span id="cooldownVal">30</span> min</div>
+          </div>
+          <button class="kw-add-btn" onclick="saveCooldown()">Save</button>
+          <span id="cooldownSaveStatus" style="font-size:12px;color:#8696a0;margin-left:8px"></span>
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid #222e35">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div style="font-size:12px;color:#8696a0">Active Cooldowns</div>
+              <button class="wa-icon-btn" onclick="resetCooldowns()" style="font-size:11px">Reset All</button>
+            </div>
+            <div id="activeCooldowns">
+              <div class="empty" style="padding:8px;font-size:12px">No active cooldowns</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1475,6 +1605,425 @@
       } catch (e) { result.textContent = 'Error: ' + e.message; result.style.color = '#f15c6d'; }
       btn.disabled = false;
     }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── Message Templates ──
+    // ══════════════════════════════════════════════════════════════
+    let templatesData = [];
+
+    async function loadTemplates() {
+      try {
+        var r = await fetch('/api/templates');
+        var d = await r.json();
+        templatesData = d.templates || d || [];
+        renderTemplates();
+      } catch (e) { console.error('Load templates error:', e); }
+    }
+
+    function renderTemplates() {
+      var el = document.getElementById('templatePills');
+      if (!templatesData.length) {
+        el.innerHTML = '<span class="empty" style="padding:8px;font-size:12px">No templates yet</span>';
+        return;
+      }
+      el.innerHTML = templatesData.map(function(t) {
+        return '<button class="tpl-pill" onclick="useTemplate(\'' + t.id + '\')" title="' + esc(t.body || t.message || '') + '">'
+          + esc(t.name || t.body?.slice(0, 25) || 'Template')
+          + '<span class="tpl-x" onclick="event.stopPropagation();deleteTemplate(\'' + t.id + '\')">&times;</span>'
+          + '</button>';
+      }).join('');
+    }
+
+    function useTemplate(id) {
+      var tpl = templatesData.find(function(t) { return t.id === id; });
+      if (tpl) {
+        document.getElementById('msgInput').value = tpl.body || tpl.message || '';
+        updateCount();
+      }
+    }
+
+    async function saveAsTemplate() {
+      var msg = document.getElementById('msgInput').value.trim();
+      if (!msg) { alert('Write a message first'); return; }
+      var name = prompt('Template name:', msg.slice(0, 30));
+      if (!name) return;
+      try {
+        await fetch('/api/templates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, body: msg })
+        });
+        loadTemplates();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function deleteTemplate(id) {
+      if (!confirm('Delete this template?')) return;
+      try {
+        await fetch('/api/templates/' + encodeURIComponent(id), { method: 'DELETE' });
+        loadTemplates();
+      } catch (e) {}
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── Scheduled Broadcasts ──
+    // ══════════════════════════════════════════════════════════════
+    function toggleScheduleUI() {
+      var toggle = document.getElementById('scheduleToggle');
+      var ui = document.getElementById('scheduleUI');
+      var isOn = toggle.classList.contains('on');
+      if (isOn) { toggle.classList.remove('on'); ui.style.display = 'none'; }
+      else { toggle.classList.add('on'); ui.style.display = 'block'; }
+    }
+
+    async function createSchedule() {
+      var dt = document.getElementById('scheduleDateTime').value;
+      if (!dt) { alert('Pick a date & time'); return; }
+      var msg = document.getElementById('msgInput').value.trim();
+      if (!msg) { alert('Write a message first'); return; }
+      var ids = Array.from(selected);
+      if (!ids.length) { alert('Select at least one group'); return; }
+      var name = document.getElementById('scheduleName').value.trim() || null;
+      try {
+        var r = await fetch('/api/schedules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scheduledAt: new Date(dt).toISOString(), message: msg, chatIds: ids, name: name })
+        });
+        var d = await r.json();
+        if (d.error) { alert('Error: ' + d.error); return; }
+        document.getElementById('scheduleName').value = '';
+        loadSchedules();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function loadSchedules() {
+      try {
+        var r = await fetch('/api/schedules');
+        var d = await r.json();
+        var schedules = d.schedules || d || [];
+        var pending = schedules.filter(function(s) { return s.status === 'pending' || !s.status; });
+        var el = document.getElementById('pendingSchedules');
+        if (!pending.length) { el.innerHTML = ''; return; }
+        el.innerHTML = '<div style="font-size:11px;color:#8696a0;margin-bottom:4px">Pending schedules:</div>'
+          + pending.map(function(s) {
+            var dt = new Date(s.scheduledAt || s.scheduled_at);
+            return '<div class="sched-item">'
+              + '<span class="sched-time">' + dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + '</span>'
+              + '<span class="sched-name">' + esc(s.name || s.message?.slice(0, 30) || 'Scheduled') + '</span>'
+              + '<button class="sched-cancel" onclick="cancelSchedule(\'' + s.id + '\')" title="Cancel">&#x2715;</button>'
+              + '</div>';
+          }).join('');
+      } catch (e) {}
+    }
+
+    async function cancelSchedule(id) {
+      try {
+        await fetch('/api/schedules/' + encodeURIComponent(id), { method: 'DELETE' });
+        loadSchedules();
+      } catch (e) {}
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── Broadcast History ──
+    // ══════════════════════════════════════════════════════════════
+    async function loadHistory() {
+      try {
+        var r = await fetch('/api/history');
+        var d = await r.json();
+        var items = (d.history || d || []).slice(0, 10);
+        var el = document.getElementById('historyList');
+        if (!items.length) { el.innerHTML = '<div class="empty" style="padding:8px;font-size:12px">No history yet</div>'; return; }
+        el.innerHTML = items.map(function(h) {
+          var dt = new Date(h.timestamp || h.created_at || h.sentAt);
+          return '<div class="hist-item">'
+            + '<div class="hist-time">' + dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + '</div>'
+            + '<div class="hist-msg">' + esc(h.message || h.msg || '') + '</div>'
+            + '<div class="hist-stats">'
+            + '<span class="hist-sent">&#x2714; ' + (h.sent || 0) + ' sent</span>'
+            + '<span class="hist-failed">&#x2718; ' + (h.failed || 0) + ' failed</span>'
+            + '</div></div>';
+        }).join('');
+      } catch (e) {}
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── Auto-Response Rules ──
+    // ══════════════════════════════════════════════════════════════
+    let autoRulesData = [];
+
+    async function loadAutoRules() {
+      try {
+        var r = await fetch('/api/auto-rules');
+        var d = await r.json();
+        autoRulesData = d.rules || d || [];
+        renderAutoRules();
+      } catch (e) { console.error('Load auto-rules error:', e); }
+    }
+
+    function renderAutoRules() {
+      var el = document.getElementById('autoRulesList');
+      if (!autoRulesData.length) {
+        el.innerHTML = '<div class="empty" style="padding:8px;font-size:12px">No rules yet</div>';
+        return;
+      }
+      el.innerHTML = autoRulesData.map(function(rule) {
+        var keywords = rule.keywords || [];
+        if (typeof keywords === 'string') keywords = keywords.split(',').map(function(k) { return k.trim(); });
+        var isOn = rule.enabled !== false;
+        return '<div class="rule-item">'
+          + '<div class="rule-info">'
+          + '<div class="rule-keywords">' + keywords.map(function(kw) { return '<span class="rule-kw">' + esc(kw) + '</span>'; }).join('') + '</div>'
+          + '<div class="rule-response">' + esc(rule.response || rule.message || '') + '</div>'
+          + '</div>'
+          + '<div class="rule-actions">'
+          + '<button class="toggle-switch ' + (isOn ? 'on' : '') + '" style="width:36px;height:20px" onclick="toggleAutoRule(\'' + rule.id + '\',' + !isOn + ')"></button>'
+          + '<button class="rule-del" onclick="deleteAutoRule(\'' + rule.id + '\')" title="Delete">&#x1F5D1;</button>'
+          + '</div></div>';
+      }).join('');
+    }
+
+    async function addAutoRule() {
+      var kwInput = document.getElementById('ruleKeywords').value.trim();
+      var response = document.getElementById('ruleResponse').value.trim();
+      if (!kwInput || !response) { alert('Fill in both keywords and response'); return; }
+      var keywords = kwInput.split(',').map(function(k) { return k.trim(); }).filter(Boolean);
+      try {
+        await fetch('/api/auto-rules', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keywords: keywords, response: response, enabled: true })
+        });
+        document.getElementById('ruleKeywords').value = '';
+        document.getElementById('ruleResponse').value = '';
+        loadAutoRules();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function toggleAutoRule(id, enabled) {
+      try {
+        await fetch('/api/auto-rules/' + encodeURIComponent(id), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: enabled })
+        });
+        loadAutoRules();
+      } catch (e) {}
+    }
+
+    async function deleteAutoRule(id) {
+      if (!confirm('Delete this rule?')) return;
+      try {
+        await fetch('/api/auto-rules/' + encodeURIComponent(id), { method: 'DELETE' });
+        loadAutoRules();
+      } catch (e) {}
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── Quiet Hours ──
+    // ══════════════════════════════════════════════════════════════
+    async function loadQuietHours() {
+      try {
+        var r = await fetch('/api/settings');
+        var d = await r.json();
+        var s = d.settings || d || {};
+        if (s.quietStart) document.getElementById('quietStart').value = s.quietStart;
+        if (s.quietEnd) document.getElementById('quietEnd').value = s.quietEnd;
+        if (s.cooldownMinutes) {
+          document.getElementById('cooldownSlider').value = s.cooldownMinutes;
+          document.getElementById('cooldownVal').textContent = s.cooldownMinutes;
+        }
+      } catch (e) {}
+    }
+
+    async function saveQuietHours() {
+      var start = document.getElementById('quietStart').value;
+      var end = document.getElementById('quietEnd').value;
+      try {
+        await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quietStart: start, quietEnd: end })
+        });
+        var st = document.getElementById('quietSaveStatus');
+        st.textContent = 'Saved!'; st.style.color = '#00a884';
+        setTimeout(function() { st.textContent = ''; }, 2000);
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── Blocklist ──
+    // ══════════════════════════════════════════════════════════════
+    let blocklistData = [];
+
+    async function loadBlocklist() {
+      try {
+        var r = await fetch('/api/blocklist');
+        var d = await r.json();
+        blocklistData = d.blocklist || d || [];
+        renderBlocklist();
+      } catch (e) {}
+    }
+
+    function renderBlocklist() {
+      var el = document.getElementById('blocklistItems');
+      if (!blocklistData.length) {
+        el.innerHTML = '<div class="empty" style="padding:8px;font-size:12px">No blocked numbers</div>';
+        return;
+      }
+      el.innerHTML = blocklistData.map(function(b) {
+        var phone = typeof b === 'string' ? b : (b.phone || b.number || '');
+        return '<div class="block-item">'
+          + '<span class="block-phone">' + esc(phone) + '</span>'
+          + '<button class="block-rm" onclick="removeFromBlocklist(\'' + esc(phone) + '\')">&#x2715; Unblock</button>'
+          + '</div>';
+      }).join('');
+    }
+
+    async function addToBlocklist() {
+      var input = document.getElementById('blockPhoneInput');
+      var phone = input.value.trim();
+      if (!phone) return;
+      try {
+        await fetch('/api/blocklist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: phone })
+        });
+        input.value = '';
+        loadBlocklist();
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function removeFromBlocklist(phone) {
+      try {
+        await fetch('/api/blocklist/' + encodeURIComponent(phone), { method: 'DELETE' });
+        loadBlocklist();
+      } catch (e) {}
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── Cooldown Settings ──
+    // ══════════════════════════════════════════════════════════════
+    async function saveCooldown() {
+      var mins = parseInt(document.getElementById('cooldownSlider').value);
+      try {
+        await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cooldownMinutes: mins })
+        });
+        var st = document.getElementById('cooldownSaveStatus');
+        st.textContent = 'Saved!'; st.style.color = '#00a884';
+        setTimeout(function() { st.textContent = ''; }, 2000);
+      } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function loadCooldowns() {
+      try {
+        var r = await fetch('/api/cooldowns');
+        var d = await r.json();
+        var active = d.cooldowns || d.active || [];
+        var el = document.getElementById('activeCooldowns');
+        if (!active.length) { el.innerHTML = '<div class="empty" style="padding:8px;font-size:12px">No active cooldowns</div>'; return; }
+        el.innerHTML = active.map(function(c) {
+          return '<div class="cd-item">'
+            + '<span class="cd-group">' + esc(c.groupName || c.groupId || '') + '</span>'
+            + '<span class="cd-remaining">' + (c.remainingMinutes || c.remaining || '?') + ' min left</span>'
+            + '</div>';
+        }).join('');
+      } catch (e) {}
+    }
+
+    async function resetCooldowns() {
+      if (!confirm('Reset all cooldowns?')) return;
+      try {
+        await fetch('/api/cooldowns/reset', { method: 'POST' });
+        loadCooldowns();
+      } catch (e) {}
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── Scanner Feed ──
+    // ══════════════════════════════════════════════════════════════
+    async function loadScannerFeed() {
+      try {
+        var r = await fetch('/api/scanner/feed');
+        var d = await r.json();
+        var items = (d.feed || d || []).slice(0, 30);
+        var el = document.getElementById('scannerFeed');
+        if (!items.length) { el.innerHTML = '<div class="empty" style="padding:8px;font-size:12px">No scanner activity yet</div>'; return; }
+        el.innerHTML = items.map(function(item) {
+          return '<div class="scan-item">'
+            + '<div style="display:flex;justify-content:space-between"><span class="scan-group">' + esc(item.groupName || '') + '</span><span class="scan-time">' + timeAgo(item.timestamp || item.time) + '</span></div>'
+            + '<div class="scan-msg">' + esc(item.message || item.msg || '') + '</div>'
+            + '</div>';
+        }).join('');
+      } catch (e) {}
+    }
+
+    async function loadScannerStats() {
+      try {
+        var r = await fetch('/api/scanner/stats');
+        var d = await r.json();
+        document.getElementById('scanStatToday').textContent = d.today || 0;
+        document.getElementById('scanStatHour').textContent = d.lastHour || d.hour || 0;
+        document.getElementById('scanStatGroups').textContent = d.activeGroups || d.groups || 0;
+      } catch (e) {}
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ── Group Stats (activity indicators) ──
+    // ══════════════════════════════════════════════════════════════
+    let groupStatsData = {};
+
+    async function loadGroupStats() {
+      try {
+        var r = await fetch('/api/groups/stats');
+        var d = await r.json();
+        groupStatsData = d.stats || d || {};
+      } catch (e) {}
+    }
+
+    // Enhance renderGroups to show activity indicators
+    var _origRenderGroups = renderGroups;
+    renderGroups = function() {
+      _origRenderGroups();
+      // Add activity indicators after render
+      document.querySelectorAll('.group-item').forEach(function(el) {
+        var nameEl = el.querySelector('.group-count');
+        if (!nameEl || nameEl.querySelector('.group-activity')) return;
+        // Try to find the group by matching name
+        var groupName = el.querySelector('.group-name');
+        if (!groupName) return;
+        var name = groupName.textContent;
+        var g = groups.find(function(gr) { return gr.name === name; });
+        if (!g) return;
+        var stats = groupStatsData[g.id];
+        if (!stats) return;
+        var level = 'cold';
+        if (stats.queriesDetected > 10 || (stats.lastQueryAt && (Date.now() - new Date(stats.lastQueryAt).getTime()) < 3600000)) level = 'hot';
+        else if (stats.queriesDetected > 3 || (stats.lastQueryAt && (Date.now() - new Date(stats.lastQueryAt).getTime()) < 86400000)) level = 'warm';
+        var dot = document.createElement('span');
+        dot.className = 'group-activity ' + level;
+        dot.title = stats.queriesDetected + ' queries detected';
+        nameEl.appendChild(dot);
+      });
+    };
+
+    // ── Enhance switchTab to load new data ──
+    var _origSwitchTab = switchTab;
+    switchTab = function(tab) {
+      _origSwitchTab(tab);
+      if (tab === 'broadcast') { loadTemplates(); loadSchedules(); loadHistory(); }
+      if (tab === 'keywords') { loadAutoRules(); loadQuietHours(); loadBlocklist(); loadCooldowns(); }
+      if (tab === 'leads') { loadScannerFeed(); loadScannerStats(); }
+    };
+
+    // Load initial data for Send tab
+    loadTemplates();
+    loadSchedules();
+    loadGroupStats();
   </script>
 </body>
 </html>

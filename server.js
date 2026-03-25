@@ -891,6 +891,45 @@ app.get('/api/leads', (req, res, next) => { req.url = '/api/whatsapp/leads' + (r
 app.get('/api/leads/stats', (req, res, next) => { req.url = '/api/whatsapp/leads/stats'; next(); });
 app.get('/api/leads/export', (req, res, next) => { req.url = '/api/whatsapp/leads/export' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
 
+// --- Schedules aliases ---
+app.get('/api/schedules', (req, res, next) => { req.url = '/api/whatsapp/schedules'; next(); });
+app.post('/api/schedules', (req, res, next) => { req.url = '/api/whatsapp/schedule'; next(); });
+app.delete('/api/schedules/:id', (req, res, next) => { req.url = '/api/whatsapp/schedules/' + req.params.id; next(); });
+
+// --- Templates aliases ---
+app.get('/api/templates', (req, res, next) => { req.url = '/api/whatsapp/templates'; next(); });
+app.post('/api/templates', (req, res, next) => { req.url = '/api/whatsapp/templates'; next(); });
+app.delete('/api/templates/:id', (req, res, next) => { req.url = '/api/whatsapp/templates/' + req.params.id; next(); });
+
+// --- History aliases ---
+app.get('/api/history', (req, res, next) => { req.url = '/api/whatsapp/history'; next(); });
+
+// --- Auto-Rules aliases ---
+app.get('/api/auto-rules', (req, res, next) => { req.url = '/api/whatsapp/auto-rules'; next(); });
+app.post('/api/auto-rules', (req, res, next) => { req.url = '/api/whatsapp/auto-rules'; next(); });
+app.put('/api/auto-rules/:id', (req, res, next) => { req.url = '/api/whatsapp/auto-rules/' + req.params.id; next(); });
+app.delete('/api/auto-rules/:id', (req, res, next) => { req.url = '/api/whatsapp/auto-rules/' + req.params.id; next(); });
+
+// --- Settings aliases ---
+app.get('/api/settings', (req, res, next) => { req.url = '/api/whatsapp/settings'; next(); });
+app.put('/api/settings', (req, res, next) => { req.url = '/api/whatsapp/settings'; next(); });
+
+// --- Blocklist aliases ---
+app.get('/api/blocklist', (req, res, next) => { req.url = '/api/whatsapp/blocklist'; next(); });
+app.post('/api/blocklist', (req, res, next) => { req.url = '/api/whatsapp/blocklist'; next(); });
+app.delete('/api/blocklist/:phone', (req, res, next) => { req.url = '/api/whatsapp/blocklist/' + encodeURIComponent(req.params.phone); next(); });
+
+// --- Cooldowns aliases ---
+app.get('/api/cooldowns', (req, res, next) => { req.url = '/api/whatsapp/cooldowns'; next(); });
+app.post('/api/cooldowns/reset', (req, res, next) => { req.url = '/api/whatsapp/cooldowns/reset'; next(); });
+
+// --- Scanner aliases ---
+app.get('/api/scanner/feed', (req, res, next) => { req.url = '/api/whatsapp/scanner/feed'; next(); });
+app.get('/api/scanner/stats', (req, res, next) => { req.url = '/api/whatsapp/scanner/stats'; next(); });
+
+// --- Groups stats alias ---
+app.get('/api/groups/stats', (req, res, next) => { req.url = '/api/whatsapp/groups/stats'; next(); });
+
 // --- Leads: dismiss (TBP sends {id}, sets lead status to 'dismissed') ---
 app.post('/api/leads/dismiss', (req, res) => {
   const { id } = req.body;
