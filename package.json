@@ -1,0 +1,16 @@
+{
+  "name": "wbpro",
+  "version": "2.0.0",
+  "description": "WhatsApp Broadcast Pro — unified broadcast, CRM, leads, and automation platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "multer": "^2.1.1",
+    "puppeteer": "^23.0.0",
+    "qrcode": "^1.5.4",
+    "whatsapp-web.js": "^1.26.0"
+  }
+}

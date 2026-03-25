@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: wbpro
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: ohio
+    plan: standard
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: KARTIS_EVENTS_URL
+        value: "https://kartis-astro.vercel.app/api/cms/public-events"
+      - key: TBP_URL
+        value: "https://tbp-website-astro.vercel.app"
+    disk:
+      name: wbpro-data
+      mountPath: /data
+      sizeGB: 1
