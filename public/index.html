@@ -1071,11 +1071,13 @@
     }
 
     // ── Keywords ──
+    var kwBuiltin = { en: [], he: [] };
     async function loadKeywords() {
       try {
         var r = await fetch('/api/keywords');
         var d = await r.json();
-        kwData = d.keywords || { en: [], he: [] };
+        kwBuiltin = d.builtin || { en: [], he: [] };
+        kwData = d.custom || { en: [], he: [] };
         var toggle = document.getElementById('scannerToggle');
         toggle.className = d.scannerEnabled ? 'toggle-switch on' : 'toggle-switch';
         renderKeywords();
@@ -1085,9 +1087,13 @@
     function renderKeywords() {
       ['en', 'he'].forEach(function(lang) {
         var el = document.getElementById('kwTags' + lang.charAt(0).toUpperCase() + lang.slice(1));
-        el.innerHTML = (kwData[lang] || []).map(function(kw) {
-          return '<span class="kw-tag">' + esc(kw) + '<button class="kw-x" onclick="removeKeyword(\'' + lang + '\',\'' + esc(kw).replace(/'/g, "\\'") + '\')">&times;</button></span>';
+        var builtinTags = (kwBuiltin[lang] || []).map(function(kw) {
+          return '<span class="kw-tag" style="opacity:0.7;cursor:default" title="Built-in keyword">' + esc(kw) + '</span>';
         }).join('');
+        var customTags = (kwData[lang] || []).map(function(kw) {
+          return '<span class="kw-tag" style="background:#005c4b">' + esc(kw) + '<button class="kw-x" onclick="removeKeyword(\'' + lang + '\',\'' + esc(kw).replace(/'/g, "\\'") + '\')">&times;</button></span>';
+        }).join('');
+        el.innerHTML = builtinTags + customTags;
       });
     }
 
@@ -1116,7 +1122,8 @@
     }
 
     async function saveKeywords() {
-      try { await fetch('/api/keywords', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ keywords: kwData }) }); } catch (e) {}
+      // Only save custom keywords — builtin are hardcoded on server
+      try { await fetch('/api/keywords', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ custom: kwData }) }); } catch (e) {}
     }
 
     // ── Poll leads in background ──

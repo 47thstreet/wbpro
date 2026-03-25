@@ -986,29 +986,24 @@ app.post('/api/leads/reply', async (req, res) => {
 
 // --- Keywords aliases (TBP uses GET + PUT with different payload shape) ---
 app.get('/api/keywords', (req, res) => {
-  // TBP expects: { keywords: { en: [...], he: [...] }, scannerEnabled: bool }
   const kwData = leads.getCustomKeywords();
   const settings = loadJSON(SETTINGS_FILE, {});
-  // Get builtin keywords from leads.js
   const builtin = kwData.builtin || {};
-  const builtinEn = builtin.en || {};
-  const builtinHe = builtin.he || {};
-  // Flatten builtin categories into arrays
-  const en = [];
-  const he = [];
-  for (const words of Object.values(builtinEn)) { en.push(...words); }
-  for (const words of Object.values(builtinHe)) { he.push(...words); }
-  // Add custom keywords
-  const custom = kwData.custom || {};
-  for (const words of Object.values(custom)) {
+  const builtinEn = []; const builtinHe = [];
+  for (const words of Object.values(builtin.en || {})) builtinEn.push(...words);
+  for (const words of Object.values(builtin.he || {})) builtinHe.push(...words);
+  // Custom keywords (user-added, removable)
+  const customEn = []; const customHe = [];
+  for (const words of Object.values(kwData.custom || {})) {
     for (const w of (Array.isArray(words) ? words : [])) {
-      if (/[\u0590-\u05FF]/.test(w)) he.push(w);
-      else en.push(w);
+      if (/[\u0590-\u05FF]/.test(w)) customHe.push(w);
+      else customEn.push(w);
     }
   }
-  // Deduplicate
   res.json({
-    keywords: { en: [...new Set(en)], he: [...new Set(he)] },
+    builtin: { en: [...new Set(builtinEn)], he: [...new Set(builtinHe)] },
+    custom: { en: [...new Set(customEn)], he: [...new Set(customHe)] },
+    keywords: { en: [...new Set([...builtinEn, ...customEn])], he: [...new Set([...builtinHe, ...customHe])] },
     scannerEnabled: settings.scannerEnabled !== false,
   });
 });
@@ -1022,11 +1017,12 @@ app.put('/api/keywords', (req, res) => {
     saveJSON(SETTINGS_FILE, settings);
   }
 
-  if (keywords) {
-    // TBP sends { en: [...], he: [...] }. Store as custom keywords under a 'tbp' category.
-    const allWords = [...(keywords.en || []), ...(keywords.he || [])];
+  // Handle custom keywords from frontend
+  const custom = req.body.custom || req.body.keywords;
+  if (custom) {
+    const allWords = [...(custom.en || []), ...(custom.he || [])];
     try {
-      leads.setCustomKeywords({ keywords: allWords, category: 'tbp' });
+      leads.setCustomKeywords({ keywords: allWords, category: 'user' });
     } catch {}
   }
 
