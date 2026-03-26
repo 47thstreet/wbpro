@@ -1797,9 +1797,28 @@ function setupClientEvents(accountId, client) {
       if (matched) {
         console.log(`[${accountId}] Auto-rule "${rule.id}" triggered in "${chat.name || msg.from}"`);
         try {
-          // Simple template variable replacement
           let response = rule.response;
-          // No variables to replace in auto-rules (they're static responses)
+          // Template variable replacement for Kartis ticket links
+          if (response.includes('{nextEvent}') || response.includes('{ticketLink}') || response.includes('{eventList}') || response.includes('{eventName}')) {
+            const events = await fetchEvents();
+            const upcoming = getUpcoming(events);
+            const heb = isHebrew(msg.body);
+            const next = upcoming[0] || null;
+            if (next) {
+              const ticketUrl = next.ticketUrl || (next.slug ? `${KARTIS_URL}/en/event/${next.slug}` : `${KARTIS_URL}/events`);
+              response = response
+                .replace(/\{eventName\}/g, next.name || 'Upcoming Event')
+                .replace(/\{ticketLink\}/g, ticketUrl)
+                .replace(/\{nextEvent\}/g, formatEvent(next, heb))
+                .replace(/\{eventList\}/g, upcoming.slice(0, 3).map(e => formatEvent(e, heb)).join('\n\n'));
+            } else {
+              response = response
+                .replace(/\{eventName\}/g, '')
+                .replace(/\{ticketLink\}/g, `${KARTIS_URL}/events`)
+                .replace(/\{nextEvent\}/g, heb ? 'אין אירועים קרובים כרגע' : 'No upcoming events right now')
+                .replace(/\{eventList\}/g, heb ? 'אין אירועים קרובים כרגע' : 'No upcoming events right now');
+            }
+          }
           await msg.reply(response);
           console.log(`[${accountId}] Auto-rule replied`);
         } catch (err) {
@@ -2635,6 +2654,37 @@ app.delete('/api/whatsapp/auto-rules/:id', (req, res) => {
   if (filtered.length === rules.length) return res.status(404).json({ error: 'Rule not found' });
   saveJSON(AUTO_RULES_FILE, filtered);
   res.json({ ok: true, deleted: req.params.id });
+});
+
+// ─── Seed Ticket Auto-Rule ───────────────────────────────────────────────
+
+app.post('/api/whatsapp/auto-rules/seed-tickets', (req, res) => {
+  const rules = loadJSON(AUTO_RULES_FILE, []);
+  // Don't duplicate if a ticket rule already exists
+  const existing = rules.find(r => r.keywords && r.keywords.includes('tickets') && r.keywords.includes('rsvp'));
+  if (existing) {
+    return res.json({ ok: true, message: 'Ticket auto-rule already exists', rule: existing });
+  }
+
+  const id = crypto.randomUUID();
+  const rule = {
+    id,
+    keywords: [
+      'tickets', 'ticket', 'rsvp', 'link', 'buy tickets', 'get tickets',
+      'where to buy', 'how to buy', 'ticket link', 'booking',
+      'כרטיס', 'כרטיסים', 'טיקט', 'טיקטים', 'הזמנה', 'קישור', 'לינק',
+      'איפה קונים', 'לקנות כרטיס',
+    ],
+    response: '🎟️ *Get Your Tickets Here!*\n\n{nextEvent}\n\n👉 Book now: {ticketLink}\n\n_The Best Parties 🐙_',
+    enabled: true,
+    account: null,
+    createdAt: new Date().toISOString(),
+    type: 'ticket-link',
+  };
+  rules.push(rule);
+  saveJSON(AUTO_RULES_FILE, rules);
+  console.log('Seeded default ticket auto-rule with Kartis link templates');
+  res.json({ ok: true, rule });
 });
 
 // ─── Cooldown Endpoints ──────────────────────────────────────────────────
