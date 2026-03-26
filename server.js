@@ -121,6 +121,7 @@ const BLOCKLIST_FILE = path.join(DATA_DIR, 'blocklist.json');
 const LISTS_FILE = path.join(DATA_DIR, 'lists.json');
 const BROADCAST_LISTS_FILE = path.join(DATA_DIR, 'broadcast-lists.json');
 const ANNOUNCED_FILE = path.join(DATA_DIR, 'announced.json');
+const RECURRING_FILE = path.join(DATA_DIR, 'recurring-schedules.json');
 
 // ─── Cooldown System ─────────────────────────────────────────────────────
 const groupCooldowns = new Map(); // groupId -> timestamp
@@ -2108,8 +2109,201 @@ async function executeBroadcast(accountId, chatIds, message, broadcastId, broadc
   return result;
 }
 
-// Check every 30 seconds
-setInterval(checkScheduledBroadcasts, 30000);
+// ─── Recurring Broadcasts (Cron-Based) ──────────────────────────────────
+
+/**
+ * Lightweight cron field matcher. Supports:
+ *   * (any), specific values (5), lists (1,3,5), ranges (1-5), steps (star/10)
+ */
+function matchCronField(field, value, min, max) {
+  if (field === '*') return true;
+  // Step: */N or range/N
+  if (field.includes('/')) {
+    const [rangePart, stepStr] = field.split('/');
+    const step = parseInt(stepStr, 10);
+    if (isNaN(step) || step <= 0) return false;
+    let start = min;
+    let end = max;
+    if (rangePart !== '*') {
+      if (rangePart.includes('-')) {
+        [start, end] = rangePart.split('-').map(Number);
+      } else {
+        start = parseInt(rangePart, 10);
+      }
+    }
+    if (value < start || value > end) return false;
+    return (value - start) % step === 0;
+  }
+  // List: 1,3,5
+  if (field.includes(',')) {
+    return field.split(',').some(v => matchCronField(v.trim(), value, min, max));
+  }
+  // Range: 1-5
+  if (field.includes('-')) {
+    const [lo, hi] = field.split('-').map(Number);
+    return value >= lo && value <= hi;
+  }
+  // Exact
+  return parseInt(field, 10) === value;
+}
+
+/**
+ * Check if a cron expression matches the current time.
+ * Format: "minute hour dayOfMonth month dayOfWeek"
+ * e.g. "0 10 * * 1" = every Monday at 10:00
+ *      "0 18 * * 4" = every Thursday at 18:00
+ *      "30 9 * * 1-5" = weekdays at 9:30
+ */
+function cronMatchesNow(cronExpr) {
+  const parts = cronExpr.trim().split(/\s+/);
+  if (parts.length !== 5) return false;
+  const now = new Date();
+  const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+  return (
+    matchCronField(minute, now.getMinutes(), 0, 59) &&
+    matchCronField(hour, now.getHours(), 0, 23) &&
+    matchCronField(dayOfMonth, now.getDate(), 1, 31) &&
+    matchCronField(month, now.getMonth() + 1, 1, 12) &&
+    matchCronField(dayOfWeek, now.getDay(), 0, 6)
+  );
+}
+
+/**
+ * Get the next occurrence of a cron expression (approximate, for display).
+ * Scans forward up to 7 days.
+ */
+function getNextCronRun(cronExpr) {
+  const now = new Date();
+  for (let m = 1; m <= 10080; m++) { // up to 7 days in minutes
+    const check = new Date(now.getTime() + m * 60000);
+    const parts = cronExpr.trim().split(/\s+/);
+    if (parts.length !== 5) return null;
+    const [minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+    if (
+      matchCronField(minute, check.getMinutes(), 0, 59) &&
+      matchCronField(hour, check.getHours(), 0, 23) &&
+      matchCronField(dayOfMonth, check.getDate(), 1, 31) &&
+      matchCronField(month, check.getMonth() + 1, 1, 12) &&
+      matchCronField(dayOfWeek, check.getDay(), 0, 6)
+    ) {
+      return check.toISOString();
+    }
+  }
+  return null;
+}
+
+// Cron presets for convenience
+const CRON_PRESETS = {
+  'every-monday-10am': { cron: '0 10 * * 1', label: 'Every Monday at 10:00' },
+  'every-thursday-6pm': { cron: '0 18 * * 4', label: 'Every Thursday at 18:00' },
+  'every-friday-12pm': { cron: '0 12 * * 5', label: 'Every Friday at 12:00' },
+  'every-friday-5pm': { cron: '0 17 * * 5', label: 'Every Friday at 17:00' },
+  'weekdays-9am': { cron: '0 9 * * 1-5', label: 'Weekdays at 09:00' },
+  'every-day-10am': { cron: '0 10 * * *', label: 'Every day at 10:00' },
+  'every-saturday-2pm': { cron: '0 14 * * 6', label: 'Every Saturday at 14:00' },
+  'twice-weekly-wed-fri': { cron: '0 10 * * 3,5', label: 'Wed & Fri at 10:00' },
+};
+
+function checkRecurringBroadcasts() {
+  const recurrings = loadJSON(RECURRING_FILE, []);
+  const now = Date.now();
+
+  for (const rec of recurrings) {
+    if (!rec.enabled) continue;
+
+    // Check if cron matches current minute
+    if (!cronMatchesNow(rec.cron)) continue;
+
+    // Prevent double-fire: check lastFired is not within the same minute
+    if (rec.lastFiredAt) {
+      const lastFired = new Date(rec.lastFiredAt).getTime();
+      if (now - lastFired < 60000) continue; // already fired this minute
+    }
+
+    // Check end date if set
+    if (rec.endDate && new Date(rec.endDate).getTime() < now) {
+      rec.enabled = false;
+      continue;
+    }
+
+    // Resolve message — optionally fetch next Kartis event for dynamic content
+    let message = rec.message;
+    if (rec.includeNextEvent) {
+      // This will be resolved asynchronously below
+      resolveAndSendRecurring(rec, recurrings);
+      continue;
+    }
+
+    // Fire the broadcast
+    rec.lastFiredAt = new Date().toISOString();
+    rec.fireCount = (rec.fireCount || 0) + 1;
+    executeBroadcast(rec.account || 'default', rec.chatIds, message, crypto.randomUUID(), `Recurring: ${rec.name}`)
+      .then(result => {
+        console.log(`Recurring broadcast "${rec.name}" sent: ${result.sent}/${result.total}`);
+        const recs = loadJSON(RECURRING_FILE, []);
+        const r = recs.find(x => x.id === rec.id);
+        if (r) {
+          r.lastResult = { sent: result.sent, failed: result.failed, at: new Date().toISOString() };
+          saveJSON(RECURRING_FILE, recs);
+        }
+      })
+      .catch(err => {
+        console.error(`Recurring broadcast "${rec.name}" failed:`, err.message);
+        const recs = loadJSON(RECURRING_FILE, []);
+        const r = recs.find(x => x.id === rec.id);
+        if (r) {
+          r.lastResult = { error: err.message, at: new Date().toISOString() };
+          saveJSON(RECURRING_FILE, recs);
+        }
+      });
+  }
+
+  saveJSON(RECURRING_FILE, recurrings);
+}
+
+async function resolveAndSendRecurring(rec, recurrings) {
+  try {
+    const res = await fetch(KARTIS_EVENTS_URL);
+    const events = await res.json();
+    const upcoming = (Array.isArray(events) ? events : events.events || [])
+      .filter(e => new Date(e.date || e.startDate).getTime() > Date.now())
+      .sort((a, b) => new Date(a.date || a.startDate) - new Date(b.date || b.startDate));
+
+    const nextEvent = upcoming[0];
+    let message = rec.message;
+    if (nextEvent) {
+      const vars = {
+        eventName: nextEvent.name || nextEvent.title || 'Upcoming Event',
+        eventDate: new Date(nextEvent.date || nextEvent.startDate).toLocaleDateString('en-ZA', { weekday: 'long', month: 'long', day: 'numeric' }),
+        eventVenue: nextEvent.venue || nextEvent.location || 'TBA',
+        ticketLink: `${KARTIS_URL}/events/${nextEvent.slug || nextEvent.id}`,
+      };
+      message = message.replace(/\{\{(\w+)\}\}/g, (match, key) => vars[key] || match);
+    }
+
+    rec.lastFiredAt = new Date().toISOString();
+    rec.fireCount = (rec.fireCount || 0) + 1;
+    saveJSON(RECURRING_FILE, recurrings);
+
+    const result = await executeBroadcast(rec.account || 'default', rec.chatIds, message, crypto.randomUUID(), `Recurring: ${rec.name}`);
+    console.log(`Recurring broadcast "${rec.name}" (with event) sent: ${result.sent}/${result.total}`);
+
+    const recs = loadJSON(RECURRING_FILE, []);
+    const r = recs.find(x => x.id === rec.id);
+    if (r) {
+      r.lastResult = { sent: result.sent, failed: result.failed, at: new Date().toISOString(), event: nextEvent?.name };
+      saveJSON(RECURRING_FILE, recs);
+    }
+  } catch (err) {
+    console.error(`Recurring broadcast "${rec.name}" event fetch failed:`, err.message);
+  }
+}
+
+// Check every 30 seconds (handles both one-time and recurring)
+setInterval(() => {
+  checkScheduledBroadcasts();
+  checkRecurringBroadcasts();
+}, 30000);
 
 // ─── API Routes ──────────────────────────────────────────────────────────
 
@@ -2533,6 +2727,154 @@ app.delete('/api/whatsapp/schedules/:id', (req, res) => {
   saveJSON(SCHEDULES_FILE, schedules);
   res.json({ ok: true, cancelled: req.params.id });
 });
+
+// ─── Recurring Broadcast Schedules ──────────────────────────────────────
+
+// GET /api/whatsapp/recurring — list all recurring schedules
+app.get('/api/whatsapp/recurring', (req, res) => {
+  const recurrings = loadJSON(RECURRING_FILE, []);
+  const withNext = recurrings.map(r => ({
+    ...r,
+    nextRun: r.enabled ? getNextCronRun(r.cron) : null,
+  }));
+  res.json({ ok: true, schedules: withNext, presets: CRON_PRESETS });
+});
+
+// POST /api/whatsapp/recurring — create recurring schedule
+app.post('/api/whatsapp/recurring', (req, res) => {
+  const { name, cron, preset, chatIds, message, account, templateId, variables, includeNextEvent, endDate } = req.body;
+  const accountId = account || 'default';
+
+  if (!accounts.has(accountId)) return res.status(404).json({ error: `Account "${accountId}" not found` });
+
+  // Resolve cron from preset or direct
+  let cronExpr = cron;
+  if (preset && CRON_PRESETS[preset]) {
+    cronExpr = CRON_PRESETS[preset].cron;
+  }
+  if (!cronExpr || cronExpr.trim().split(/\s+/).length !== 5) {
+    return res.status(400).json({ error: 'Valid cron expression required (5 fields: min hour dom month dow) or use a preset' });
+  }
+
+  // Resolve message from template if needed
+  let finalMessage = message;
+  if (templateId) {
+    const templates = loadJSON(TEMPLATES_FILE, []);
+    const tpl = templates.find(t => t.id === templateId);
+    if (!tpl) return res.status(404).json({ error: `Template "${templateId}" not found` });
+    finalMessage = applyTemplate(tpl.message, variables || {});
+  }
+
+  if (!chatIds || !Array.isArray(chatIds) || chatIds.length === 0)
+    return res.status(400).json({ error: 'chatIds required' });
+  if (!finalMessage || typeof finalMessage !== 'string')
+    return res.status(400).json({ error: 'message required (or use templateId)' });
+
+  const id = crypto.randomUUID();
+  const recurring = {
+    id,
+    name: name || null,
+    account: accountId,
+    cron: cronExpr,
+    cronLabel: preset ? CRON_PRESETS[preset].label : cronExpr,
+    chatIds,
+    message: finalMessage,
+    includeNextEvent: !!includeNextEvent,
+    enabled: true,
+    endDate: endDate || null,
+    fireCount: 0,
+    lastFiredAt: null,
+    lastResult: null,
+    createdAt: new Date().toISOString(),
+  };
+
+  const recurrings = loadJSON(RECURRING_FILE, []);
+  recurrings.push(recurring);
+  saveJSON(RECURRING_FILE, recurrings);
+
+  res.json({
+    ok: true,
+    schedule: { ...recurring, nextRun: getNextCronRun(cronExpr) },
+  });
+});
+
+// PUT /api/whatsapp/recurring/:id — update recurring schedule
+app.put('/api/whatsapp/recurring/:id', (req, res) => {
+  const recurrings = loadJSON(RECURRING_FILE, []);
+  const idx = recurrings.findIndex(r => r.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Recurring schedule not found' });
+
+  const allowed = ['name', 'cron', 'chatIds', 'message', 'enabled', 'includeNextEvent', 'endDate'];
+  for (const key of allowed) {
+    if (req.body[key] !== undefined) recurrings[idx][key] = req.body[key];
+  }
+
+  // Update label if cron changed
+  if (req.body.cron) {
+    const preset = Object.entries(CRON_PRESETS).find(([, v]) => v.cron === req.body.cron);
+    recurrings[idx].cronLabel = preset ? preset[1].label : req.body.cron;
+  }
+
+  saveJSON(RECURRING_FILE, recurrings);
+  res.json({
+    ok: true,
+    schedule: { ...recurrings[idx], nextRun: recurrings[idx].enabled ? getNextCronRun(recurrings[idx].cron) : null },
+  });
+});
+
+// DELETE /api/whatsapp/recurring/:id — delete recurring schedule
+app.delete('/api/whatsapp/recurring/:id', (req, res) => {
+  const recurrings = loadJSON(RECURRING_FILE, []);
+  const idx = recurrings.findIndex(r => r.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Recurring schedule not found' });
+  recurrings.splice(idx, 1);
+  saveJSON(RECURRING_FILE, recurrings);
+  res.json({ ok: true, deleted: req.params.id });
+});
+
+// POST /api/whatsapp/recurring/:id/trigger — manually trigger a recurring broadcast now
+app.post('/api/whatsapp/recurring/:id/trigger', async (req, res) => {
+  const recurrings = loadJSON(RECURRING_FILE, []);
+  const rec = recurrings.find(r => r.id === req.params.id);
+  if (!rec) return res.status(404).json({ error: 'Recurring schedule not found' });
+
+  try {
+    let message = rec.message;
+    if (rec.includeNextEvent) {
+      try {
+        const evRes = await fetch(KARTIS_EVENTS_URL);
+        const events = await evRes.json();
+        const upcoming = (Array.isArray(events) ? events : events.events || [])
+          .filter(e => new Date(e.date || e.startDate).getTime() > Date.now())
+          .sort((a, b) => new Date(a.date || a.startDate) - new Date(b.date || b.startDate));
+        const next = upcoming[0];
+        if (next) {
+          const vars = {
+            eventName: next.name || next.title || 'Upcoming Event',
+            eventDate: new Date(next.date || next.startDate).toLocaleDateString('en-ZA', { weekday: 'long', month: 'long', day: 'numeric' }),
+            eventVenue: next.venue || next.location || 'TBA',
+            ticketLink: `${KARTIS_URL}/events/${next.slug || next.id}`,
+          };
+          message = message.replace(/\{\{(\w+)\}\}/g, (match, key) => vars[key] || match);
+        }
+      } catch { /* use raw message */ }
+    }
+
+    const result = await executeBroadcast(rec.account || 'default', rec.chatIds, message, crypto.randomUUID(), `Manual: ${rec.name}`);
+    rec.lastFiredAt = new Date().toISOString();
+    rec.fireCount = (rec.fireCount || 0) + 1;
+    rec.lastResult = { sent: result.sent, failed: result.failed, at: new Date().toISOString() };
+    saveJSON(RECURRING_FILE, recurrings);
+
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Alias routes
+app.get('/api/recurring', (req, res, next) => { req.url = '/api/whatsapp/recurring'; next(); });
+app.post('/api/recurring', (req, res, next) => { req.url = '/api/whatsapp/recurring'; next(); });
 
 // ─── Message Templates ──────────────────────────────────────────────────
 
