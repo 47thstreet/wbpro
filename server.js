@@ -3544,6 +3544,94 @@ app.post('/api/whatsapp/broadcast-lists/:id/send', async (req, res) => {
   res.json({ sent, skipped, failed, total });
 });
 
+// ─── Campaign Analytics Dashboard ────────────────────────────────────────
+
+app.get('/api/analytics', (req, res) => {
+  const history = loadJSON(HISTORY_FILE, []);
+  const contacts = loadJSON(CONTACTS_FILE, []);
+  const groupStats = loadJSON(GROUP_STATS_FILE, {});
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+
+  // Time-bucketed stats
+  const periods = { '7d': 7, '30d': 30, '90d': 90 };
+  const buckets = {};
+  for (const [label, days] of Object.entries(periods)) {
+    const cutoff = new Date(now - days * day).toISOString();
+    const filtered = history.filter(h => h.timestamp >= cutoff);
+    buckets[label] = {
+      broadcasts: filtered.length,
+      messagesSent: filtered.reduce((s, h) => s + (h.sent || 0), 0),
+      messagesFailed: filtered.reduce((s, h) => s + (h.failed || 0), 0),
+      uniqueGroups: new Set(filtered.flatMap(h => h.chatIds || [])).size,
+    };
+  }
+
+  // Delivery rate
+  const totalSent = history.reduce((s, h) => s + (h.sent || 0), 0);
+  const totalFailed = history.reduce((s, h) => s + (h.failed || 0), 0);
+  const deliveryRate = totalSent + totalFailed > 0
+    ? ((totalSent / (totalSent + totalFailed)) * 100).toFixed(1)
+    : '0.0';
+
+  // Daily volume for last 14 days (for chart)
+  const dailyVolume = [];
+  for (let i = 13; i >= 0; i--) {
+    const date = new Date(now - i * day);
+    const dateStr = date.toISOString().slice(0, 10);
+    const dayBroadcasts = history.filter(h => (h.timestamp || '').startsWith(dateStr));
+    dailyVolume.push({
+      date: dateStr,
+      broadcasts: dayBroadcasts.length,
+      sent: dayBroadcasts.reduce((s, h) => s + (h.sent || 0), 0),
+      failed: dayBroadcasts.reduce((s, h) => s + (h.failed || 0), 0),
+    });
+  }
+
+  // Top groups by broadcast frequency
+  const groupFreq = {};
+  history.forEach(h => {
+    (h.chatIds || []).forEach(id => {
+      groupFreq[id] = (groupFreq[id] || 0) + 1;
+    });
+  });
+  const topGroups = Object.entries(groupFreq)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([groupId, count]) => ({ groupId, broadcastCount: count }));
+
+  // Recent broadcasts (last 10)
+  const recent = history.slice(0, 10).map(h => ({
+    id: h.id,
+    name: h.name || h.messagePreview?.slice(0, 50) || 'Untitled',
+    timestamp: h.timestamp,
+    sent: h.sent || 0,
+    failed: h.failed || 0,
+    total: h.total || 0,
+    groups: (h.chatIds || []).length,
+  }));
+
+  res.json({
+    overview: {
+      totalBroadcasts: history.length,
+      totalMessagesSent: totalSent,
+      totalMessagesFailed: totalFailed,
+      deliveryRate: parseFloat(deliveryRate),
+      totalContacts: contacts.length,
+      totalGroups: Object.keys(groupStats).length,
+      broadcastLists: broadcastLists.length,
+    },
+    periods: buckets,
+    dailyVolume,
+    topGroups,
+    recentBroadcasts: recent,
+  });
+});
+
+app.get('/analytics', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'analytics.html'));
+});
+
 // ─── SPA Fallback ────────────────────────────────────────────────────────
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
