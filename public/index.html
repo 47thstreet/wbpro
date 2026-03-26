@@ -333,6 +333,15 @@
     .tpl-pill .tpl-x:hover { color: var(--danger); }
     .tpl-pill .tpl-x svg { width: 12px; height: 12px; }
 
+    /* Template preview */
+    .template-preview-box { background: var(--bg-hover); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; position: relative; }
+    .template-preview-box .tpl-var { background: var(--accent-dark); color: var(--accent); padding: 1px 5px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+    .template-preview-empty { color: var(--text-secondary); font-size: 12px; font-style: italic; }
+    .template-preview-empty code { background: var(--accent-dark); color: var(--accent); padding: 1px 5px; border-radius: 3px; font-style: normal; font-size: 11px; }
+    .tpl-var-pill { display: inline-flex; align-items: center; gap: 4px; background: var(--accent-dark); color: var(--accent); padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
+    .tpl-var-pill:hover { border-color: var(--accent); }
+    .tpl-var-pill input { background: transparent; border: none; outline: none; color: var(--text-primary); font-size: 11px; width: 80px; padding: 0; }
+
     /* Schedule / history items */
     .sched-item { display: flex; align-items: center; gap: 8px; background: var(--bg-tertiary); border-radius: var(--radius-md); padding: var(--pad-compact) 10px; margin-bottom: 6px; font-size: var(--font-small); border: 1px solid var(--border-color); }
     .sched-item .sched-time { color: var(--accent); font-weight: 600; white-space: nowrap; font-family: var(--font-mono); font-size: 11px; }
@@ -1413,6 +1422,16 @@
             <div style="display:flex;gap:6px">
               <button class="wa-icon-btn" onclick="saveAsTemplate()" title="Save current message as template"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save as Template</button>
               <button class="wa-icon-btn" onclick="loadTemplates()"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+            </div>
+          </div>
+
+          <!-- Template Preview -->
+          <div class="bubble" style="margin-top:8px" id="templatePreviewBubble">
+            <div class="bubble-label"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Live Preview</div>
+            <div id="templatePreviewVariables" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">
+            </div>
+            <div id="templatePreviewBox" class="template-preview-box">
+              <div class="template-preview-empty">Type a message with <code>{{variables}}</code> to see a live preview</div>
             </div>
           </div>
 
@@ -3564,6 +3583,101 @@
         showToast('Template deleted', 'success');
       } catch (e) { showToast('Failed to delete template', 'error'); }
     }
+
+    // ── Template Preview with Variables ──
+    var sampleEventData = {
+      eventName: 'Summer Rooftop Party',
+      date: 'Sat, Jun 14',
+      time: '10 PM',
+      venue: 'Somewhere Nowhere',
+      location: 'New York, NY',
+      price: '$25',
+      ticketUrl: 'thebestparties.ofc/events/summer-rooftop',
+      name: 'John',
+    };
+    var customVarOverrides = {};
+
+    function extractVariables(text) {
+      var matches = [];
+      var re = /\{\{(\w+)\}\}/g;
+      var m;
+      while ((m = re.exec(text)) !== null) {
+        if (matches.indexOf(m[1]) === -1) matches.push(m[1]);
+      }
+      return matches;
+    }
+
+    function updateTemplatePreview() {
+      var msg = document.getElementById('msgInput').value;
+      var previewBox = document.getElementById('templatePreviewBox');
+      var varsBox = document.getElementById('templatePreviewVariables');
+      var vars = extractVariables(msg);
+
+      if (!msg.trim() || vars.length === 0) {
+        previewBox.innerHTML = '<div class="template-preview-empty">Type a message with <code>{{variables}}</code> to see a live preview</div>';
+        varsBox.innerHTML = '';
+        return;
+      }
+
+      // Render editable variable pills
+      varsBox.innerHTML = vars.map(function(v) {
+        var val = customVarOverrides[v] !== undefined ? customVarOverrides[v] : (sampleEventData[v] || '');
+        return '<label class="tpl-var-pill">'
+          + '<span>{{' + esc(v) + '}}</span>'
+          + '<input type="text" value="' + esc(val) + '" data-var="' + esc(v) + '" oninput="onPreviewVarChange(this)" placeholder="sample value">'
+          + '</label>';
+      }).join('');
+
+      // Build the preview with variables filled in
+      var merged = Object.assign({}, sampleEventData, customVarOverrides);
+      var preview = msg.replace(/\{\{(\w+)\}\}/g, function(match, key) {
+        var val = merged[key];
+        if (val !== undefined && val !== '') {
+          return '<span class="tpl-var">' + esc(val) + '</span>';
+        }
+        return '<span class="tpl-var" style="opacity:0.5">' + esc(match) + '</span>';
+      });
+
+      // Apply WhatsApp-style formatting: *bold*, _italic_
+      preview = preview.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+      preview = preview.replace(/_(.*?)_/g, '<em>$1</em>');
+
+      previewBox.innerHTML = preview;
+    }
+
+    function onPreviewVarChange(input) {
+      var varName = input.getAttribute('data-var');
+      customVarOverrides[varName] = input.value;
+      // Re-render preview without re-rendering the pills (to keep focus)
+      var msg = document.getElementById('msgInput').value;
+      var merged = Object.assign({}, sampleEventData, customVarOverrides);
+      var preview = msg.replace(/\{\{(\w+)\}\}/g, function(match, key) {
+        var val = merged[key];
+        if (val !== undefined && val !== '') {
+          return '<span class="tpl-var">' + esc(val) + '</span>';
+        }
+        return '<span class="tpl-var" style="opacity:0.5">' + esc(match) + '</span>';
+      });
+      preview = preview.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+      preview = preview.replace(/_(.*?)_/g, '<em>$1</em>');
+      document.getElementById('templatePreviewBox').innerHTML = preview;
+    }
+
+    // Hook into msgInput changes via event listener
+    document.addEventListener('DOMContentLoaded', function() {
+      var msgEl = document.getElementById('msgInput');
+      if (msgEl) {
+        msgEl.addEventListener('input', updateTemplatePreview);
+        // Also observe programmatic value changes (e.g. from useTemplate)
+        var origUseTemplate = window.useTemplate;
+        if (typeof origUseTemplate === 'function') {
+          window.useTemplate = function(id) {
+            origUseTemplate(id);
+            setTimeout(updateTemplatePreview, 50);
+          };
+        }
+      }
+    });
 
     // ── Scheduled Broadcasts ──
     function toggleScheduleUI() {
