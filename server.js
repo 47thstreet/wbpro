@@ -3702,6 +3702,32 @@ async function registerKartisWebhook() {
   }
 }
 
+// ─── Health Check ────────────────────────────────────────────────────────
+
+app.get('/api/health', (req, res) => {
+  const checks = {};
+
+  // Check WhatsApp client status
+  const waStatus = typeof client !== 'undefined' && client.info ? 'ok' : 'error';
+  checks.whatsapp = { status: waStatus };
+  if (waStatus === 'error') checks.whatsapp.error = 'Client not connected';
+
+  // Check Kartis connectivity config
+  checks.kartisApi = KARTIS_EVENTS_URL ? { status: 'ok' } : { status: 'error', error: 'KARTIS_EVENTS_URL not configured' };
+
+  // Check JWT secret
+  checks.auth = JWT_SECRET ? { status: 'ok' } : { status: 'error', error: 'JWT_SECRET not configured' };
+
+  const overall = Object.values(checks).every(c => c.status === 'ok') ? 'healthy' : 'degraded';
+
+  res.status(overall === 'healthy' ? 200 : 503).json({
+    service: 'wbpro',
+    status: overall,
+    timestamp: new Date().toISOString(),
+    checks,
+  });
+});
+
 // ─── Start ───────────────────────────────────────────────────────────────
 
 app.listen(PORT, '0.0.0.0', () => {
