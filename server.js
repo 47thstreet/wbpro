@@ -1157,6 +1157,37 @@ app.get('/api/scanner/stats', (req, res, next) => { req.url = '/api/whatsapp/sca
 // --- Groups stats alias ---
 app.get('/api/groups/stats', (req, res, next) => { req.url = '/api/whatsapp/groups/stats'; next(); });
 
+// --- Health check endpoint for uptime monitoring ---
+app.get('/api/health', (req, res) => {
+  const checks = {};
+
+  // Check WhatsApp client status
+  try {
+    const info = client.info;
+    checks.whatsapp = info ? { status: 'ok' } : { status: 'error', error: 'Not connected' };
+  } catch {
+    checks.whatsapp = { status: 'error', error: 'Client not initialized' };
+  }
+
+  // Check data directory is writable
+  try {
+    fs.accessSync(DATA_DIR, fs.constants.W_OK);
+    checks.storage = { status: 'ok' };
+  } catch {
+    checks.storage = { status: 'error', error: 'Data directory not writable' };
+  }
+
+  const overall = Object.values(checks).every(c => c.status === 'ok') ? 'healthy' : 'degraded';
+
+  res.status(overall === 'healthy' ? 200 : 503).json({
+    service: 'wbpro',
+    status: overall,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    checks,
+  });
+});
+
 // --- Leads: dismiss (TBP sends {id}, sets lead status to 'dismissed') ---
 app.post('/api/leads/dismiss', (req, res) => {
   const { id } = req.body;
