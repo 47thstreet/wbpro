@@ -1389,6 +1389,12 @@ app.delete('/api/groups/profiles/:groupId', (req, res, next) => { req.url = '/ap
 app.get('/api/groups/health', (req, res, next) => { req.url = '/api/whatsapp/groups/health'; next(); });
 app.post('/api/groups/activity', (req, res, next) => { req.url = '/api/whatsapp/groups/activity'; next(); });
 
+// --- Ticket purchase flow aliases ---
+app.post('/api/tickets/seed-flow', (req, res, next) => { req.url = '/api/whatsapp/tickets/seed-flow'; next(); });
+app.get('/api/tickets/lookup', (req, res, next) => { req.url = '/api/whatsapp/tickets/lookup' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
+app.post('/api/tickets/simulate', (req, res, next) => { req.url = '/api/whatsapp/tickets/simulate'; next(); });
+app.get('/api/tickets/flow-status', (req, res, next) => { req.url = '/api/whatsapp/tickets/flow-status'; next(); });
+
 // --- Health check endpoint for uptime monitoring ---
 app.get('/api/health', (req, res) => {
   const checks = {};
@@ -2081,6 +2087,174 @@ setInterval(() => {
   }
 }, 30 * 60 * 1000);
 
+// ─── Ticket Purchase Flow (WhatsApp → Kartis) ──────────────────────────
+// When a user messages "buy tickets" or "tickets for [event]", this handler
+// fetches events from Kartis, matches by keyword, and returns formatted
+// ticket options with checkout links.
+
+// Extract event search term from user message
+function extractTicketQuery(message) {
+  const lower = message.toLowerCase().trim();
+  // Patterns: "tickets for X", "buy tickets X", "buy ticket for X", "כרטיסים ל X"
+  const patterns = [
+    /(?:tickets?\s+(?:for|to)\s+)(.+)/i,
+    /(?:buy\s+tickets?\s+(?:for|to)?\s*)(.+)/i,
+    /(?:buy\s+)(.+?)(?:\s+tickets?)?$/i,
+    /(?:כרטיסים?\s+ל)(.+)/i,
+    /(?:לקנות\s+כרטיסים?\s+ל)(.+)/i,
+    /(?:טיקטים?\s+ל)(.+)/i,
+  ];
+  for (const re of patterns) {
+    const m = lower.match(re);
+    if (m && m[1] && m[1].trim().length > 1) return m[1].trim();
+  }
+  return null;
+}
+
+// Match events by search query — fuzzy name/venue/description match
+function matchEvents(events, query) {
+  if (!query) return events;
+  const terms = query.toLowerCase().split(/\s+/).filter(w => w.length > 1);
+  return events.filter(e => {
+    const hay = `${e.name || ''} ${e.description || ''} ${e.venue || ''} ${e.location || ''}`.toLowerCase();
+    return terms.some(t => hay.includes(t));
+  });
+}
+
+// Format a single event as a ticket purchase card
+function formatTicketCard(event, index) {
+  const d = new Date(event.date);
+  const dateStr = d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+  const ticketUrl = event.ticketUrl || (event.slug ? `${KARTIS_URL}/en/event/${event.slug}` : `${KARTIS_URL}/events`);
+  const lines = [];
+  lines.push(`*${index}. ${event.name}*`);
+  lines.push(`📅 ${dateStr}${event.time ? ' | ⏰ ' + event.time : ''}`);
+  if (event.venue) lines.push(`📍 ${event.venue}${event.location ? ', ' + event.location : ''}`);
+  if (event.price) lines.push(`💰 ${event.price}`);
+  lines.push(`🎟️ Buy tickets: ${ticketUrl}`);
+  return lines.join('\n');
+}
+
+// Handle ticket purchase intent — returns { reply, events, matched }
+async function handleTicketPurchase(userMessage, sessionData = {}) {
+  const query = extractTicketQuery(userMessage);
+  const heb = isHebrew(userMessage);
+
+  let events;
+  try {
+    events = await fetchEvents();
+  } catch (err) {
+    console.error('[TicketFlow] Failed to fetch events:', err.message);
+    return {
+      reply: heb
+        ? 'מצטערים, לא הצלחנו לטעון את האירועים כרגע. נסה שוב בעוד רגע.'
+        : 'Sorry, we could not load events right now. Please try again in a moment.',
+      events: [],
+      matched: false,
+    };
+  }
+
+  const upcoming = getUpcoming(events);
+  if (upcoming.length === 0) {
+    return {
+      reply: heb
+        ? 'אין אירועים קרובים כרגע. עקבו אחרינו לעדכונים!'
+        : 'No upcoming events at the moment. Follow us for updates!',
+      events: [],
+      matched: false,
+    };
+  }
+
+  let matched = query ? matchEvents(upcoming, query) : [];
+
+  // If user asked for a specific event but no match, try AI to suggest
+  if (query && matched.length === 0) {
+    // Fall back to showing all upcoming with a note
+    const list = upcoming.slice(0, 5).map((e, i) => formatTicketCard(e, i + 1)).join('\n\n');
+    const noMatchNote = heb
+      ? `לא מצאנו אירוע שמתאים ל"${query}". הנה האירועים הקרובים שלנו:`
+      : `We couldn't find an event matching "${query}". Here are our upcoming events:`;
+    return {
+      reply: `${noMatchNote}\n\n${list}\n\n${heb ? 'שלחו את המספר של האירוע כדי לקבל לינק לרכישה' : 'Reply with the event number to get the purchase link'}`,
+      events: upcoming.slice(0, 5),
+      matched: false,
+    };
+  }
+
+  // If no specific query or we have matches, show them
+  const showEvents = matched.length > 0 ? matched.slice(0, 5) : upcoming.slice(0, 5);
+  const list = showEvents.map((e, i) => formatTicketCard(e, i + 1)).join('\n\n');
+  const header = heb ? '🎟️ *כרטיסים זמינים*' : '🎟️ *Available Tickets*';
+  const footer = heb
+    ? 'שלחו את המספר של האירוע לקבלת לינק ישיר, או לחצו על הלינק לרכישה'
+    : 'Reply with the event number for a direct link, or tap any link above to buy';
+
+  return {
+    reply: `${header}\n\n${list}\n\n${footer}`,
+    events: showEvents,
+    matched: matched.length > 0,
+  };
+}
+
+// Handle event selection by number (user replies "1", "2", etc.)
+function handleTicketSelection(selectionText, availableEvents) {
+  const num = parseInt(selectionText.trim(), 10);
+  if (isNaN(num) || num < 1 || num > availableEvents.length) return null;
+
+  const event = availableEvents[num - 1];
+  const ticketUrl = event.ticketUrl || (event.slug ? `${KARTIS_URL}/en/event/${event.slug}` : `${KARTIS_URL}/events`);
+  const heb = /[\u0590-\u05FF]/.test(event.name || '');
+
+  const lines = [];
+  lines.push(heb ? '🎟️ *הזמנת כרטיסים*' : '🎟️ *Ticket Purchase*');
+  lines.push('');
+  lines.push(`*${event.name}*`);
+  const d = new Date(event.date);
+  const dateStr = d.toLocaleDateString(heb ? 'he-IL' : 'en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+  lines.push(`📅 ${dateStr}${event.time ? ' | ⏰ ' + event.time : ''}`);
+  if (event.venue) lines.push(`📍 ${event.venue}${event.location ? ', ' + event.location : ''}`);
+  if (event.price) lines.push(`💰 ${event.price}`);
+  lines.push('');
+  lines.push(heb ? `👉 לרכישה: ${ticketUrl}` : `👉 Buy now: ${ticketUrl}`);
+  lines.push('');
+  lines.push(heb ? 'לחצו על הלינק כדי להשלים את הרכישה. בהצלחה!' : 'Tap the link above to complete your purchase. Enjoy the event!');
+
+  return { reply: lines.join('\n'), event, ticketUrl };
+}
+
+// Default ticket purchase flow template
+const TICKET_PURCHASE_FLOW_TEMPLATE = {
+  name: 'Ticket Purchase',
+  triggers: [
+    { type: 'contains', value: 'buy tickets' },
+    { type: 'contains', value: 'buy ticket' },
+    { type: 'startsWith', value: 'tickets for' },
+    { type: 'exact', value: 'tickets' },
+    { type: 'contains', value: 'לקנות כרטיס' },
+    { type: 'contains', value: 'כרטיסים ל' },
+  ],
+  scope: 'dm',
+  startNode: 'ticket-start',
+  nodes: [
+    {
+      id: 'ticket-start',
+      type: 'ticket_purchase',
+      message: '🎟️ Looking up events for you...',
+      ticketConfig: {
+        maxResults: 5,
+        showPrices: true,
+        allowSelection: true,
+      },
+    },
+    {
+      id: 'ticket-confirm',
+      type: 'message',
+      message: 'Thanks for your interest! If you need help with your purchase, just reply here.',
+      terminal: true,
+    },
+  ],
+};
+
 // ─── Auto Follow-Up Sequences ────────────────────────────────────────────
 // Sequences are templates defining a series of timed messages.
 // When a contact crosses the "hot" threshold (score >= 70), they auto-enroll.
@@ -2671,6 +2845,47 @@ async function handleFlowMessage(accountId, msg, chat) {
       const currentNode = getFlowNode(flow, session.nodeId);
       if (!currentNode) { flowSessions.delete(senderId); return false; }
 
+      // Handle Ticket Purchase nodes — event lookup + selection
+      if (currentNode.type === 'ticket_purchase') {
+        const sessionEvents = session.data?._ticketEvents;
+        // If user sent a number and we have cached events, handle selection
+        if (sessionEvents && sessionEvents.length > 0) {
+          const selection = handleTicketSelection(body, sessionEvents);
+          if (selection) {
+            try { await msg.reply(selection.reply); } catch (e) { console.error(`[${accountId}] Ticket selection reply failed:`, e.message); }
+            // Track ticket interest in CRM
+            const phoneId = phoneFromJid(senderId);
+            if (phoneId) {
+              upsertCrmContact(phoneId, {
+                tags: ['ticket-interest', 'kartis'],
+                profile: { lastActive: new Date().toISOString() },
+              });
+            }
+            // Navigate to confirm node if exists
+            const confirmNode = currentNode.ticketConfig?.confirmNode || 'ticket-confirm';
+            const nextNode = getFlowNode(flows.find(f => f.id === session.flowId), confirmNode);
+            if (nextNode) {
+              session.nodeId = confirmNode;
+              try { await msg.reply(resolveFlowVars(nextNode.message, session.data || {})); } catch (e) { /* skip */ }
+              if (nextNode.terminal) {
+                flowSessions.delete(senderId);
+                logFlowCompletion(session.flowId, senderId, { ...session.data, selectedEvent: selection.event.name, ticketUrl: selection.ticketUrl });
+              }
+            } else {
+              flowSessions.delete(senderId);
+              logFlowCompletion(session.flowId, senderId, { ...session.data, selectedEvent: selection.event.name, ticketUrl: selection.ticketUrl });
+            }
+            return true;
+          }
+        }
+        // Not a selection — treat as a new ticket query or show all events
+        const result = await handleTicketPurchase(body, session.data || {});
+        try { await msg.reply(result.reply); } catch (e) { console.error(`[${accountId}] Ticket flow reply failed:`, e.message); }
+        session.data = session.data || {};
+        session.data._ticketEvents = result.events;
+        return true;
+      }
+
       // Handle AI Response nodes — call LLM instead of matching options
       if (currentNode.type === 'ai_response') {
         const aiReply = await generateAiResponse(senderId, body, {
@@ -2750,8 +2965,14 @@ async function handleFlowMessage(accountId, msg, chat) {
         session.data[currentNode.collectAs] = body;
       }
 
-      // Send next node message (for AI nodes, send intro prompt instead)
-      if (nextNode.type === 'ai_response') {
+      // Send next node message (for AI/ticket nodes, send intro prompt instead)
+      if (nextNode.type === 'ticket_purchase') {
+        // Entering a ticket purchase node — do initial event lookup using the original message
+        const result = await handleTicketPurchase(body, session.data || {});
+        try { await msg.reply(result.reply); } catch (e) { console.error(`[${accountId}] Ticket flow intro failed:`, e.message); }
+        session.data = session.data || {};
+        session.data._ticketEvents = result.events;
+      } else if (nextNode.type === 'ai_response') {
         const introMsg = nextNode.message || 'You are now chatting with our AI assistant. Type "exit" to leave.';
         try {
           await msg.reply(resolveFlowVars(introMsg, session.data || {}));
@@ -2769,7 +2990,7 @@ async function handleFlowMessage(accountId, msg, chat) {
       }
 
       // If terminal node, end session
-      if (nextNode.terminal || (!nextNode.options && !nextNode.fallback && !nextNode.collectAs && nextNode.type !== 'ai_response')) {
+      if (nextNode.terminal || (!nextNode.options && !nextNode.fallback && !nextNode.collectAs && nextNode.type !== 'ai_response' && nextNode.type !== 'ticket_purchase')) {
         flowSessions.delete(senderId);
         // Log flow completion
         logFlowCompletion(flow.id, senderId, session.data || {});
@@ -2800,8 +3021,22 @@ async function handleFlowMessage(accountId, msg, chat) {
     data: sessionData,
   });
 
+  // If start node is a ticket purchase node, do initial event lookup
+  if (startNode.type === 'ticket_purchase') {
+    const result = await handleTicketPurchase(body, sessionData);
+    try {
+      await msg.reply(result.reply);
+    } catch (e) {
+      console.error(`[${accountId}] Ticket flow start reply failed:`, e.message);
+      flowSessions.delete(senderId);
+    }
+    const session = flowSessions.get(senderId);
+    if (session) {
+      session.data._ticketEvents = result.events;
+    }
+  }
   // If start node is an AI response node, send intro and prepare for AI conversation
-  if (startNode.type === 'ai_response') {
+  else if (startNode.type === 'ai_response') {
     aiConversationHistory.delete(senderId);
     const introMsg = startNode.message || 'You are now chatting with our AI assistant. Type "exit" to leave.';
     try {
@@ -4235,8 +4470,8 @@ app.post('/api/whatsapp/flows', (req, res) => {
   for (const node of nodes) {
     if (!node.id || typeof node.id !== 'string')
       return res.status(400).json({ error: 'each node must have a string id' });
-    if (node.type && !['message', 'ai_response'].includes(node.type))
-      return res.status(400).json({ error: `node "${node.id}" has invalid type "${node.type}" (must be message or ai_response)` });
+    if (node.type && !['message', 'ai_response', 'ticket_purchase'].includes(node.type))
+      return res.status(400).json({ error: `node "${node.id}" has invalid type "${node.type}" (must be message, ai_response, or ticket_purchase)` });
     if (!node.message || typeof node.message !== 'string')
       return res.status(400).json({ error: `node "${node.id}" must have a message` });
   }
@@ -4989,6 +5224,91 @@ app.post('/api/whatsapp/groups/activity', (req, res) => {
   }
 
   res.json({ ok: true, groupId, tracked: groupActivity.has(groupId) });
+});
+
+// ─── Ticket Purchase Flow Endpoints ──────────────────────────────────────
+
+// POST /api/whatsapp/tickets/seed-flow — create the default ticket purchase flow
+app.post('/api/whatsapp/tickets/seed-flow', (req, res) => {
+  const flows = loadJSON(FLOWS_FILE, []);
+  // Check if ticket flow already exists
+  const existing = flows.find(f => f.name === TICKET_PURCHASE_FLOW_TEMPLATE.name);
+  if (existing) {
+    return res.json({ ok: true, flow: existing, seeded: false, message: 'Ticket purchase flow already exists' });
+  }
+
+  const id = crypto.randomUUID();
+  const flow = {
+    id,
+    ...TICKET_PURCHASE_FLOW_TEMPLATE,
+    enabled: true,
+    completions: 0,
+    lastCompletedAt: null,
+    createdAt: new Date().toISOString(),
+  };
+  flows.push(flow);
+  saveJSON(FLOWS_FILE, flows);
+  res.json({ ok: true, flow, seeded: true });
+});
+
+// GET /api/whatsapp/tickets/lookup — look up events and return ticket options
+app.get('/api/whatsapp/tickets/lookup', async (req, res) => {
+  const query = req.query.q || req.query.query || '';
+  try {
+    const events = await fetchEvents();
+    const upcoming = getUpcoming(events);
+    let matched = query ? matchEvents(upcoming, query) : upcoming;
+    matched = matched.slice(0, parseInt(req.query.limit) || 10);
+
+    const results = matched.map(e => {
+      const ticketUrl = e.ticketUrl || (e.slug ? `${KARTIS_URL}/en/event/${e.slug}` : `${KARTIS_URL}/events`);
+      return {
+        name: e.name,
+        date: e.date,
+        time: e.time || null,
+        venue: e.venue || null,
+        location: e.location || null,
+        price: e.price || null,
+        ticketUrl,
+        slug: e.slug || null,
+      };
+    });
+
+    res.json({ query: query || null, count: results.length, events: results });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch events', details: err.message });
+  }
+});
+
+// POST /api/whatsapp/tickets/simulate — simulate a ticket purchase conversation
+app.post('/api/whatsapp/tickets/simulate', async (req, res) => {
+  const { message, sessionEvents } = req.body;
+  if (!message) return res.status(400).json({ error: 'message required' });
+
+  // If sessionEvents is provided and message is a number, handle selection
+  if (sessionEvents && sessionEvents.length > 0) {
+    const selection = handleTicketSelection(message, sessionEvents);
+    if (selection) {
+      return res.json({ type: 'selection', reply: selection.reply, event: selection.event, ticketUrl: selection.ticketUrl });
+    }
+  }
+
+  // Handle as a new ticket query
+  const result = await handleTicketPurchase(message);
+  res.json({ type: 'lookup', reply: result.reply, events: result.events, matched: result.matched });
+});
+
+// GET /api/whatsapp/tickets/flow-status — check if ticket purchase flow is enabled
+app.get('/api/whatsapp/tickets/flow-status', (req, res) => {
+  const flows = loadJSON(FLOWS_FILE, []);
+  const ticketFlow = flows.find(f => f.name === TICKET_PURCHASE_FLOW_TEMPLATE.name);
+  res.json({
+    exists: !!ticketFlow,
+    enabled: ticketFlow?.enabled || false,
+    flowId: ticketFlow?.id || null,
+    completions: ticketFlow?.completions || 0,
+    triggers: ticketFlow?.triggers || [],
+  });
 });
 
 app.get('/api/whatsapp/keywords', (req, res) => {
