@@ -222,7 +222,15 @@
       document.getElementById('nodes-container').innerHTML = '';
       nodeCount = 0;
       for (const node of f.nodes || []) {
-        addNode(node.id, node.message, node.options || [], node.errorMessage || '', node.collectAs || '', node.fallback || '', node.terminal || false);
+        addNode(node.id, node.message, node.options || [], node.errorMessage || '', node.collectAs || '', node.fallback || '', node.terminal || false, node.type || 'message', {
+          systemPrompt: node.aiSystemPrompt || '',
+          exitKeywords: node.aiExitKeywords || [],
+          exitNode: node.aiExitNode || '',
+          temperature: node.aiTemperature || 0.7,
+          maxTokens: node.aiMaxTokens || 512,
+          rateLimitMessage: node.aiRateLimitMessage || '',
+          errorMessage: node.aiErrorMessage || '',
+        });
       }
       updatePreview();
       document.getElementById('modal').classList.add('open');
@@ -230,10 +238,12 @@
 
     function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
-    function addNode(id, message, options, errorMsg, collectAs, fallback, terminal) {
+    function addNode(id, message, options, errorMsg, collectAs, fallback, terminal, nodeType, aiConfig) {
       nodeCount++;
       const n = nodeCount;
       const opts = options || [];
+      const ai = aiConfig || {};
+      const isAi = nodeType === 'ai_response';
       const container = document.getElementById('nodes-container');
       const div = document.createElement('div');
       div.className = 'node-editor';
@@ -241,31 +251,77 @@
       div.innerHTML = `
         <div class="node-header">
           <input type="text" class="node-id" value="${esc(id || 'node' + n)}" placeholder="Node ID" style="font-weight:600">
+          <select class="node-type" onchange="toggleAiFields(this)" style="font-size:0.7rem;padding:0.25rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+            <option value="message" ${!isAi ? 'selected' : ''}>Message</option>
+            <option value="ai_response" ${isAi ? 'selected' : ''}>AI Response</option>
+          </select>
           <label style="font-size:0.65rem;color:var(--text-3)"><input type="checkbox" class="node-terminal" ${terminal ? 'checked' : ''}> Terminal</label>
           <button class="btn btn-sm danger" onclick="this.closest('.node-editor').remove();updatePreview()">Remove</button>
         </div>
         <div class="form-group" style="margin-bottom:0.5rem">
-          <textarea class="node-message" rows="3" placeholder="Message to send">${esc(message || '')}</textarea>
+          <textarea class="node-message" rows="3" placeholder="${isAi ? 'Intro message (shown when entering AI chat)' : 'Message to send'}">${esc(message || '')}</textarea>
         </div>
-        <div class="form-group" style="margin-bottom:0.5rem">
-          <label style="font-size:0.6rem">Collect input as variable (optional)</label>
-          <input type="text" class="node-collect" value="${esc(collectAs || '')}" placeholder="e.g. userChoice">
+        <div class="ai-fields" style="display:${isAi ? 'block' : 'none'}">
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">AI System Prompt</label>
+            <textarea class="node-ai-prompt" rows="3" placeholder="You are a helpful assistant for...">${esc(ai.systemPrompt || '')}</textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">Exit Keywords (comma-separated, e.g. exit,bye,quit)</label>
+            <input type="text" class="node-ai-exit-kw" value="${esc((ai.exitKeywords || []).join(','))}" placeholder="exit,bye,quit">
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">Exit Node ID (where to go when user types exit keyword)</label>
+            <input type="text" class="node-ai-exit-node" value="${esc(ai.exitNode || '')}" placeholder="Node ID">
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">Temperature (0.0 - 1.0)</label>
+            <input type="number" class="node-ai-temp" value="${ai.temperature || 0.7}" min="0" max="1" step="0.1">
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">Max Tokens</label>
+            <input type="number" class="node-ai-tokens" value="${ai.maxTokens || 512}" min="50" max="2048" step="50">
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">Rate Limit Message</label>
+            <input type="text" class="node-ai-rate-msg" value="${esc(ai.rateLimitMessage || '')}" placeholder="Too many messages, please wait...">
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">AI Error Message</label>
+            <input type="text" class="node-ai-error-msg" value="${esc(ai.errorMessage || '')}" placeholder="Sorry, AI is unavailable right now.">
+          </div>
         </div>
-        <div class="form-group" style="margin-bottom:0.5rem">
-          <label style="font-size:0.6rem">Fallback node (no match)</label>
-          <input type="text" class="node-fallback" value="${esc(fallback || '')}" placeholder="Node ID for unmatched input">
-        </div>
-        <div class="form-group" style="margin-bottom:0.5rem">
-          <label style="font-size:0.6rem">Error message (invalid input)</label>
-          <input type="text" class="node-error" value="${esc(errorMsg || '')}" placeholder="Please reply with a valid option">
-        </div>
-        <div class="form-group" style="margin-bottom:0">
-          <label style="font-size:0.6rem">Options</label>
-          <div class="node-options">${opts.map((o, i) => optionHtml(o.label, o.next, o.keywords)).join('')}</div>
-          <button class="btn btn-sm" onclick="addOption(this)" style="margin-top:0.25rem">+ Option</button>
+        <div class="standard-fields" style="display:${isAi ? 'none' : 'block'}">
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">Collect input as variable (optional)</label>
+            <input type="text" class="node-collect" value="${esc(collectAs || '')}" placeholder="e.g. userChoice">
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">Fallback node (no match)</label>
+            <input type="text" class="node-fallback" value="${esc(fallback || '')}" placeholder="Node ID for unmatched input">
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem">
+            <label style="font-size:0.6rem">Error message (invalid input)</label>
+            <input type="text" class="node-error" value="${esc(errorMsg || '')}" placeholder="Please reply with a valid option">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label style="font-size:0.6rem">Options</label>
+            <div class="node-options">${opts.map((o, i) => optionHtml(o.label, o.next, o.keywords)).join('')}</div>
+            <button class="btn btn-sm" onclick="addOption(this)" style="margin-top:0.25rem">+ Option</button>
+          </div>
         </div>`;
       container.appendChild(div);
-      div.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', updatePreview));
+      div.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('input', updatePreview));
+      div.querySelectorAll('input, textarea, select').forEach(el => el.addEventListener('change', updatePreview));
+    }
+
+    function toggleAiFields(select) {
+      const editor = select.closest('.node-editor');
+      const isAi = select.value === 'ai_response';
+      editor.querySelector('.ai-fields').style.display = isAi ? 'block' : 'none';
+      editor.querySelector('.standard-fields').style.display = isAi ? 'none' : 'block';
+      editor.querySelector('.node-message').placeholder = isAi ? 'Intro message (shown when entering AI chat)' : 'Message to send';
+      updatePreview();
     }
 
     function optionHtml(label, next, keywords) {
@@ -287,6 +343,8 @@
     function gatherNodes() {
       const editors = document.querySelectorAll('.node-editor');
       return Array.from(editors).map(ed => {
+        const nodeType = ed.querySelector('.node-type').value;
+        const isAi = nodeType === 'ai_response';
         const opts = Array.from(ed.querySelectorAll('.option-row')).map(row => ({
           label: row.querySelector('.opt-label').value.trim(),
           next: row.querySelector('.opt-next').value.trim(),
@@ -294,13 +352,24 @@
         })).filter(o => o.label && o.next);
         const node = {
           id: ed.querySelector('.node-id').value.trim(),
+          type: isAi ? 'ai_response' : undefined,
           message: ed.querySelector('.node-message').value.trim(),
-          options: opts.length > 0 ? opts : undefined,
-          errorMessage: ed.querySelector('.node-error').value.trim() || undefined,
-          collectAs: ed.querySelector('.node-collect').value.trim() || undefined,
-          fallback: ed.querySelector('.node-fallback').value.trim() || undefined,
+          options: !isAi && opts.length > 0 ? opts : undefined,
+          errorMessage: !isAi ? (ed.querySelector('.node-error').value.trim() || undefined) : undefined,
+          collectAs: !isAi ? (ed.querySelector('.node-collect').value.trim() || undefined) : undefined,
+          fallback: !isAi ? (ed.querySelector('.node-fallback').value.trim() || undefined) : undefined,
           terminal: ed.querySelector('.node-terminal').checked || undefined,
         };
+        if (isAi) {
+          node.aiSystemPrompt = ed.querySelector('.node-ai-prompt').value.trim() || undefined;
+          const exitKw = ed.querySelector('.node-ai-exit-kw').value.split(',').map(s => s.trim()).filter(Boolean);
+          node.aiExitKeywords = exitKw.length > 0 ? exitKw : undefined;
+          node.aiExitNode = ed.querySelector('.node-ai-exit-node').value.trim() || undefined;
+          node.aiTemperature = parseFloat(ed.querySelector('.node-ai-temp').value) || undefined;
+          node.aiMaxTokens = parseInt(ed.querySelector('.node-ai-tokens').value) || undefined;
+          node.aiRateLimitMessage = ed.querySelector('.node-ai-rate-msg').value.trim() || undefined;
+          node.aiErrorMessage = ed.querySelector('.node-ai-error-msg').value.trim() || undefined;
+        }
         return node;
       });
     }
@@ -322,10 +391,13 @@
         const node = queue.shift();
         if (visited.has(node.id)) continue;
         visited.add(node.id);
-        html += `<div class="flow-node-vis">
-          <div class="node-name">${esc(node.id)}</div>
+        const isAiNode = node.type === 'ai_response';
+        html += `<div class="flow-node-vis" style="${isAiNode ? 'border-color:var(--blue);' : ''}">
+          <div class="node-name" style="${isAiNode ? 'color:var(--blue);' : ''}">${isAiNode ? 'AI: ' : ''}${esc(node.id)}</div>
           <div class="node-msg">${esc(node.message.slice(0, 60))}</div>
-          ${node.options ? node.options.map(o => `<div style="font-size:0.6rem;color:var(--accent);margin-top:2px">${esc(o.label)} -> ${esc(o.next)}</div>`).join('') : (node.terminal ? '<div style="font-size:0.6rem;color:var(--yellow)">END</div>' : '<div style="font-size:0.6rem;color:var(--yellow)">END</div>')}
+          ${isAiNode ? '<div style="font-size:0.6rem;color:var(--blue);margin-top:2px">LLM-powered responses</div>' : ''}
+          ${isAiNode && node.aiExitNode ? `<div style="font-size:0.6rem;color:var(--accent);margin-top:2px">exit -> ${esc(node.aiExitNode)}</div>` : ''}
+          ${!isAiNode && node.options ? node.options.map(o => `<div style="font-size:0.6rem;color:var(--accent);margin-top:2px">${esc(o.label)} -> ${esc(o.next)}</div>`).join('') : (!isAiNode && (node.terminal ? '<div style="font-size:0.6rem;color:var(--yellow)">END</div>' : (!node.options ? '<div style="font-size:0.6rem;color:var(--yellow)">END</div>' : '')))}
         </div>`;
         if (node.options) {
           for (const opt of node.options) {
@@ -334,6 +406,13 @@
               html += '<div class="flow-arrow">|</div>';
               queue.push(next);
             }
+          }
+        }
+        if (node.aiExitNode) {
+          const exitNext = nodes.find(n => n.id === node.aiExitNode);
+          if (exitNext && !visited.has(exitNext.id)) {
+            html += '<div class="flow-arrow">|</div>';
+            queue.push(exitNext);
           }
         }
       }

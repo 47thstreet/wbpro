@@ -20,6 +20,9 @@ const KARTIS_URL = process.env.KARTIS_URL || 'http://localhost:3031';
 const KARTIS_WEBHOOK_SECRET = process.env.KARTIS_WEBHOOK_SECRET;
 const WBPRO_URL = process.env.WBPRO_URL || 'https://wbpro.onrender.com';
 const TBP_URL = process.env.TBP_URL || 'https://tbp-website-astro.vercel.app';
+const NVIDIA_NIM_API_KEY = process.env.NVIDIA_NIM_API_KEY;
+const NVIDIA_NIM_MODEL = process.env.NVIDIA_NIM_MODEL || 'meta/llama-3.3-70b-instruct';
+const NVIDIA_NIM_URL = process.env.NVIDIA_NIM_URL || 'https://integrate.api.nvidia.com/v1/chat/completions';
 
 // ─── Webhook Registration State ─────────────────────────────────────────
 let webhookRegistered = false;
@@ -1849,6 +1852,132 @@ function createWhatsAppClient(accountId) {
   return client;
 }
 
+// ─── AI Response Handler (NVIDIA NIM / Llama 3.3 70B) ───────────────────
+const aiRateLimits = new Map(); // conversationId -> { timestamps: [] }
+const AI_RATE_LIMIT = 10; // max calls per minute per conversation
+const AI_RATE_WINDOW = 60 * 1000; // 1 minute window
+
+function checkAiRateLimit(conversationId) {
+  const now = Date.now();
+  let entry = aiRateLimits.get(conversationId);
+  if (!entry) {
+    entry = { timestamps: [] };
+    aiRateLimits.set(conversationId, entry);
+  }
+  // Purge expired timestamps
+  entry.timestamps = entry.timestamps.filter(ts => now - ts < AI_RATE_WINDOW);
+  if (entry.timestamps.length >= AI_RATE_LIMIT) return false;
+  entry.timestamps.push(now);
+  return true;
+}
+
+// Conversation history for AI context (last N messages per sender)
+const aiConversationHistory = new Map(); // senderId -> [{ role, content }]
+const AI_MAX_HISTORY = 10;
+
+function getAiHistory(senderId) {
+  return aiConversationHistory.get(senderId) || [];
+}
+
+function addAiHistory(senderId, role, content) {
+  let history = aiConversationHistory.get(senderId);
+  if (!history) {
+    history = [];
+    aiConversationHistory.set(senderId, history);
+  }
+  history.push({ role, content });
+  if (history.length > AI_MAX_HISTORY) history.shift();
+}
+
+async function callNvidiaLlm(systemPrompt, messages, options = {}) {
+  if (!NVIDIA_NIM_API_KEY) {
+    throw new Error('NVIDIA_NIM_API_KEY not configured');
+  }
+
+  const body = {
+    model: NVIDIA_NIM_MODEL,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...messages,
+    ],
+    max_tokens: options.maxTokens || 512,
+    temperature: options.temperature || 0.7,
+    top_p: options.topP || 0.9,
+  };
+
+  const response = await fetch(NVIDIA_NIM_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${NVIDIA_NIM_API_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => 'unknown error');
+    throw new Error(`NVIDIA NIM API error ${response.status}: ${text}`);
+  }
+
+  const data = await response.json();
+  const choice = data.choices && data.choices[0];
+  if (!choice || !choice.message) {
+    throw new Error('NVIDIA NIM returned no response');
+  }
+  return choice.message.content.trim();
+}
+
+async function generateAiResponse(senderId, userMessage, nodeConfig = {}) {
+  // Rate-limit check
+  if (!checkAiRateLimit(senderId)) {
+    return nodeConfig.rateLimitMessage || "I'm receiving too many messages right now. Please wait a moment and try again.";
+  }
+
+  // Build system prompt from node config
+  const systemPrompt = nodeConfig.systemPrompt ||
+    'You are a helpful WhatsApp assistant for The Best Parties (TBP), a nightlife and events company in South Africa. ' +
+    'Be friendly, concise, and helpful. Keep responses under 200 words. ' +
+    'If you do not know the answer, say so honestly and suggest contacting staff directly.';
+
+  // Add user message to history
+  addAiHistory(senderId, 'user', userMessage);
+
+  const history = getAiHistory(senderId);
+
+  try {
+    const reply = await callNvidiaLlm(systemPrompt, history, {
+      maxTokens: nodeConfig.maxTokens || 512,
+      temperature: nodeConfig.temperature || 0.7,
+    });
+
+    // Store assistant response in history
+    addAiHistory(senderId, 'assistant', reply);
+    return reply;
+  } catch (err) {
+    console.error('[AI] NVIDIA NIM error:', err.message);
+    return nodeConfig.errorMessage || 'Sorry, I could not process your message right now. Please try again later.';
+  }
+}
+
+// Clean up stale AI rate limit entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, entry] of aiRateLimits) {
+    entry.timestamps = entry.timestamps.filter(ts => now - ts < AI_RATE_WINDOW);
+    if (entry.timestamps.length === 0) aiRateLimits.delete(id);
+  }
+}, 5 * 60 * 1000);
+
+// Clean up stale AI conversation history every 30 minutes
+setInterval(() => {
+  // Keep only conversations that have active flow sessions
+  for (const senderId of aiConversationHistory.keys()) {
+    if (!flowSessions.has(senderId)) {
+      aiConversationHistory.delete(senderId);
+    }
+  }
+}, 30 * 60 * 1000);
+
 // ─── Conversation Flow Engine ────────────────────────────────────────────
 // flowSessions: Map<senderId, { flowId, nodeId, account, startedAt, data }>
 const flowSessions = new Map();
@@ -1901,6 +2030,46 @@ async function handleFlowMessage(accountId, msg, chat) {
       const currentNode = getFlowNode(flow, session.nodeId);
       if (!currentNode) { flowSessions.delete(senderId); return false; }
 
+      // Handle AI Response nodes — call LLM instead of matching options
+      if (currentNode.type === 'ai_response') {
+        const aiReply = await generateAiResponse(senderId, body, {
+          systemPrompt: resolveFlowVars(currentNode.aiSystemPrompt, session.data || {}),
+          maxTokens: currentNode.aiMaxTokens,
+          temperature: currentNode.aiTemperature,
+          rateLimitMessage: currentNode.aiRateLimitMessage,
+          errorMessage: currentNode.aiErrorMessage,
+        });
+        try {
+          await msg.reply(aiReply);
+        } catch (e) {
+          console.error(`[${accountId}] AI flow reply failed:`, e.message);
+        }
+        // Check for exit keywords to leave AI node
+        if (currentNode.aiExitKeywords && currentNode.aiExitKeywords.length > 0) {
+          const lower = body.toLowerCase();
+          const shouldExit = currentNode.aiExitKeywords.some(kw => lower.includes(kw.toLowerCase()));
+          if (shouldExit && currentNode.aiExitNode) {
+            const exitNode = getFlowNode(flow, currentNode.aiExitNode);
+            if (exitNode) {
+              session.nodeId = currentNode.aiExitNode;
+              try {
+                await msg.reply(resolveFlowVars(exitNode.message, session.data || {}));
+              } catch (e) { /* skip */ }
+              if (exitNode.terminal) {
+                flowSessions.delete(senderId);
+                aiConversationHistory.delete(senderId);
+                logFlowCompletion(flow.id, senderId, session.data || {});
+              }
+            } else {
+              flowSessions.delete(senderId);
+              aiConversationHistory.delete(senderId);
+            }
+          }
+        }
+        // AI nodes stay on same node unless exited
+        return true;
+      }
+
       // Match user input to an option
       const lower = body.toLowerCase();
       let nextNodeId = null;
@@ -1940,15 +2109,26 @@ async function handleFlowMessage(accountId, msg, chat) {
         session.data[currentNode.collectAs] = body;
       }
 
-      // Send next node message
-      try {
-        await msg.reply(resolveFlowVars(nextNode.message, session.data || {}));
-      } catch (e) {
-        console.error(`[${accountId}] Flow reply failed:`, e.message);
+      // Send next node message (for AI nodes, send intro prompt instead)
+      if (nextNode.type === 'ai_response') {
+        const introMsg = nextNode.message || 'You are now chatting with our AI assistant. Type "exit" to leave.';
+        try {
+          await msg.reply(resolveFlowVars(introMsg, session.data || {}));
+        } catch (e) {
+          console.error(`[${accountId}] AI intro reply failed:`, e.message);
+        }
+        // Clear previous AI history for fresh context
+        aiConversationHistory.delete(senderId);
+      } else {
+        try {
+          await msg.reply(resolveFlowVars(nextNode.message, session.data || {}));
+        } catch (e) {
+          console.error(`[${accountId}] Flow reply failed:`, e.message);
+        }
       }
 
       // If terminal node, end session
-      if (nextNode.terminal || (!nextNode.options && !nextNode.fallback && !nextNode.collectAs)) {
+      if (nextNode.terminal || (!nextNode.options && !nextNode.fallback && !nextNode.collectAs && nextNode.type !== 'ai_response')) {
         flowSessions.delete(senderId);
         // Log flow completion
         logFlowCompletion(flow.id, senderId, session.data || {});
@@ -1979,11 +2159,23 @@ async function handleFlowMessage(accountId, msg, chat) {
     data: sessionData,
   });
 
-  try {
-    await msg.reply(resolveFlowVars(startNode.message, sessionData));
-  } catch (e) {
-    console.error(`[${accountId}] Flow start reply failed:`, e.message);
-    flowSessions.delete(senderId);
+  // If start node is an AI response node, send intro and prepare for AI conversation
+  if (startNode.type === 'ai_response') {
+    aiConversationHistory.delete(senderId);
+    const introMsg = startNode.message || 'You are now chatting with our AI assistant. Type "exit" to leave.';
+    try {
+      await msg.reply(resolveFlowVars(introMsg, sessionData));
+    } catch (e) {
+      console.error(`[${accountId}] AI flow start reply failed:`, e.message);
+      flowSessions.delete(senderId);
+    }
+  } else {
+    try {
+      await msg.reply(resolveFlowVars(startNode.message, sessionData));
+    } catch (e) {
+      console.error(`[${accountId}] Flow start reply failed:`, e.message);
+      flowSessions.delete(senderId);
+    }
   }
 
   return true;
@@ -3399,6 +3591,8 @@ app.post('/api/whatsapp/flows', (req, res) => {
   for (const node of nodes) {
     if (!node.id || typeof node.id !== 'string')
       return res.status(400).json({ error: 'each node must have a string id' });
+    if (node.type && !['message', 'ai_response'].includes(node.type))
+      return res.status(400).json({ error: `node "${node.id}" has invalid type "${node.type}" (must be message or ai_response)` });
     if (!node.message || typeof node.message !== 'string')
       return res.status(400).json({ error: `node "${node.id}" must have a message` });
   }
@@ -3543,6 +3737,38 @@ app.delete('/api/whatsapp/flow-sessions/:senderId', (req, res) => {
   const existed = flowSessions.delete(req.params.senderId);
   if (!existed) return res.status(404).json({ error: 'Session not found' });
   res.json({ ok: true, ended: req.params.senderId });
+});
+
+// ─── AI Response Endpoints ───────────────────────────────────────────────
+
+// POST /api/whatsapp/ai/chat — test AI response (for debugging/preview)
+app.post('/api/whatsapp/ai/chat', async (req, res) => {
+  const { message, systemPrompt, conversationId } = req.body;
+  if (!message || typeof message !== 'string') {
+    return res.status(400).json({ error: 'message required' });
+  }
+  if (!NVIDIA_NIM_API_KEY) {
+    return res.status(503).json({ error: 'NVIDIA_NIM_API_KEY not configured' });
+  }
+  const cid = conversationId || 'test-' + Date.now();
+  try {
+    const reply = await generateAiResponse(cid, message, {
+      systemPrompt: systemPrompt || undefined,
+    });
+    res.json({ ok: true, reply, conversationId: cid });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/whatsapp/ai/status — check AI configuration status
+app.get('/api/whatsapp/ai/status', (req, res) => {
+  res.json({
+    configured: !!NVIDIA_NIM_API_KEY,
+    model: NVIDIA_NIM_MODEL,
+    rateLimit: { maxPerMinute: AI_RATE_LIMIT, windowMs: AI_RATE_WINDOW },
+    activeConversations: aiConversationHistory.size,
+  });
 });
 
 // ─── Cooldown Endpoints ──────────────────────────────────────────────────
