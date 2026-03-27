@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b141a">
+  <title>WBpro - Conversation Flows</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+    :root {
+      --bg: #0b141a; --surface: #1f2c34; --surface-2: #2a3942; --border: #374045;
+      --text: #e9edef; --text-2: #8696a0; --text-3: #667781;
+      --accent: #25d366; --accent-hover: #1fba59; --red: #ef4444; --yellow: #eab308; --blue: #3b82f6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .header h1 { font-size: 1.2rem; font-weight: 700; }
+    .header .actions { display: flex; gap: 0.5rem; }
+    .btn { padding: 0.45rem 0.9rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); cursor: pointer; font-family: inherit; }
+    .btn:hover { border-color: var(--text-3); color: var(--text); }
+    .btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn.danger { color: var(--red); }
+    .btn.danger:hover { background: #2a1515; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .card-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-3); margin-bottom: 0.75rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th { text-align: left; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); }
+    td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-2); }
+    tr:hover td { background: var(--surface-2); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 0.65rem; font-weight: 600; }
+    .badge.on { background: #14532d; color: #4ade80; }
+    .badge.off { background: #422006; color: #facc15; }
+    .empty { text-align: center; padding: 3rem; color: var(--text-3); font-size: 0.85rem; }
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: 700px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 1.5rem; }
+    .modal h2 { font-size: 1rem; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.7rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.35rem; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); font-family: inherit; font-size: 0.8rem;
+    }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+    .node-editor { border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem; background: var(--bg); }
+    .node-editor .node-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+    .node-editor .node-header input { max-width: 150px; }
+    .option-row { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+    .option-row input { flex: 1; }
+    .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.65rem; border-radius: 6px; }
+    .form-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+    .preview-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-top: 1rem; }
+    .preview-msg { background: #005c4b; color: #fff; padding: 0.5rem 0.75rem; border-radius: 8px 8px 0 8px; margin-bottom: 0.5rem; max-width: 80%; font-size: 0.8rem; white-space: pre-wrap; }
+    .preview-user { background: var(--surface-2); color: var(--text); padding: 0.5rem 0.75rem; border-radius: 8px 8px 8px 0; margin-bottom: 0.5rem; max-width: 80%; margin-left: auto; font-size: 0.8rem; }
+    .flow-visual { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-top: 1rem; }
+    .flow-node-vis { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; width: 280px; text-align: center; }
+    .flow-node-vis .node-name { font-weight: 600; font-size: 0.75rem; color: var(--accent); }
+    .flow-node-vis .node-msg { font-size: 0.7rem; color: var(--text-2); margin-top: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .flow-arrow { color: var(--text-3); font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Conversation Flows</h1>
+    <div class="actions">
+      <a href="/" class="btn">Dashboard</a>
+      <button class="btn primary" onclick="openNewFlow()">New Flow</button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="card">
+      <div class="card-title">Active Flows</div>
+      <div id="flows-list"><div class="empty">Loading...</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Active Sessions</div>
+      <div id="sessions-list"><div class="empty">Loading...</div></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <h2 id="modal-title">New Flow</h2>
+      <input type="hidden" id="flow-edit-id">
+      <div class="form-group">
+        <label>Flow Name</label>
+        <input type="text" id="flow-name" placeholder="e.g. Welcome Bot, Event Inquiry">
+      </div>
+      <div class="form-group">
+        <label>Scope</label>
+        <select id="flow-scope">
+          <option value="all">All (DM + Groups)</option>
+          <option value="dm">DM Only</option>
+          <option value="group">Group Only</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Triggers (one per line: type|value, e.g. contains|hello)</label>
+        <textarea id="flow-triggers" rows="3" placeholder="contains|hello&#10;exact|menu&#10;startsWith|/start"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Nodes</label>
+        <div id="nodes-container"></div>
+        <button class="btn btn-sm" onclick="addNode()" style="margin-top:0.5rem">+ Add Node</button>
+      </div>
+      <div class="form-group">
+        <label>Start Node ID</label>
+        <input type="text" id="flow-start" value="start" placeholder="start">
+      </div>
+
+      <div class="preview-box">
+        <div class="card-title">Flow Preview</div>
+        <div id="flow-preview"></div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn primary" onclick="saveFlow()">Save Flow</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    let nodeCount = 0;
+
+    async function loadFlows() {
+      try {
+        const res = await fetch('/api/whatsapp/flows', { credentials: 'same-origin' });
+        if (res.status === 401) { window.location.href = '/'; return; }
+        const data = await res.json();
+        renderFlows(data.flows || []);
+      } catch (e) {
+        document.getElementById('flows-list').innerHTML = '<div class="empty">Failed to load</div>';
+      }
+    }
+
+    async function loadSessions() {
+      try {
+        const res = await fetch('/api/whatsapp/flow-sessions', { credentials: 'same-origin' });
+        const data = await res.json();
+        renderSessions(data.sessions || []);
+      } catch (e) {
+        document.getElementById('sessions-list').innerHTML = '<div class="empty">Failed to load</div>';
+      }
+    }
+
+    function renderFlows(flows) {
+      if (!flows.length) {
+        document.getElementById('flows-list').innerHTML = '<div class="empty">No flows yet. Create one to get started.</div>';
+        return;
+      }
+      document.getElementById('flows-list').innerHTML = `<table>
+        <thead><tr><th>Name</th><th>Triggers</th><th>Nodes</th><th>Scope</th><th>Status</th><th>Completions</th><th>Sessions</th><th>Actions</th></tr></thead>
+        <tbody>${flows.map(f => `<tr>
+          <td style="color:var(--text);font-weight:500">${esc(f.name)}</td>
+          <td>${(f.triggers || []).map(t => esc(t.type + ':' + t.value)).join(', ')}</td>
+          <td>${(f.nodes || []).length}</td>
+          <td>${f.scope || 'all'}</td>
+          <td>${f.enabled ? '<span class="badge on">Active</span>' : '<span class="badge off">Disabled</span>'}</td>
+          <td>${f.completions || 0}</td>
+          <td>${f.activeSessions || 0}</td>
+          <td>
+            <button class="btn btn-sm" onclick="editFlow('${f.id}')">Edit</button>
+            <button class="btn btn-sm" onclick="toggleFlow('${f.id}', ${!f.enabled})">${f.enabled ? 'Disable' : 'Enable'}</button>
+            <button class="btn btn-sm" onclick="dupFlow('${f.id}')">Dup</button>
+            <button class="btn btn-sm danger" onclick="deleteFlow('${f.id}')">Del</button>
+          </td>
+        </tr>`).join('')}</tbody></table>`;
+    }
+
+    function renderSessions(sessions) {
+      if (!sessions.length) {
+        document.getElementById('sessions-list').innerHTML = '<div class="empty">No active conversations</div>';
+        return;
+      }
+      document.getElementById('sessions-list').innerHTML = `<table>
+        <thead><tr><th>Sender</th><th>Flow</th><th>Node</th><th>Age</th><th>Actions</th></tr></thead>
+        <tbody>${sessions.map(s => `<tr>
+          <td>${esc(s.senderId)}</td><td>${esc(s.flowId.slice(0, 8))}</td><td>${esc(s.nodeId)}</td>
+          <td>${s.age}s</td>
+          <td><button class="btn btn-sm danger" onclick="endSession('${esc(s.senderId)}')">End</button></td>
+        </tr>`).join('')}</tbody></table>`;
+    }
+
+    function openNewFlow() {
+      document.getElementById('flow-edit-id').value = '';
+      document.getElementById('flow-name').value = '';
+      document.getElementById('flow-scope').value = 'dm';
+      document.getElementById('flow-triggers').value = 'contains|hello\nexact|menu';
+      document.getElementById('flow-start').value = 'start';
+      document.getElementById('modal-title').textContent = 'New Flow';
+      document.getElementById('nodes-container').innerHTML = '';
+      nodeCount = 0;
+      addNode('start', 'Hi {name}! Welcome. Reply with a number:\n\n1. Events\n2. Tickets\n3. Contact us', [
+        { label: 'Events', next: 'events' },
+        { label: 'Tickets', next: 'tickets' },
+        { label: 'Contact us', next: 'contact' },
+      ], 'Please reply with 1, 2, or 3');
+      addNode('events', 'Check our upcoming events at thebestparties.co.za/events', [], '');
+      addNode('tickets', 'Get tickets at thebestparties.co.za/events. Reply with the event name for a direct link!', [], '');
+      addNode('contact', 'Reach us at info@thebestparties.co.za or WhatsApp this number directly.', [], '');
+      updatePreview();
+      document.getElementById('modal').classList.add('open');
+    }
+
+    async function editFlow(id) {
+      const res = await fetch('/api/whatsapp/flows/' + id, { credentials: 'same-origin' });
+      const data = await res.json();
+      const f = data.flow;
+      document.getElementById('flow-edit-id').value = f.id;
+      document.getElementById('flow-name').value = f.name;
+      document.getElementById('flow-scope').value = f.scope || 'all';
+      document.getElementById('flow-triggers').value = (f.triggers || []).map(t => t.type + '|' + t.value).join('\n');
+      document.getElementById('flow-start').value = f.startNode || 'start';
+      document.getElementById('modal-title').textContent = 'Edit Flow';
+      document.getElementById('nodes-container').innerHTML = '';
+      nodeCount = 0;
+      for (const node of f.nodes || []) {
+        addNode(node.id, node.message, node.options || [], node.errorMessage || '', node.collectAs || '', node.fallback || '', node.terminal || false);
+      }
+      updatePreview();
+      document.getElementById('modal').classList.add('open');
+    }
+
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+    function addNode(id, message, options, errorMsg, collectAs, fallback, terminal) {
+      nodeCount++;
+      const n = nodeCount;
+      const opts = options || [];
+      const container = document.getElementById('nodes-container');
+      const div = document.createElement('div');
+      div.className = 'node-editor';
+      div.id = 'node-' + n;
+      div.innerHTML = `
+        <div class="node-header">
+          <input type="text" class="node-id" value="${esc(id || 'node' + n)}" placeholder="Node ID" style="font-weight:600">
+          <label style="font-size:0.65rem;color:var(--text-3)"><input type="checkbox" class="node-terminal" ${terminal ? 'checked' : ''}> Terminal</label>
+          <button class="btn btn-sm danger" onclick="this.closest('.node-editor').remove();updatePreview()">Remove</button>
+        </div>
+        <div class="form-group" style="margin-bottom:0.5rem">
+          <textarea class="node-message" rows="3" placeholder="Message to send">${esc(message || '')}</textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:0.5rem">
+          <label style="font-size:0.6rem">Collect input as variable (optional)</label>
+          <input type="text" class="node-collect" value="${esc(collectAs || '')}" placeholder="e.g. userChoice">
+        </div>
+        <div class="form-group" style="margin-bottom:0.5rem">
+          <label style="font-size:0.6rem">Fallback node (no match)</label>
+          <input type="text" class="node-fallback" value="${esc(fallback || '')}" placeholder="Node ID for unmatched input">
+        </div>
+        <div class="form-group" style="margin-bottom:0.5rem">
+          <label style="font-size:0.6rem">Error message (invalid input)</label>
+          <input type="text" class="node-error" value="${esc(errorMsg || '')}" placeholder="Please reply with a valid option">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label style="font-size:0.6rem">Options</label>
+          <div class="node-options">${opts.map((o, i) => optionHtml(o.label, o.next, o.keywords)).join('')}</div>
+          <button class="btn btn-sm" onclick="addOption(this)" style="margin-top:0.25rem">+ Option</button>
+        </div>`;
+      container.appendChild(div);
+      div.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', updatePreview));
+    }
+
+    function optionHtml(label, next, keywords) {
+      return `<div class="option-row">
+        <input type="text" class="opt-label" value="${esc(label || '')}" placeholder="Label (e.g. Events)">
+        <input type="text" class="opt-next" value="${esc(next || '')}" placeholder="Next node ID">
+        <input type="text" class="opt-kw" value="${esc((keywords || []).join(','))}" placeholder="Keywords (comma-sep)">
+        <button class="btn btn-sm danger" onclick="this.parentElement.remove();updatePreview()">X</button>
+      </div>`;
+    }
+
+    function addOption(btn) {
+      const container = btn.previousElementSibling;
+      container.insertAdjacentHTML('beforeend', optionHtml('', '', []));
+      container.querySelectorAll('input').forEach(el => el.addEventListener('input', updatePreview));
+      updatePreview();
+    }
+
+    function gatherNodes() {
+      const editors = document.querySelectorAll('.node-editor');
+      return Array.from(editors).map(ed => {
+        const opts = Array.from(ed.querySelectorAll('.option-row')).map(row => ({
+          label: row.querySelector('.opt-label').value.trim(),
+          next: row.querySelector('.opt-next').value.trim(),
+          keywords: row.querySelector('.opt-kw').value.split(',').map(s => s.trim()).filter(Boolean),
+        })).filter(o => o.label && o.next);
+        const node = {
+          id: ed.querySelector('.node-id').value.trim(),
+          message: ed.querySelector('.node-message').value.trim(),
+          options: opts.length > 0 ? opts : undefined,
+          errorMessage: ed.querySelector('.node-error').value.trim() || undefined,
+          collectAs: ed.querySelector('.node-collect').value.trim() || undefined,
+          fallback: ed.querySelector('.node-fallback').value.trim() || undefined,
+          terminal: ed.querySelector('.node-terminal').checked || undefined,
+        };
+        return node;
+      });
+    }
+
+    function updatePreview() {
+      const nodes = gatherNodes();
+      const startId = document.getElementById('flow-start').value.trim() || 'start';
+      const el = document.getElementById('flow-preview');
+      if (nodes.length === 0) { el.innerHTML = '<div class="empty">Add nodes to preview</div>'; return; }
+
+      // Show simple flow visualization
+      const startNode = nodes.find(n => n.id === startId);
+      if (!startNode) { el.innerHTML = '<div class="empty">Start node not found</div>'; return; }
+
+      let html = '<div class="flow-visual">';
+      const visited = new Set();
+      const queue = [startNode];
+      while (queue.length > 0) {
+        const node = queue.shift();
+        if (visited.has(node.id)) continue;
+        visited.add(node.id);
+        html += `<div class="flow-node-vis">
+          <div class="node-name">${esc(node.id)}</div>
+          <div class="node-msg">${esc(node.message.slice(0, 60))}</div>
+          ${node.options ? node.options.map(o => `<div style="font-size:0.6rem;color:var(--accent);margin-top:2px">${esc(o.label)} -> ${esc(o.next)}</div>`).join('') : (node.terminal ? '<div style="font-size:0.6rem;color:var(--yellow)">END</div>' : '<div style="font-size:0.6rem;color:var(--yellow)">END</div>')}
+        </div>`;
+        if (node.options) {
+          for (const opt of node.options) {
+            const next = nodes.find(n => n.id === opt.next);
+            if (next && !visited.has(next.id)) {
+              html += '<div class="flow-arrow">|</div>';
+              queue.push(next);
+            }
+          }
+        }
+      }
+      html += '</div>';
+      el.innerHTML = html;
+    }
+
+    async function saveFlow() {
+      const editId = document.getElementById('flow-edit-id').value;
+      const name = document.getElementById('flow-name').value.trim();
+      const scope = document.getElementById('flow-scope').value;
+      const startNode = document.getElementById('flow-start').value.trim() || 'start';
+      const triggersRaw = document.getElementById('flow-triggers').value.trim().split('\n').filter(Boolean);
+      const triggers = triggersRaw.map(line => {
+        const [type, ...rest] = line.split('|');
+        return { type: type.trim(), value: rest.join('|').trim() };
+      });
+      const nodes = gatherNodes();
+
+      if (!name) { alert('Flow name required'); return; }
+      if (nodes.length === 0) { alert('At least one node required'); return; }
+
+      const body = { name, triggers, nodes, startNode, scope, enabled: true };
+      const url = editId ? '/api/whatsapp/flows/' + editId : '/api/whatsapp/flows';
+      const method = editId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method, credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Failed to save'); return; }
+      closeModal();
+      loadFlows();
+    }
+
+    async function toggleFlow(id, enabled) {
+      await fetch('/api/whatsapp/flows/' + id, {
+        method: 'PUT', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      });
+      loadFlows();
+    }
+
+    async function dupFlow(id) {
+      await fetch('/api/whatsapp/flows/' + id + '/duplicate', { method: 'POST', credentials: 'same-origin' });
+      loadFlows();
+    }
+
+    async function deleteFlow(id) {
+      if (!confirm('Delete this flow?')) return;
+      await fetch('/api/whatsapp/flows/' + id, { method: 'DELETE', credentials: 'same-origin' });
+      loadFlows();
+    }
+
+    async function endSession(senderId) {
+      await fetch('/api/whatsapp/flow-sessions/' + encodeURIComponent(senderId), { method: 'DELETE', credentials: 'same-origin' });
+      loadSessions();
+    }
+
+    loadFlows();
+    loadSessions();
+    setInterval(() => { loadFlows(); loadSessions(); }, 30000);
+  </script>
+</body>
+</html>

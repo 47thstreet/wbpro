@@ -129,6 +129,7 @@ const PERSONAS_FILE = path.join(DATA_DIR, 'personas.json');
 const PERSONA_TEMPLATES_DIR = path.join(DATA_DIR, 'templates');
 const ANNOUNCED_FILE = path.join(DATA_DIR, 'announced.json');
 const RECURRING_FILE = path.join(DATA_DIR, 'recurring-schedules.json');
+const FLOWS_FILE = path.join(DATA_DIR, 'flows.json');
 
 // ─── Cooldown System ─────────────────────────────────────────────────────
 const groupCooldowns = new Map(); // groupId -> timestamp
@@ -1255,6 +1256,13 @@ app.post('/api/auto-rules', (req, res, next) => { req.url = '/api/whatsapp/auto-
 app.put('/api/auto-rules/:id', (req, res, next) => { req.url = '/api/whatsapp/auto-rules/' + req.params.id; next(); });
 app.delete('/api/auto-rules/:id', (req, res, next) => { req.url = '/api/whatsapp/auto-rules/' + req.params.id; next(); });
 
+// --- Flows aliases ---
+app.get('/api/flows', (req, res, next) => { req.url = '/api/whatsapp/flows'; next(); });
+app.post('/api/flows', (req, res, next) => { req.url = '/api/whatsapp/flows'; next(); });
+app.get('/api/flows/:id', (req, res, next) => { req.url = '/api/whatsapp/flows/' + req.params.id; next(); });
+app.put('/api/flows/:id', (req, res, next) => { req.url = '/api/whatsapp/flows/' + req.params.id; next(); });
+app.delete('/api/flows/:id', (req, res, next) => { req.url = '/api/whatsapp/flows/' + req.params.id; next(); });
+
 // --- Settings aliases ---
 app.get('/api/settings', (req, res, next) => { req.url = '/api/whatsapp/settings'; next(); });
 app.put('/api/settings', (req, res, next) => { req.url = '/api/whatsapp/settings'; next(); });
@@ -1841,6 +1849,156 @@ function createWhatsAppClient(accountId) {
   return client;
 }
 
+// ─── Conversation Flow Engine ────────────────────────────────────────────
+// flowSessions: Map<senderId, { flowId, nodeId, account, startedAt, data }>
+const flowSessions = new Map();
+const FLOW_SESSION_TTL = 30 * 60 * 1000; // 30 minutes
+
+function getFlowNode(flow, nodeId) {
+  return (flow.nodes || []).find(n => n.id === nodeId) || null;
+}
+
+function matchFlowTrigger(flows, messageText, isGroup) {
+  const lower = messageText.toLowerCase().trim();
+  for (const flow of flows) {
+    if (!flow.enabled) continue;
+    if (flow.scope === 'dm' && isGroup) continue;
+    if (flow.scope === 'group' && !isGroup) continue;
+    const triggers = flow.triggers || [];
+    for (const trigger of triggers) {
+      if (trigger.type === 'exact' && lower === trigger.value.toLowerCase()) return flow;
+      if (trigger.type === 'contains' && lower.includes(trigger.value.toLowerCase())) return flow;
+      if (trigger.type === 'startsWith' && lower.startsWith(trigger.value.toLowerCase())) return flow;
+    }
+  }
+  return null;
+}
+
+function resolveFlowVars(text, vars) {
+  if (!text) return text;
+  return text.replace(/\{(\w+)\}/g, (match, key) => vars[key] !== undefined ? vars[key] : match);
+}
+
+async function handleFlowMessage(accountId, msg, chat) {
+  const senderId = msg.from;
+  const isGroup = chat.isGroup;
+  const body = (msg.body || '').trim();
+  if (!body) return false;
+
+  const flows = loadJSON(FLOWS_FILE, []);
+  if (flows.length === 0) return false;
+
+  // Check for active session first
+  const session = flowSessions.get(senderId);
+  if (session && session.account === accountId) {
+    // Check TTL
+    if (Date.now() - session.startedAt > FLOW_SESSION_TTL) {
+      flowSessions.delete(senderId);
+      // Fall through to trigger check
+    } else {
+      const flow = flows.find(f => f.id === session.flowId);
+      if (!flow) { flowSessions.delete(senderId); return false; }
+      const currentNode = getFlowNode(flow, session.nodeId);
+      if (!currentNode) { flowSessions.delete(senderId); return false; }
+
+      // Match user input to an option
+      const lower = body.toLowerCase();
+      let nextNodeId = null;
+      if (currentNode.options && currentNode.options.length > 0) {
+        // Try matching by option number (1, 2, 3...) or by text
+        const optIdx = parseInt(body, 10);
+        if (!isNaN(optIdx) && optIdx >= 1 && optIdx <= currentNode.options.length) {
+          nextNodeId = currentNode.options[optIdx - 1].next;
+        } else {
+          const opt = currentNode.options.find(o =>
+            o.label.toLowerCase() === lower || (o.keywords && o.keywords.some(kw => lower.includes(kw.toLowerCase())))
+          );
+          if (opt) nextNodeId = opt.next;
+        }
+      }
+
+      // If no match, try fallback
+      if (!nextNodeId && currentNode.fallback) {
+        nextNodeId = currentNode.fallback;
+      }
+
+      if (!nextNodeId) {
+        // No match — send error hint
+        if (currentNode.errorMessage) {
+          try { await msg.reply(resolveFlowVars(currentNode.errorMessage, session.data || {})); } catch (e) { /* skip */ }
+        }
+        return true;
+      }
+
+      // Navigate to next node
+      const nextNode = getFlowNode(flow, nextNodeId);
+      if (!nextNode) { flowSessions.delete(senderId); return false; }
+
+      // Store any collected data
+      if (currentNode.collectAs) {
+        session.data = session.data || {};
+        session.data[currentNode.collectAs] = body;
+      }
+
+      // Send next node message
+      try {
+        await msg.reply(resolveFlowVars(nextNode.message, session.data || {}));
+      } catch (e) {
+        console.error(`[${accountId}] Flow reply failed:`, e.message);
+      }
+
+      // If terminal node, end session
+      if (nextNode.terminal || (!nextNode.options && !nextNode.fallback && !nextNode.collectAs)) {
+        flowSessions.delete(senderId);
+        // Log flow completion
+        logFlowCompletion(flow.id, senderId, session.data || {});
+      } else {
+        session.nodeId = nextNodeId;
+      }
+      return true;
+    }
+  }
+
+  // No active session — check for flow triggers
+  const flow = matchFlowTrigger(flows, body, isGroup);
+  if (!flow) return false;
+
+  const startNode = getFlowNode(flow, flow.startNode || 'start');
+  if (!startNode) return false;
+
+  // Start new session
+  const contact = await msg.getContact().catch(() => null);
+  const contactName = contact ? (contact.pushname || contact.name || '') : '';
+  const sessionData = { name: contactName, phone: senderId };
+
+  flowSessions.set(senderId, {
+    flowId: flow.id,
+    nodeId: startNode.id,
+    account: accountId,
+    startedAt: Date.now(),
+    data: sessionData,
+  });
+
+  try {
+    await msg.reply(resolveFlowVars(startNode.message, sessionData));
+  } catch (e) {
+    console.error(`[${accountId}] Flow start reply failed:`, e.message);
+    flowSessions.delete(senderId);
+  }
+
+  return true;
+}
+
+function logFlowCompletion(flowId, senderId, data) {
+  const flows = loadJSON(FLOWS_FILE, []);
+  const flow = flows.find(f => f.id === flowId);
+  if (flow) {
+    flow.completions = (flow.completions || 0) + 1;
+    flow.lastCompletedAt = new Date().toISOString();
+    saveJSON(FLOWS_FILE, flows);
+  }
+}
+
 function setupClientEvents(accountId, client) {
   const acc = accounts.get(accountId);
   if (!acc) return;
@@ -1902,6 +2060,10 @@ function setupClientEvents(accountId, client) {
 
     const chat = await msg.getChat().catch(() => null);
     if (!chat) return;
+
+    // ── Conversation Flow Engine: check if user is in an active flow ──
+    const flowHandled = await handleFlowMessage(accountId, msg, chat);
+    if (flowHandled) return;
 
     const lower = msg.body.toLowerCase();
     const autoRules = loadJSON(AUTO_RULES_FILE, []);
@@ -3221,6 +3383,168 @@ app.post('/api/whatsapp/auto-rules/seed-tickets', (req, res) => {
   res.json({ ok: true, rule });
 });
 
+// ─── Conversation Flows ─────────────────────────────────────────────────
+
+// POST /api/whatsapp/flows — create a new flow
+app.post('/api/whatsapp/flows', (req, res) => {
+  const { name, triggers, nodes, startNode, scope, enabled } = req.body;
+  if (!name || typeof name !== 'string')
+    return res.status(400).json({ error: 'name required' });
+  if (!nodes || !Array.isArray(nodes) || nodes.length === 0)
+    return res.status(400).json({ error: 'nodes array required (at least one node)' });
+  if (!triggers || !Array.isArray(triggers) || triggers.length === 0)
+    return res.status(400).json({ error: 'triggers array required' });
+
+  // Validate each node has id and message
+  for (const node of nodes) {
+    if (!node.id || typeof node.id !== 'string')
+      return res.status(400).json({ error: 'each node must have a string id' });
+    if (!node.message || typeof node.message !== 'string')
+      return res.status(400).json({ error: `node "${node.id}" must have a message` });
+  }
+
+  // Validate startNode exists
+  const startId = startNode || 'start';
+  if (!nodes.find(n => n.id === startId))
+    return res.status(400).json({ error: `startNode "${startId}" not found in nodes` });
+
+  // Validate triggers
+  for (const trigger of triggers) {
+    if (!trigger.type || !['exact', 'contains', 'startsWith'].includes(trigger.type))
+      return res.status(400).json({ error: 'trigger type must be exact, contains, or startsWith' });
+    if (!trigger.value || typeof trigger.value !== 'string')
+      return res.status(400).json({ error: 'trigger value required' });
+  }
+
+  const id = crypto.randomUUID();
+  const flow = {
+    id,
+    name,
+    triggers,
+    nodes,
+    startNode: startId,
+    scope: scope || 'all', // 'dm', 'group', or 'all'
+    enabled: enabled !== false,
+    completions: 0,
+    lastCompletedAt: null,
+    createdAt: new Date().toISOString(),
+  };
+
+  const flows = loadJSON(FLOWS_FILE, []);
+  flows.push(flow);
+  saveJSON(FLOWS_FILE, flows);
+  res.json({ ok: true, flow });
+});
+
+// GET /api/whatsapp/flows — list all flows
+app.get('/api/whatsapp/flows', (req, res) => {
+  const flows = loadJSON(FLOWS_FILE, []);
+  const sessions = {};
+  for (const [senderId, sess] of flowSessions) {
+    if (!sessions[sess.flowId]) sessions[sess.flowId] = 0;
+    sessions[sess.flowId]++;
+  }
+  const result = flows.map(f => ({
+    ...f,
+    activeSessions: sessions[f.id] || 0,
+  }));
+  res.json({ flows: result });
+});
+
+// GET /api/whatsapp/flows/:id — get flow details
+app.get('/api/whatsapp/flows/:id', (req, res) => {
+  const flows = loadJSON(FLOWS_FILE, []);
+  const flow = flows.find(f => f.id === req.params.id);
+  if (!flow) return res.status(404).json({ error: 'Flow not found' });
+
+  // Count active sessions for this flow
+  let activeSessions = 0;
+  for (const [, sess] of flowSessions) {
+    if (sess.flowId === flow.id) activeSessions++;
+  }
+
+  res.json({ flow: { ...flow, activeSessions } });
+});
+
+// PUT /api/whatsapp/flows/:id — update a flow
+app.put('/api/whatsapp/flows/:id', (req, res) => {
+  const flows = loadJSON(FLOWS_FILE, []);
+  const idx = flows.findIndex(f => f.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Flow not found' });
+
+  const { name, triggers, nodes, startNode, scope, enabled } = req.body;
+  if (name !== undefined) flows[idx].name = name;
+  if (triggers !== undefined) flows[idx].triggers = triggers;
+  if (nodes !== undefined) flows[idx].nodes = nodes;
+  if (startNode !== undefined) flows[idx].startNode = startNode;
+  if (scope !== undefined) flows[idx].scope = scope;
+  if (enabled !== undefined) flows[idx].enabled = enabled;
+  flows[idx].updatedAt = new Date().toISOString();
+
+  saveJSON(FLOWS_FILE, flows);
+  res.json({ ok: true, flow: flows[idx] });
+});
+
+// DELETE /api/whatsapp/flows/:id — delete a flow
+app.delete('/api/whatsapp/flows/:id', (req, res) => {
+  const flows = loadJSON(FLOWS_FILE, []);
+  const filtered = flows.filter(f => f.id !== req.params.id);
+  if (filtered.length === flows.length) return res.status(404).json({ error: 'Flow not found' });
+
+  // Clean up any active sessions for this flow
+  for (const [senderId, sess] of flowSessions) {
+    if (sess.flowId === req.params.id) flowSessions.delete(senderId);
+  }
+
+  saveJSON(FLOWS_FILE, filtered);
+  res.json({ ok: true, deleted: req.params.id });
+});
+
+// POST /api/whatsapp/flows/:id/duplicate — duplicate a flow
+app.post('/api/whatsapp/flows/:id/duplicate', (req, res) => {
+  const flows = loadJSON(FLOWS_FILE, []);
+  const source = flows.find(f => f.id === req.params.id);
+  if (!source) return res.status(404).json({ error: 'Flow not found' });
+
+  const id = crypto.randomUUID();
+  const copy = {
+    ...JSON.parse(JSON.stringify(source)),
+    id,
+    name: source.name + ' (copy)',
+    enabled: false,
+    completions: 0,
+    lastCompletedAt: null,
+    createdAt: new Date().toISOString(),
+  };
+  flows.push(copy);
+  saveJSON(FLOWS_FILE, flows);
+  res.json({ ok: true, flow: copy });
+});
+
+// GET /api/whatsapp/flows/sessions/active — list active flow sessions
+app.get('/api/whatsapp/flow-sessions', (req, res) => {
+  const sessions = [];
+  for (const [senderId, sess] of flowSessions) {
+    sessions.push({
+      senderId,
+      flowId: sess.flowId,
+      nodeId: sess.nodeId,
+      account: sess.account,
+      startedAt: new Date(sess.startedAt).toISOString(),
+      age: Math.floor((Date.now() - sess.startedAt) / 1000),
+      data: sess.data || {},
+    });
+  }
+  res.json({ sessions, count: sessions.length });
+});
+
+// DELETE /api/whatsapp/flow-sessions/:senderId — end a session manually
+app.delete('/api/whatsapp/flow-sessions/:senderId', (req, res) => {
+  const existed = flowSessions.delete(req.params.senderId);
+  if (!existed) return res.status(404).json({ error: 'Session not found' });
+  res.json({ ok: true, ended: req.params.senderId });
+});
+
 // ─── Cooldown Endpoints ──────────────────────────────────────────────────
 
 app.get('/api/whatsapp/cooldowns', (req, res) => {
@@ -4519,6 +4843,10 @@ app.get('/api/analytics', (req, res) => {
 
 app.get('/analytics', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'analytics.html'));
+});
+
+app.get('/flows', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'flows.html'));
 });
 
 // ─── SPA Fallback ────────────────────────────────────────────────────────
