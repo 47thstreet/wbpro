@@ -135,6 +135,7 @@ const RECURRING_FILE = path.join(DATA_DIR, 'recurring-schedules.json');
 const FLOWS_FILE = path.join(DATA_DIR, 'flows.json');
 const FOLLOWUP_SEQUENCES_FILE = path.join(DATA_DIR, 'follow-up-sequences.json');
 const FOLLOWUP_QUEUE_FILE = path.join(DATA_DIR, 'follow-up-queue.json');
+const GROUP_PROFILES_FILE = path.join(DATA_DIR, 'group-profiles.json');
 
 // ─── Cooldown System ─────────────────────────────────────────────────────
 const groupCooldowns = new Map(); // groupId -> timestamp
@@ -1379,6 +1380,15 @@ app.get('/api/scanner/stats', (req, res, next) => { req.url = '/api/whatsapp/sca
 // --- Groups stats alias ---
 app.get('/api/groups/stats', (req, res, next) => { req.url = '/api/whatsapp/groups/stats'; next(); });
 
+// --- Smart group management aliases ---
+app.get('/api/groups/profiles', (req, res, next) => { req.url = '/api/whatsapp/groups/profiles'; next(); });
+app.get('/api/groups/profiles/:groupId', (req, res, next) => { req.url = '/api/whatsapp/groups/profiles/' + req.params.groupId; next(); });
+app.post('/api/groups/profiles', (req, res, next) => { req.url = '/api/whatsapp/groups/profiles'; next(); });
+app.put('/api/groups/profiles/:groupId', (req, res, next) => { req.url = '/api/whatsapp/groups/profiles/' + req.params.groupId; next(); });
+app.delete('/api/groups/profiles/:groupId', (req, res, next) => { req.url = '/api/whatsapp/groups/profiles/' + req.params.groupId; next(); });
+app.get('/api/groups/health', (req, res, next) => { req.url = '/api/whatsapp/groups/health'; next(); });
+app.post('/api/groups/activity', (req, res, next) => { req.url = '/api/whatsapp/groups/activity'; next(); });
+
 // --- Health check endpoint for uptime monitoring ---
 app.get('/api/health', (req, res) => {
   const checks = {};
@@ -2338,6 +2348,277 @@ function startFollowUpProcessor() {
   }, FOLLOWUP_CHECK_INTERVAL);
 }
 
+// ─── Smart Group Management ─────────────────────────────────────────────
+// Group profiles extend group-tags with city, category, capacity, invite link,
+// and activity tracking for intelligent group recommendations.
+
+// In-memory group activity tracker: groupId -> { messages: [{ hour, dayOfWeek, ts }], memberCount }
+const groupActivity = new Map();
+const GROUP_ACTIVITY_WINDOW = 30 * 24 * 60 * 60 * 1000; // 30 days of activity
+
+function loadGroupProfiles() {
+  return loadJSON(GROUP_PROFILES_FILE, []);
+}
+
+function saveGroupProfiles(profiles) {
+  saveJSON(GROUP_PROFILES_FILE, profiles);
+}
+
+function getGroupProfile(groupId) {
+  const profiles = loadGroupProfiles();
+  return profiles.find(p => p.groupId === groupId) || null;
+}
+
+function upsertGroupProfile(groupId, updates) {
+  const profiles = loadGroupProfiles();
+  let profile = profiles.find(p => p.groupId === groupId);
+  if (!profile) {
+    profile = {
+      groupId,
+      name: null,
+      city: null,
+      category: null,
+      tags: [],
+      inviteLink: null,
+      maxCapacity: null,
+      description: null,
+      tier: 'general',
+      createdAt: new Date().toISOString(),
+    };
+    profiles.push(profile);
+  }
+  if (updates.name !== undefined) profile.name = updates.name;
+  if (updates.city !== undefined) profile.city = updates.city;
+  if (updates.category !== undefined) profile.category = updates.category;
+  if (updates.tags !== undefined) profile.tags = updates.tags;
+  if (updates.inviteLink !== undefined) profile.inviteLink = updates.inviteLink;
+  if (updates.maxCapacity !== undefined) profile.maxCapacity = updates.maxCapacity;
+  if (updates.description !== undefined) profile.description = updates.description;
+  if (updates.tier !== undefined) profile.tier = updates.tier;
+  profile.updatedAt = new Date().toISOString();
+  saveGroupProfiles(profiles);
+  return profile;
+}
+
+// Track a message event for group activity analytics
+function trackGroupMessage(groupId, groupName) {
+  const now = new Date();
+  let entry = groupActivity.get(groupId);
+  if (!entry) {
+    entry = { groupName, messages: [], memberCount: null };
+    groupActivity.set(groupId, entry);
+  }
+  entry.groupName = groupName || entry.groupName;
+  entry.messages.push({
+    hour: now.getHours(),
+    dayOfWeek: now.getDay(),
+    ts: now.getTime(),
+  });
+  // Prune old messages
+  const cutoff = Date.now() - GROUP_ACTIVITY_WINDOW;
+  entry.messages = entry.messages.filter(m => m.ts >= cutoff);
+}
+
+function updateGroupMemberCount(groupId, count) {
+  let entry = groupActivity.get(groupId);
+  if (!entry) {
+    entry = { groupName: null, messages: [], memberCount: null };
+    groupActivity.set(groupId, entry);
+  }
+  entry.memberCount = count;
+}
+
+// Calculate optimal posting times for a group based on message activity
+function calculateOptimalTimes(groupId) {
+  const entry = groupActivity.get(groupId);
+  if (!entry || entry.messages.length < 5) {
+    return { hourly: new Array(24).fill(0), bestHours: [], bestDays: [], totalMessages: 0 };
+  }
+
+  const hourly = new Array(24).fill(0);
+  const daily = new Array(7).fill(0);
+  for (const msg of entry.messages) {
+    hourly[msg.hour]++;
+    daily[msg.dayOfWeek]++;
+  }
+
+  // Top 3 hours
+  const bestHours = hourly
+    .map((count, hour) => ({ hour, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+    .filter(h => h.count > 0);
+
+  // Top 3 days
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const bestDays = daily
+    .map((count, day) => ({ day: dayNames[day], dayIndex: day, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3)
+    .filter(d => d.count > 0);
+
+  return { hourly, bestHours, bestDays, totalMessages: entry.messages.length };
+}
+
+// Calculate group health score (0-100)
+function calculateGroupHealth(groupId) {
+  const entry = groupActivity.get(groupId);
+  const profile = getGroupProfile(groupId);
+
+  let health = 0;
+  const details = {};
+
+  // Activity score (0-40): messages in last 7 days
+  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const weekMessages = entry ? entry.messages.filter(m => m.ts >= weekAgo).length : 0;
+  const activityScore = Math.min(40, weekMessages * 2);
+  details.weeklyMessages = weekMessages;
+  details.activityScore = activityScore;
+  health += activityScore;
+
+  // Member score (0-30): based on member count
+  const members = entry?.memberCount || 0;
+  let memberScore = 0;
+  if (members >= 100) memberScore = 30;
+  else if (members >= 50) memberScore = 20;
+  else if (members >= 20) memberScore = 15;
+  else if (members >= 5) memberScore = 10;
+  details.memberCount = members;
+  details.memberScore = memberScore;
+  health += memberScore;
+
+  // Recency score (0-20): last message age
+  const lastMsg = entry?.messages.length ? Math.max(...entry.messages.map(m => m.ts)) : 0;
+  const hoursSinceLastMsg = lastMsg ? (Date.now() - lastMsg) / (60 * 60 * 1000) : 999;
+  let recencyScore = 0;
+  if (hoursSinceLastMsg < 6) recencyScore = 20;
+  else if (hoursSinceLastMsg < 24) recencyScore = 15;
+  else if (hoursSinceLastMsg < 72) recencyScore = 10;
+  else if (hoursSinceLastMsg < 168) recencyScore = 5;
+  details.hoursSinceLastMessage = Math.round(hoursSinceLastMsg);
+  details.recencyScore = recencyScore;
+  health += recencyScore;
+
+  // Profile completeness (0-10)
+  let profileScore = 0;
+  if (profile) {
+    if (profile.city) profileScore += 2;
+    if (profile.category) profileScore += 2;
+    if (profile.inviteLink) profileScore += 3;
+    if (profile.description) profileScore += 1;
+    if (profile.tags && profile.tags.length > 0) profileScore += 2;
+  }
+  details.profileScore = profileScore;
+  health += profileScore;
+
+  const level = health >= 70 ? 'healthy' : (health >= 40 ? 'moderate' : 'needs-attention');
+
+  return { health: Math.min(100, health), level, details };
+}
+
+// Smart join: score each group against a contact's attributes and return ranked matches
+function scoreGroupMatch(profile, contact) {
+  let score = 0;
+  const reasons = [];
+
+  // City match (30 pts)
+  if (profile.city && contact.source?.city) {
+    if (profile.city.toLowerCase() === contact.source.city.toLowerCase()) {
+      score += 30;
+      reasons.push('city-match');
+    }
+  }
+
+  // Tag/interest overlap (25 pts)
+  const contactTags = [...(contact.tags || []), ...(contact.profile?.interests || [])];
+  const contactKeywords = (contact.profile?.triggeredKeywords || []);
+  const allContactSignals = [...contactTags, ...contactKeywords].map(t => t.toLowerCase());
+  const profileTags = (profile.tags || []).map(t => t.toLowerCase());
+  const profileCategory = profile.category ? [profile.category.toLowerCase()] : [];
+  const groupSignals = [...profileTags, ...profileCategory];
+
+  let tagOverlap = 0;
+  for (const signal of allContactSignals) {
+    if (groupSignals.includes(signal)) tagOverlap++;
+  }
+  const tagScore = Math.min(25, tagOverlap * 8);
+  if (tagScore > 0) reasons.push('interest-match');
+  score += tagScore;
+
+  // Lead score tier match (20 pts)
+  const leadResult = calculateLeadScore(contact);
+  if (profile.tier === 'vip' && leadResult.tier === 'hot') {
+    score += 20;
+    reasons.push('vip-tier');
+  } else if (profile.tier === 'premium' && (leadResult.tier === 'hot' || leadResult.tier === 'warm')) {
+    score += 15;
+    reasons.push('premium-tier');
+  } else if (profile.tier === 'general') {
+    score += 10;
+    reasons.push('general-tier');
+  }
+
+  // Group health bonus (15 pts)
+  const health = calculateGroupHealth(profile.groupId);
+  if (health.health >= 70) {
+    score += 15;
+    reasons.push('healthy-group');
+  } else if (health.health >= 40) {
+    score += 8;
+    reasons.push('moderate-group');
+  }
+
+  // Capacity check (10 pts or disqualify)
+  const entry = groupActivity.get(profile.groupId);
+  const memberCount = entry?.memberCount || 0;
+  if (profile.maxCapacity && memberCount >= profile.maxCapacity) {
+    return { score: 0, reasons: ['full'], disqualified: true };
+  }
+  if (profile.inviteLink) {
+    score += 10;
+    reasons.push('has-invite-link');
+  }
+
+  return { score, reasons, disqualified: false };
+}
+
+function findBestGroups(contactId, limit) {
+  const contact = crmContacts.get(contactId);
+  if (!contact) return [];
+
+  const profiles = loadGroupProfiles();
+  if (profiles.length === 0) return [];
+
+  // Already in these groups
+  const contactLists = (contact.lists || []).map(l => l.toLowerCase());
+
+  const results = profiles
+    .filter(p => p.inviteLink) // must have invite link
+    .map(p => {
+      const match = scoreGroupMatch(p, contact);
+      if (match.disqualified) return null;
+      // Skip if contact already in this group's list
+      const listSlug = (p.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      if (contactLists.includes(listSlug)) return null;
+      return {
+        groupId: p.groupId,
+        name: p.name,
+        city: p.city,
+        category: p.category,
+        tier: p.tier,
+        inviteLink: p.inviteLink,
+        matchScore: match.score,
+        matchReasons: match.reasons,
+        memberCount: groupActivity.get(p.groupId)?.memberCount || null,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, limit || 3);
+
+  return results;
+}
+
 // ─── Conversation Flow Engine ────────────────────────────────────────────
 // flowSessions: Map<senderId, { flowId, nodeId, account, startedAt, data }>
 const flowSessions = new Map();
@@ -2666,8 +2947,11 @@ function setupClientEvents(accountId, client) {
       const intentMatch = isPartyIntent(msg.body);
       const isPartyQuery = keywordMatch || intentMatch;
 
-      // Lead detection — runs on every group message
+      // Track group activity for smart group management
       const groupId = chat.id._serialized;
+      trackGroupMessage(groupId, chat.name);
+
+      // Lead detection — runs on every group message
       const senderName = msg.author || msg.from;
       const lead = leads.detectLead(msg.body, senderName, msg.from, chat.name, groupId);
       if (lead.isLead) {
@@ -4579,6 +4863,132 @@ app.get('/api/whatsapp/leads/auto-follow-up-status', (req, res) => {
     hotThreshold: FOLLOWUP_HOT_THRESHOLD,
     checkIntervalMs: FOLLOWUP_CHECK_INTERVAL,
   });
+});
+
+// ─── Smart Group Management Endpoints ────────────────────────────────────
+
+// GET /api/whatsapp/groups/profiles — list all group profiles
+app.get('/api/whatsapp/groups/profiles', (req, res) => {
+  const profiles = loadGroupProfiles();
+  const enriched = profiles.map(p => {
+    const health = calculateGroupHealth(p.groupId);
+    const activity = groupActivity.get(p.groupId);
+    return {
+      ...p,
+      health: health.health,
+      healthLevel: health.level,
+      memberCount: activity?.memberCount || null,
+      recentMessages: activity?.messages.length || 0,
+    };
+  });
+  res.json({ profiles: enriched });
+});
+
+// GET /api/whatsapp/groups/profiles/:groupId — single group profile
+app.get('/api/whatsapp/groups/profiles/:groupId', (req, res) => {
+  const profile = getGroupProfile(req.params.groupId);
+  if (!profile) return res.status(404).json({ error: 'Group profile not found' });
+  const health = calculateGroupHealth(req.params.groupId);
+  const optimal = calculateOptimalTimes(req.params.groupId);
+  const activity = groupActivity.get(req.params.groupId);
+  res.json({
+    profile,
+    health,
+    optimalTimes: optimal,
+    memberCount: activity?.memberCount || null,
+  });
+});
+
+// POST /api/whatsapp/groups/profiles — create or update group profile
+app.post('/api/whatsapp/groups/profiles', (req, res) => {
+  const { groupId, name, city, category, tags, inviteLink, maxCapacity, description, tier } = req.body;
+  if (!groupId) return res.status(400).json({ error: 'groupId required' });
+  const profile = upsertGroupProfile(groupId, { name, city, category, tags, inviteLink, maxCapacity, description, tier });
+  res.json({ ok: true, profile });
+});
+
+// PUT /api/whatsapp/groups/profiles/:groupId — update group profile
+app.put('/api/whatsapp/groups/profiles/:groupId', (req, res) => {
+  const { name, city, category, tags, inviteLink, maxCapacity, description, tier } = req.body;
+  const profile = upsertGroupProfile(req.params.groupId, { name, city, category, tags, inviteLink, maxCapacity, description, tier });
+  res.json({ ok: true, profile });
+});
+
+// DELETE /api/whatsapp/groups/profiles/:groupId — remove group profile
+app.delete('/api/whatsapp/groups/profiles/:groupId', (req, res) => {
+  const profiles = loadGroupProfiles();
+  const idx = profiles.findIndex(p => p.groupId === req.params.groupId);
+  if (idx === -1) return res.status(404).json({ error: 'Group profile not found' });
+  profiles.splice(idx, 1);
+  saveGroupProfiles(profiles);
+  res.json({ ok: true, deleted: req.params.groupId });
+});
+
+// POST /api/groups/smart-join — find best groups for a contact
+app.post('/api/groups/smart-join', (req, res) => {
+  const { contactId, limit } = req.body;
+  if (!contactId) return res.status(400).json({ error: 'contactId required' });
+
+  const contact = crmContacts.get(contactId);
+  if (!contact) return res.status(404).json({ error: 'Contact not found' });
+
+  const recommendations = findBestGroups(contactId, limit || 3);
+  res.json({
+    contactId,
+    contactName: contact.name || contact.pushName || null,
+    recommendations,
+    totalProfiled: loadGroupProfiles().length,
+  });
+});
+
+// Also mount at the canonical path
+app.post('/api/whatsapp/groups/smart-join', (req, res, next) => { req.url = '/api/groups/smart-join'; next(); });
+
+// GET /api/whatsapp/groups/health — group health dashboard
+app.get('/api/whatsapp/groups/health', (req, res) => {
+  const profiles = loadGroupProfiles();
+  const dashboard = profiles.map(p => {
+    const health = calculateGroupHealth(p.groupId);
+    const optimal = calculateOptimalTimes(p.groupId);
+    const activity = groupActivity.get(p.groupId);
+    return {
+      groupId: p.groupId,
+      name: p.name,
+      city: p.city,
+      category: p.category,
+      tier: p.tier,
+      health: health.health,
+      healthLevel: health.level,
+      healthDetails: health.details,
+      memberCount: activity?.memberCount || null,
+      optimalTimes: optimal,
+    };
+  }).sort((a, b) => b.health - a.health);
+
+  const summary = {
+    total: dashboard.length,
+    healthy: dashboard.filter(g => g.healthLevel === 'healthy').length,
+    moderate: dashboard.filter(g => g.healthLevel === 'moderate').length,
+    needsAttention: dashboard.filter(g => g.healthLevel === 'needs-attention').length,
+    avgHealth: dashboard.length ? Math.round(dashboard.reduce((s, g) => s + g.health, 0) / dashboard.length) : 0,
+  };
+
+  res.json({ summary, groups: dashboard });
+});
+
+// POST /api/whatsapp/groups/activity — manually report group activity (for testing/seeding)
+app.post('/api/whatsapp/groups/activity', (req, res) => {
+  const { groupId, groupName, memberCount, messageCount } = req.body;
+  if (!groupId) return res.status(400).json({ error: 'groupId required' });
+
+  if (memberCount !== undefined) updateGroupMemberCount(groupId, memberCount);
+  if (messageCount) {
+    for (let i = 0; i < Math.min(messageCount, 100); i++) {
+      trackGroupMessage(groupId, groupName || null);
+    }
+  }
+
+  res.json({ ok: true, groupId, tracked: groupActivity.has(groupId) });
 });
 
 app.get('/api/whatsapp/keywords', (req, res) => {
