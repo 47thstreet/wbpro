@@ -1233,10 +1233,13 @@ app.get('/api/leads', (req, res, next) => { req.url = '/api/whatsapp/leads' + (r
 app.get('/api/leads/stats', (req, res, next) => { req.url = '/api/whatsapp/leads/stats'; next(); });
 app.get('/api/leads/export', (req, res, next) => { req.url = '/api/whatsapp/leads/export' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
 
-// --- Schedules aliases ---
+// --- Schedules aliases (plural and singular) ---
 app.get('/api/schedules', (req, res, next) => { req.url = '/api/whatsapp/schedules'; next(); });
 app.post('/api/schedules', (req, res, next) => { req.url = '/api/whatsapp/schedule'; next(); });
 app.delete('/api/schedules/:id', (req, res, next) => { req.url = '/api/whatsapp/schedules/' + req.params.id; next(); });
+app.get('/api/schedule', (req, res, next) => { req.url = '/api/whatsapp/schedules'; next(); });
+app.post('/api/schedule', (req, res, next) => { req.url = '/api/whatsapp/schedule'; next(); });
+app.delete('/api/schedule/:id', (req, res, next) => { req.url = '/api/whatsapp/schedules/' + req.params.id; next(); });
 
 // --- Templates aliases ---
 app.get('/api/templates', (req, res, next) => { req.url = '/api/whatsapp/templates'; next(); });
@@ -2838,12 +2841,23 @@ app.post('/api/whatsapp/auto-announce', async (req, res) => {
 // ─── Scheduled Broadcasts ───────────────────────────────────────────────
 
 app.post('/api/whatsapp/schedule', (req, res) => {
-  const { chatIds, message, sendAt, name, account, templateId, variables } = req.body;
+  const { chatIds, message, sendAt, name, account, templateId, variables, personaId, variant } = req.body;
   const accountId = account || 'default';
 
   if (!accounts.has(accountId)) return res.status(404).json({ error: `Account "${accountId}" not found` });
 
   let finalMessage = message;
+
+  // If using a persona template (personaId + variant), resolve it
+  if (personaId && variant && !message && !templateId) {
+    const ptFile = path.join(PERSONA_TEMPLATES_DIR, `${personaId}.json`);
+    const ptData = loadJSON(ptFile, null);
+    if (!ptData) return res.status(404).json({ error: `Persona template "${personaId}" not found` });
+    const ptVariant = ptData.variants && ptData.variants[variant];
+    if (!ptVariant) return res.status(404).json({ error: `Variant "${variant}" not found for persona "${personaId}"` });
+    finalMessage = formatPersonaTemplate(ptVariant.message, variables || {});
+  }
+
   if (templateId) {
     const templates = loadJSON(TEMPLATES_FILE, []);
     const tpl = templates.find(t => t.id === templateId);
@@ -2910,7 +2924,7 @@ app.get('/api/whatsapp/recurring', (req, res) => {
 
 // POST /api/whatsapp/recurring — create recurring schedule
 app.post('/api/whatsapp/recurring', (req, res) => {
-  const { name, cron, preset, chatIds, message, account, templateId, variables, includeNextEvent, endDate } = req.body;
+  const { name, cron, preset, chatIds, message, account, templateId, variables, includeNextEvent, endDate, personaId, variant } = req.body;
   const accountId = account || 'default';
 
   if (!accounts.has(accountId)) return res.status(404).json({ error: `Account "${accountId}" not found` });
@@ -2924,8 +2938,18 @@ app.post('/api/whatsapp/recurring', (req, res) => {
     return res.status(400).json({ error: 'Valid cron expression required (5 fields: min hour dom month dow) or use a preset' });
   }
 
-  // Resolve message from template if needed
+  // Resolve message from persona template if specified
   let finalMessage = message;
+  if (personaId && variant && !message && !templateId) {
+    const ptFile = path.join(PERSONA_TEMPLATES_DIR, `${personaId}.json`);
+    const ptData = loadJSON(ptFile, null);
+    if (!ptData) return res.status(404).json({ error: `Persona template "${personaId}" not found` });
+    const ptVariant = ptData.variants && ptData.variants[variant];
+    if (!ptVariant) return res.status(404).json({ error: `Variant "${variant}" not found for persona "${personaId}"` });
+    finalMessage = formatPersonaTemplate(ptVariant.message, variables || {});
+  }
+
+  // Resolve message from template if needed
   if (templateId) {
     const templates = loadJSON(TEMPLATES_FILE, []);
     const tpl = templates.find(t => t.id === templateId);
