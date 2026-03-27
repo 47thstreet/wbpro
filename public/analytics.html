@@ -271,20 +271,53 @@
         <td>${g.broadcastCount}</td>
       </tr>`).join('');
 
+      // Today / This Week
+      const t = d.today || {};
+      const w = d.thisWeek || {};
+
+      // Top templates table
+      const tplRows = (d.topTemplates || []).map((tpl, i) => {
+        const rateColor = tpl.deliveryRate >= 90 ? 'var(--accent)' : tpl.deliveryRate >= 70 ? 'var(--yellow)' : 'var(--red)';
+        return `<tr>
+          <td style="color:var(--text);font-weight:500">#${i + 1}</td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(tpl.name)}">${escapeHtml(tpl.name.slice(0, 40))}</td>
+          <td>${tpl.uses}</td>
+          <td>${tpl.sent}</td>
+          <td><span style="color:${rateColor}">${tpl.deliveryRate}%</span></td>
+        </tr>`;
+      }).join('');
+
+      // Per-broadcast delivery table
+      const pbRows = (d.perBroadcast || []).slice(0, 10).map(b => {
+        const rateColor = b.deliveryRate >= 90 ? 'var(--accent)' : b.deliveryRate >= 70 ? 'var(--yellow)' : 'var(--red)';
+        const date = b.timestamp ? new Date(b.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '--';
+        return `<tr>
+          <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(b.name)}">${escapeHtml(b.name.slice(0, 35))}</td>
+          <td>${b.sent}/${b.total}</td>
+          <td><span style="color:${rateColor}">${b.deliveryRate}%</span></td>
+          <td>${date}</td>
+        </tr>`;
+      }).join('');
+
       document.getElementById('stats-container').innerHTML = `
         <div class="stat-grid">
           <div class="stat-card">
-            <div class="stat-label">Broadcasts</div>
-            <div class="stat-value">${p.broadcasts || 0}</div>
-            <div class="stat-sub">${activePeriod} period</div>
+            <div class="stat-label">Today</div>
+            <div class="stat-value" style="color:var(--blue)">${(t.messagesSent || 0).toLocaleString()}</div>
+            <div class="stat-sub">${t.broadcasts || 0} broadcasts</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Messages Sent</div>
+            <div class="stat-label">This Week</div>
+            <div class="stat-value" style="color:var(--blue)">${(w.messagesSent || 0).toLocaleString()}</div>
+            <div class="stat-sub">${w.broadcasts || 0} broadcasts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Period Sent</div>
             <div class="stat-value">${(p.messagesSent || 0).toLocaleString()}</div>
-            <div class="stat-sub">${activePeriod} period</div>
+            <div class="stat-sub">${activePeriod} &middot; ${p.broadcasts || 0} broadcasts</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Failed</div>
+            <div class="stat-label">Period Failed</div>
             <div class="stat-value" style="color:var(--red)">${(p.messagesFailed || 0).toLocaleString()}</div>
             <div class="stat-sub">${activePeriod} period</div>
           </div>
@@ -303,6 +336,11 @@
             <div class="stat-value">${o.totalContacts.toLocaleString()}</div>
             <div class="stat-sub">In CRM</div>
           </div>
+          <div class="stat-card">
+            <div class="stat-label">Broadcast Lists</div>
+            <div class="stat-value">${o.broadcastLists || 0}</div>
+            <div class="stat-sub">${o.totalGroups} groups tracked</div>
+          </div>
         </div>
 
         <div class="card">
@@ -311,6 +349,27 @@
           <div style="display:flex;gap:1rem;margin-top:0.75rem;font-size:0.65rem;color:var(--text-3)">
             <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--accent);margin-right:4px"></span>Sent</span>
             <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--red);margin-right:4px"></span>Failed</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Top Templates / Messages</div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>#</th><th>Template</th><th>Uses</th><th>Sent</th><th>Rate</th></tr></thead>
+                <tbody>${tplRows || '<tr><td colspan="5" style="text-align:center;color:var(--text-3)">No data yet</td></tr>'}</tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Per-Broadcast Delivery</div>
+            <div style="overflow-x:auto">
+              <table>
+                <thead><tr><th>Broadcast</th><th>Sent/Total</th><th>Rate</th><th>Date</th></tr></thead>
+                <tbody>${pbRows || '<tr><td colspan="4" style="text-align:center;color:var(--text-3)">No data yet</td></tr>'}</tbody>
+              </table>
+            </div>
           </div>
         </div>
 

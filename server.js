@@ -4379,6 +4379,17 @@ app.get('/api/analytics', (req, res) => {
   const now = Date.now();
   const day = 24 * 60 * 60 * 1000;
 
+  // Today and this week cutoffs
+  const todayStr = new Date(now).toISOString().slice(0, 10);
+  const weekAgo = new Date(now - 7 * day).toISOString();
+  const todayBroadcasts = history.filter(h => (h.timestamp || '').startsWith(todayStr));
+  const weekBroadcasts = history.filter(h => h.timestamp >= weekAgo);
+
+  const todaySent = todayBroadcasts.reduce((s, h) => s + (h.sent || 0), 0);
+  const todayFailed = todayBroadcasts.reduce((s, h) => s + (h.failed || 0), 0);
+  const weekSent = weekBroadcasts.reduce((s, h) => s + (h.sent || 0), 0);
+  const weekFailed = weekBroadcasts.reduce((s, h) => s + (h.failed || 0), 0);
+
   // Time-bucketed stats
   const periods = { '7d': 7, '30d': 30, '90d': 90 };
   const buckets = {};
@@ -4399,6 +4410,22 @@ app.get('/api/analytics', (req, res) => {
   const deliveryRate = totalSent + totalFailed > 0
     ? ((totalSent / (totalSent + totalFailed)) * 100).toFixed(1)
     : '0.0';
+
+  // Per-broadcast delivery rates (last 50)
+  const perBroadcast = history.slice(0, 50).map(h => {
+    const s = h.sent || 0;
+    const f = h.failed || 0;
+    const total = s + f;
+    return {
+      id: h.id,
+      name: h.name || h.messagePreview?.slice(0, 50) || 'Untitled',
+      timestamp: h.timestamp,
+      sent: s,
+      failed: f,
+      total: h.total || 0,
+      deliveryRate: total > 0 ? parseFloat(((s / total) * 100).toFixed(1)) : 0,
+    };
+  });
 
   // Daily volume for last 14 days (for chart)
   const dailyVolume = [];
@@ -4426,6 +4453,24 @@ app.get('/api/analytics', (req, res) => {
     .slice(0, 10)
     .map(([groupId, count]) => ({ groupId, broadcastCount: count }));
 
+  // Top-performing templates (by usage and delivery rate)
+  const templateStats = {};
+  history.forEach(h => {
+    const key = h.name || h.messagePreview?.slice(0, 80) || 'Unknown';
+    if (!templateStats[key]) templateStats[key] = { name: key, sent: 0, failed: 0, uses: 0 };
+    templateStats[key].sent += (h.sent || 0);
+    templateStats[key].failed += (h.failed || 0);
+    templateStats[key].uses += 1;
+  });
+  const topTemplates = Object.values(templateStats)
+    .map(t => ({
+      ...t,
+      total: t.sent + t.failed,
+      deliveryRate: t.sent + t.failed > 0 ? parseFloat(((t.sent / (t.sent + t.failed)) * 100).toFixed(1)) : 0,
+    }))
+    .sort((a, b) => b.sent - a.sent)
+    .slice(0, 10);
+
   // Recent broadcasts (last 10)
   const recent = history.slice(0, 10).map(h => ({
     id: h.id,
@@ -4447,9 +4492,27 @@ app.get('/api/analytics', (req, res) => {
       totalGroups: Object.keys(groupStats).length,
       broadcastLists: broadcastLists.length,
     },
+    today: {
+      broadcasts: todayBroadcasts.length,
+      messagesSent: todaySent,
+      messagesFailed: todayFailed,
+      deliveryRate: todaySent + todayFailed > 0
+        ? parseFloat(((todaySent / (todaySent + todayFailed)) * 100).toFixed(1))
+        : 0,
+    },
+    thisWeek: {
+      broadcasts: weekBroadcasts.length,
+      messagesSent: weekSent,
+      messagesFailed: weekFailed,
+      deliveryRate: weekSent + weekFailed > 0
+        ? parseFloat(((weekSent / (weekSent + weekFailed)) * 100).toFixed(1))
+        : 0,
+    },
     periods: buckets,
     dailyVolume,
     topGroups,
+    topTemplates,
+    perBroadcast,
     recentBroadcasts: recent,
   });
 });
