@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b141a">
+  <title>WBpro - Import Contacts</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+    :root {
+      --bg: #0b141a; --surface: #1f2c34; --surface-2: #2a3942; --border: #374045;
+      --text: #e9edef; --text-2: #8696a0; --text-3: #667781;
+      --accent: #25d366; --accent-hover: #1fba59; --red: #ef4444; --yellow: #eab308; --blue: #3b82f6;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+    .header h1 { font-size: 1.2rem; font-weight: 700; }
+    .btn { padding: 0.45rem 0.9rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
+    .btn:hover { border-color: var(--text-3); color: var(--text); }
+    .btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-hover); }
+    .btn.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .container { max-width: 800px; margin: 0 auto; padding: 1.5rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .card-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-3); margin-bottom: 0.75rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.7rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.35rem; }
+    .form-group input, .form-group select { width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; font-size: 0.8rem; }
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: 12px; padding: 3rem 2rem;
+      text-align: center; cursor: pointer; transition: all 0.2s;
+      background: var(--bg); margin-bottom: 1rem;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(37, 211, 102, 0.05); }
+    .drop-zone.has-file { border-color: var(--accent); border-style: solid; }
+    .drop-zone .icon { font-size: 2rem; margin-bottom: 0.5rem; color: var(--text-3); }
+    .drop-zone .label { font-size: 0.85rem; color: var(--text-2); }
+    .drop-zone .sublabel { font-size: 0.7rem; color: var(--text-3); margin-top: 0.25rem; }
+    .drop-zone .filename { font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+    .drop-zone .fileinfo { font-size: 0.7rem; color: var(--text-2); margin-top: 0.25rem; }
+    .preview-table { max-height: 300px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    th { text-align: left; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); }
+    td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-2); }
+    tr:hover td { background: var(--surface-2); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 0.65rem; font-weight: 600; }
+    .badge.green { background: #14532d; color: #4ade80; }
+    .badge.red { background: #450a0a; color: #f87171; }
+    .badge.yellow { background: #422006; color: #facc15; }
+    .result-box { padding: 1rem; border-radius: 10px; margin-top: 1rem; }
+    .result-box.success { background: #14532d40; border: 1px solid #14532d; }
+    .result-box.error { background: #450a0a40; border: 1px solid #450a0a; }
+    .result-stat { display: inline-block; margin-right: 1.5rem; }
+    .result-stat .val { font-size: 1.2rem; font-weight: 700; }
+    .result-stat .lbl { font-size: 0.65rem; color: var(--text-3); text-transform: uppercase; }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .checkbox-group label { display: flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--text-2); background: var(--bg); padding: 0.35rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; }
+    .checkbox-group label:hover { border-color: var(--text-3); }
+    .checkbox-group input[type="checkbox"] { accent-color: var(--accent); }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Import Contacts</h1>
+    <a href="/" class="btn">Dashboard</a>
+  </div>
+  <div class="container">
+    <div class="card">
+      <div class="card-title">Upload CSV</div>
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <div class="icon">+</div>
+        <div class="label">Drag &amp; drop a CSV file here, or click to browse</div>
+        <div class="sublabel">Required column: phone. Optional: name, tags</div>
+      </div>
+      <input type="file" id="file-input" accept=".csv,text/csv" class="hidden">
+    </div>
+
+    <div class="card hidden" id="preview-card">
+      <div class="card-title">Preview (<span id="preview-count">0</span> contacts)</div>
+      <div class="preview-table" id="preview-table"></div>
+    </div>
+
+    <div class="card hidden" id="options-card">
+      <div class="card-title">Import Options</div>
+      <div class="form-group">
+        <label>Import Source Label</label>
+        <input type="text" id="import-source" placeholder="e.g. event-signup, newsletter, guestlist">
+      </div>
+      <div class="form-group">
+        <label>Add to Existing Broadcast Lists</label>
+        <div class="checkbox-group" id="list-checkboxes"><span style="font-size:0.75rem;color:var(--text-3)">Loading lists...</span></div>
+      </div>
+      <div class="form-group">
+        <label>Create New Broadcast List from Import</label>
+        <input type="text" id="create-list" placeholder="Leave empty to skip, or enter list name">
+      </div>
+      <div style="margin-top:1rem">
+        <button class="btn primary" id="import-btn" onclick="doImport()">Import Contacts</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="result-card">
+      <div class="card-title">Import Result</div>
+      <div id="result-body"></div>
+    </div>
+  </div>
+
+  <script>
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    let selectedFile = null;
+    let parsedRows = [];
+    let broadcastLists = [];
+
+    // File input
+    const fileInput = document.getElementById('file-input');
+    const dropZone = document.getElementById('drop-zone');
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) handleFile(e.target.files[0]);
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFile(file) {
+      if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') {
+        alert('Please select a CSV file');
+        return;
+      }
+      selectedFile = file;
+      dropZone.classList.add('has-file');
+      dropZone.innerHTML = `<div class="filename">${esc(file.name)}</div><div class="fileinfo">${(file.size / 1024).toFixed(1)} KB</div><div class="sublabel" style="margin-top:0.5rem">Click to change file</div>`;
+
+      // Parse preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        parsePreview(text);
+      };
+      reader.readAsText(file);
+    }
+
+    function parsePreview(csvText) {
+      const lines = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+      if (lines.length < 2) {
+        alert('CSV must have a header row and at least one data row');
+        return;
+      }
+
+      const header = parseCSVLine(lines[0]).map(h => h.trim().toLowerCase());
+      const phoneIdx = header.findIndex(h => ['phone', 'phone_number', 'phonenumber', 'mobile', 'number'].includes(h));
+      const nameIdx = header.findIndex(h => ['name', 'full_name', 'fullname', 'contact_name'].includes(h));
+      const tagsIdx = header.findIndex(h => ['tags', 'tag', 'labels', 'label'].includes(h));
+
+      if (phoneIdx === -1) {
+        alert('CSV must have a "phone" column');
+        return;
+      }
+
+      parsedRows = [];
+      const errors = [];
+      for (let i = 1; i < lines.length; i++) {
+        const fields = parseCSVLine(lines[i]);
+        const phone = (fields[phoneIdx] || '').trim();
+        const name = nameIdx >= 0 ? (fields[nameIdx] || '').trim() : '';
+        const tags = tagsIdx >= 0 ? (fields[tagsIdx] || '').trim() : '';
+        if (!phone) { errors.push(i + 1); continue; }
+        parsedRows.push({ phone, name, tags, valid: isValidPhone(phone) });
+      }
+
+      const validCount = parsedRows.filter(r => r.valid).length;
+      const invalidCount = parsedRows.length - validCount;
+
+      document.getElementById('preview-count').textContent = parsedRows.length;
+      document.getElementById('preview-card').classList.remove('hidden');
+      document.getElementById('options-card').classList.remove('hidden');
+
+      let html = '<table><thead><tr><th>Phone</th><th>Name</th><th>Tags</th><th>Valid</th></tr></thead><tbody>';
+      const display = parsedRows.slice(0, 100);
+      for (const row of display) {
+        html += `<tr>
+          <td>${esc(row.phone)}</td>
+          <td>${esc(row.name)}</td>
+          <td>${esc(row.tags)}</td>
+          <td>${row.valid ? '<span class="badge green">OK</span>' : '<span class="badge red">Invalid</span>'}</td>
+        </tr>`;
+      }
+      if (parsedRows.length > 100) {
+        html += `<tr><td colspan="4" style="text-align:center;color:var(--text-3)">... and ${parsedRows.length - 100} more rows</td></tr>`;
+      }
+      html += '</tbody></table>';
+      if (invalidCount > 0) {
+        html += `<div style="margin-top:0.5rem;font-size:0.75rem;color:var(--yellow)">${invalidCount} invalid phone number${invalidCount > 1 ? 's' : ''} will be skipped</div>`;
+      }
+      document.getElementById('preview-table').innerHTML = html;
+    }
+
+    function isValidPhone(phone) {
+      const digits = phone.replace(/[^0-9]/g, '');
+      return digits.length >= 10;
+    }
+
+    function parseCSVLine(line) {
+      const fields = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (i + 1 < line.length && line[i + 1] === '"') { current += '"'; i++; }
+            else inQuotes = false;
+          } else current += ch;
+        } else {
+          if (ch === '"') inQuotes = true;
+          else if (ch === ',') { fields.push(current); current = ''; }
+          else current += ch;
+        }
+      }
+      fields.push(current);
+      return fields;
+    }
+
+    async function loadBroadcastLists() {
+      try {
+        const res = await fetch('/api/whatsapp/broadcast-lists', { credentials: 'same-origin' });
+        if (res.status === 401) { window.location.href = '/'; return; }
+        const data = await res.json();
+        broadcastLists = data.lists || [];
+        renderListCheckboxes();
+      } catch (e) { /* ignore */ }
+    }
+
+    function renderListCheckboxes() {
+      const container = document.getElementById('list-checkboxes');
+      if (broadcastLists.length === 0) {
+        container.innerHTML = '<span style="font-size:0.75rem;color:var(--text-3)">No broadcast lists yet</span>';
+        return;
+      }
+      container.innerHTML = broadcastLists.map(l =>
+        `<label><input type="checkbox" value="${esc(l.id)}"> ${esc(l.name)} (${l.contactCount})</label>`
+      ).join('');
+    }
+
+    async function doImport() {
+      if (!selectedFile) { alert('Please select a CSV file first'); return; }
+
+      const btn = document.getElementById('import-btn');
+      btn.disabled = true;
+      btn.textContent = 'Importing...';
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const source = document.getElementById('import-source').value.trim();
+      if (source) formData.append('source', source);
+
+      const checkedLists = Array.from(document.querySelectorAll('#list-checkboxes input:checked')).map(cb => cb.value);
+      if (checkedLists.length > 0) formData.append('listIds', JSON.stringify(checkedLists));
+
+      const createList = document.getElementById('create-list').value.trim();
+      if (createList) formData.append('createList', createList);
+
+      try {
+        const res = await fetch('/api/whatsapp/contacts/import-file', {
+          method: 'POST', credentials: 'same-origin', body: formData,
+        });
+        const data = await res.json();
+
+        document.getElementById('result-card').classList.remove('hidden');
+        if (res.ok) {
+          let html = '<div class="result-box success">';
+          html += `<div style="margin-bottom:0.75rem">
+            <span class="result-stat"><span class="val" style="color:var(--accent)">${data.imported || 0}</span><br><span class="lbl">Imported</span></span>
+            <span class="result-stat"><span class="val">${data.new || 0}</span><br><span class="lbl">New</span></span>
+            <span class="result-stat"><span class="val">${data.updated || 0}</span><br><span class="lbl">Updated</span></span>
+            <span class="result-stat"><span class="val" style="color:var(--yellow)">${data.skipped || 0}</span><br><span class="lbl">Skipped</span></span>
+          </div>`;
+          if (data.listsUpdated > 0) {
+            html += `<div style="font-size:0.75rem;color:var(--text-2)">Added to ${data.listsUpdated} broadcast list${data.listsUpdated > 1 ? 's' : ''}</div>`;
+          }
+          if (data.newList) {
+            html += `<div style="font-size:0.75rem;color:var(--accent);margin-top:0.25rem">Created list "${esc(data.newList.name)}" with ${data.newList.contactCount} contacts</div>`;
+          }
+          if (data.errors && data.errors.length > 0) {
+            html += `<div style="font-size:0.7rem;color:var(--yellow);margin-top:0.5rem">${data.errors.length} warning${data.errors.length > 1 ? 's' : ''}: ${esc(data.errors.slice(0, 5).join('; '))}${data.errors.length > 5 ? '...' : ''}</div>`;
+          }
+          html += '</div>';
+          document.getElementById('result-body').innerHTML = html;
+        } else {
+          document.getElementById('result-body').innerHTML = `<div class="result-box error" style="color:var(--red)">${esc(data.error || 'Import failed')}</div>`;
+        }
+      } catch (err) {
+        document.getElementById('result-card').classList.remove('hidden');
+        document.getElementById('result-body').innerHTML = `<div class="result-box error" style="color:var(--red)">Network error: ${esc(err.message)}</div>`;
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Import Contacts';
+      loadBroadcastLists();
+    }
+
+    loadBroadcastLists();
+  </script>
+</body>
+</html>

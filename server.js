@@ -4107,9 +4107,65 @@ app.post('/api/whatsapp/contacts/import-file', upload.single('file'), (req, res)
 
   const csvText = req.file.buffer.toString('utf-8');
   const source = req.body.source || null;
+  const listIds = req.body.listIds ? (typeof req.body.listIds === 'string' ? JSON.parse(req.body.listIds) : req.body.listIds) : [];
+  const createList = req.body.createList || null;
 
   try {
     const result = importCSVContacts(csvText, source);
+
+    // Auto-add imported phones to specified broadcast lists
+    const importedPhones = [];
+    const { rows } = parseCSV(csvText);
+    for (const row of rows) {
+      const phoneId = row.phone.replace(/[^0-9]/g, '');
+      if (phoneId && phoneId.length >= 5 && !isBlocked(row.phone)) {
+        importedPhones.push(row.phone);
+      }
+    }
+
+    let listsUpdated = 0;
+    if (importedPhones.length > 0) {
+      // Add to existing lists
+      for (const listId of listIds) {
+        const list = getBroadcastList(listId);
+        if (list) {
+          let added = 0;
+          for (const phone of importedPhones) {
+            if (!list.contacts.includes(phone)) {
+              list.contacts.push(phone);
+              added++;
+            }
+          }
+          if (added > 0) {
+            broadcastListsDirty = true;
+            listsUpdated++;
+          }
+        }
+      }
+
+      // Create a new list from import if requested
+      if (createList) {
+        const listId = 'list_' + crypto.randomUUID().slice(0, 12);
+        const dedupedPhones = [...new Set(importedPhones)];
+        const newList = {
+          id: listId,
+          name: createList,
+          description: `Imported from CSV (${source || 'manual'})`,
+          contacts: dedupedPhones,
+          tags: ['csv-import'],
+          createdAt: new Date().toISOString(),
+          lastBroadcastAt: null,
+          broadcastCount: 0,
+        };
+        broadcastLists.push(newList);
+        broadcastListsDirty = true;
+        result.newList = { id: listId, name: createList, contactCount: dedupedPhones.length };
+      }
+
+      if (broadcastListsDirty) saveBroadcastLists();
+    }
+
+    result.listsUpdated = listsUpdated;
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -4847,6 +4903,10 @@ app.get('/analytics', (req, res) => {
 
 app.get('/flows', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'flows.html'));
+});
+
+app.get('/import', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'import.html'));
 });
 
 // ─── SPA Fallback ────────────────────────────────────────────────────────
