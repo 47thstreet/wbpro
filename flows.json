@@ -1,1 +1,56 @@
-[]
+[
+  {
+    "id": "4194f483-68dc-4474-ae5e-8a7dcf8bb601",
+    "name": "Ticket Purchase",
+    "triggers": [
+      {
+        "type": "contains",
+        "value": "buy tickets"
+      },
+      {
+        "type": "contains",
+        "value": "buy ticket"
+      },
+      {
+        "type": "startsWith",
+        "value": "tickets for"
+      },
+      {
+        "type": "exact",
+        "value": "tickets"
+      },
+      {
+        "type": "contains",
+        "value": "לקנות כרטיס"
+      },
+      {
+        "type": "contains",
+        "value": "כרטיסים ל"
+      }
+    ],
+    "scope": "dm",
+    "startNode": "ticket-start",
+    "nodes": [
+      {
+        "id": "ticket-start",
+        "type": "ticket_purchase",
+        "message": "🎟️ Looking up events for you...",
+        "ticketConfig": {
+          "maxResults": 5,
+          "showPrices": true,
+          "allowSelection": true
+        }
+      },
+      {
+        "id": "ticket-confirm",
+        "type": "message",
+        "message": "Thanks for your interest! If you need help with your purchase, just reply here.",
+        "terminal": true
+      }
+    ],
+    "enabled": true,
+    "completions": 0,
+    "lastCompletedAt": null,
+    "createdAt": "2026-03-27T18:51:35.249Z"
+  }
+]

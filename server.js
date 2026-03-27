@@ -3944,7 +3944,7 @@ app.post('/api/webhooks/kartis', async (req, res) => {
         location: eventData.location || '',
         price: eventData.price || '',
         ticketUrl: eventData.ticketUrl || eventData.slug
-          ? `https://kartis-astro.vercel.app/en/event/${eventData.slug}`
+          ? `${KARTIS_URL}/en/event/${eventData.slug}`
           : `${KARTIS_URL}/events`,
       };
       message = formatEventWithTemplate(ev, tpl.message);
@@ -3953,7 +3953,7 @@ app.post('/api/webhooks/kartis', async (req, res) => {
       const d = eventData?.date ? new Date(eventData.date) : null;
       const dateStr = d ? d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA';
       const ticketUrl = eventData?.slug
-        ? `https://kartis-astro.vercel.app/en/event/${eventData.slug}`
+        ? `${KARTIS_URL}/en/event/${eventData.slug}`
         : eventData?.ticketUrl || '';
       message = `🎉 *${eventData?.name || 'New Event'}*\n\n` +
         `📅 ${dateStr}${eventData?.time ? ' | ' + eventData.time : ''}\n` +
@@ -3990,7 +3990,7 @@ app.post('/api/webhooks/kartis', async (req, res) => {
           day: eventData?.date ? new Date(eventData.date).toLocaleDateString('en-US', { weekday: 'long' }) : '',
           venue: eventData?.venue || '',
           ticketUrl: eventData?.slug
-            ? `https://kartis-astro.vercel.app/en/event/${eventData.slug}`
+            ? `${KARTIS_URL}/en/event/${eventData.slug}`
             : eventData?.ticketUrl || `${KARTIS_URL}/events`,
         };
 
@@ -6266,7 +6266,7 @@ app.post('/api/personas/:id/broadcast', async (req, res) => {
       day: eventData?.date ? new Date(eventData.date).toLocaleDateString('en-US', { weekday: 'long' }) : '',
       venue: eventData?.venue || '',
       ticketUrl: eventData?.ticketUrl || eventData?.slug
-        ? `https://kartis-astro.vercel.app/en/event/${eventData.slug}`
+        ? `${KARTIS_URL}/en/event/${eventData.slug}`
         : '',
     };
 

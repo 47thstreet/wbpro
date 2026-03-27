@@ -68,5 +68,195 @@
     "phone": "+972506873609",
     "reason": "spam",
     "blockedAt": "2026-03-27T07:34:33.611Z"
+  },
+  {
+    "phone": "+972507569511",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T13:19:29.514Z"
+  },
+  {
+    "phone": "+972501163132",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T14:19:23.134Z"
+  },
+  {
+    "phone": "+972504591028",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:03:11.031Z"
+  },
+  {
+    "phone": "+972504615515",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:03:35.525Z"
+  },
+  {
+    "phone": "+972505328727",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:15:28.735Z"
+  },
+  {
+    "phone": "+972505763548",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:22:43.554Z"
+  },
+  {
+    "phone": "+972505784047",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:23:04.060Z"
+  },
+  {
+    "phone": "+972506472082",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:34:32.086Z"
+  },
+  {
+    "phone": "+972506868067",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:41:08.078Z"
+  },
+  {
+    "phone": "+972507100581",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:45:00.583Z"
+  },
+  {
+    "phone": "+972507153660",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:45:53.663Z"
+  },
+  {
+    "phone": "+972507162965",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:46:02.968Z"
+  },
+  {
+    "phone": "+972507172908",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:46:12.911Z"
+  },
+  {
+    "phone": "+972507222567",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:47:02.572Z"
+  },
+  {
+    "phone": "+972507232069",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:47:12.075Z"
+  },
+  {
+    "phone": "+972507269558",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:47:49.564Z"
+  },
+  {
+    "phone": "+972507277784",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:47:57.795Z"
+  },
+  {
+    "phone": "+972507289035",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:48:09.043Z"
+  },
+  {
+    "phone": "+972507298485",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:48:18.494Z"
+  },
+  {
+    "phone": "+972507309212",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:48:29.214Z"
+  },
+  {
+    "phone": "+972507318467",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:48:38.469Z"
+  },
+  {
+    "phone": "+972507328158",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:48:48.161Z"
+  },
+  {
+    "phone": "+972507359085",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:49:19.092Z"
+  },
+  {
+    "phone": "+972507365311",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:49:25.316Z"
+  },
+  {
+    "phone": "+972507368199",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:49:28.201Z"
+  },
+  {
+    "phone": "+972507389497",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:49:49.526Z"
+  },
+  {
+    "phone": "+972507411057",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:50:11.061Z"
+  },
+  {
+    "phone": "+972507415326",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:50:15.329Z"
+  },
+  {
+    "phone": "+972507421616",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:50:21.620Z"
+  },
+  {
+    "phone": "+972507432631",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:50:32.634Z"
+  },
+  {
+    "phone": "+972507435824",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:50:35.829Z"
+  },
+  {
+    "phone": "+972507457076",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:50:57.083Z"
+  },
+  {
+    "phone": "+972507461393",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:51:01.396Z"
+  },
+  {
+    "phone": "+972507465832",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:51:05.840Z"
+  },
+  {
+    "phone": "+972507471705",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:51:11.712Z"
+  },
+  {
+    "phone": "+972507475559",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:51:15.570Z"
+  },
+  {
+    "phone": "+972507486348",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:51:26.350Z"
+  },
+  {
+    "phone": "+972507494778",
+    "reason": "spam",
+    "blockedAt": "2026-03-27T18:51:34.785Z"
   }
 ]

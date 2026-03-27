@@ -1,0 +1,28 @@
+[
+  {
+    "id": "hot-lead-welcome",
+    "name": "Hot Lead Welcome Sequence",
+    "description": "Auto-triggered when a lead score reaches 70+. Sends 3 personalized messages over 7 days.",
+    "trigger": "score_threshold",
+    "triggerValue": 70,
+    "enabled": true,
+    "steps": [
+      {
+        "id": "day1",
+        "delayHours": 0,
+        "message": "Hey {name}! We noticed you've been to a few of our events — that's awesome! We love having you in the TBP crew. Anything coming up you're excited about?"
+      },
+      {
+        "id": "day3",
+        "delayHours": 72,
+        "message": "Hey {name}! Just wanted to let you know about {nextEvent}. Based on the events you've been to, we think you'd love it! Check it out: {eventUrl}"
+      },
+      {
+        "id": "day7",
+        "delayHours": 168,
+        "message": "Hey {name}! Because you're one of our top supporters, we'd love to offer you VIP access to our next event. Reply \"VIP\" to get exclusive early access and a special discount. You deserve it!"
+      }
+    ],
+    "createdAt": "2026-03-27T18:51:33.317Z"
+  }
+]
