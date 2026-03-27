@@ -3,12 +3,12 @@
     "id": "test-tpl-1",
     "name": "Test Template",
     "message": "Hello {name}!",
-    "updatedAt": "2026-03-27T07:09:33.450Z"
+    "updatedAt": "2026-03-27T07:32:12.789Z"
   },
   {
     "id": "update-tpl",
     "name": "Updated",
     "message": "Updated message",
-    "updatedAt": "2026-03-27T07:09:33.474Z"
+    "updatedAt": "2026-03-27T07:32:12.911Z"
   }
 ]
