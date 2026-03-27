@@ -1,1 +1,31 @@
-[]
+[
+  {
+    "id": "c78660b0-c02f-4ca6-8089-29b60c1bd795",
+    "keywords": [
+      "tickets",
+      "ticket",
+      "rsvp",
+      "link",
+      "buy tickets",
+      "get tickets",
+      "where to buy",
+      "how to buy",
+      "ticket link",
+      "booking",
+      "כרטיס",
+      "כרטיסים",
+      "טיקט",
+      "טיקטים",
+      "הזמנה",
+      "קישור",
+      "לינק",
+      "איפה קונים",
+      "לקנות כרטיס"
+    ],
+    "response": "🎟️ *Get Your Tickets Here!*\n\n{nextEvent}\n\n👉 Book now: {ticketLink}\n\n_The Best Parties 🐙_",
+    "enabled": true,
+    "account": null,
+    "createdAt": "2026-03-27T07:34:33.810Z",
+    "type": "ticket-link"
+  }
+]

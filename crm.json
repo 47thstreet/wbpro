@@ -1,0 +1,583 @@
+[
+  {
+    "id": "15551234567",
+    "phone": "+15551234567",
+    "name": "Alice",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.288Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.288Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.288Z",
+    "updatedAt": "2026-03-27T07:39:27.288Z"
+  },
+  {
+    "id": "15559876543",
+    "phone": "+15559876543",
+    "name": "Bob",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.288Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.288Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.288Z",
+    "updatedAt": "2026-03-27T07:39:27.288Z"
+  },
+  {
+    "id": "15551112222",
+    "phone": "+15551112222",
+    "name": "Valid",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.294Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.294Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.294Z",
+    "updatedAt": "2026-03-27T07:39:27.294Z"
+  },
+  {
+    "id": "15553334444",
+    "phone": "+15553334444",
+    "name": "Tagged",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "website",
+      "firstSeen": "2026-03-27T07:39:27.299Z"
+    },
+    "tags": [
+      "import:website"
+    ],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.299Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.299Z",
+    "updatedAt": "2026-03-27T07:39:27.299Z"
+  },
+  {
+    "id": "15551001001",
+    "phone": "+15551001001",
+    "name": "Alice",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.325Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.325Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.308Z",
+    "updatedAt": "2026-03-27T07:39:27.325Z"
+  },
+  {
+    "id": "15551001002",
+    "phone": "+15551001002",
+    "name": "Bob",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.325Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.325Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.308Z",
+    "updatedAt": "2026-03-27T07:39:27.325Z"
+  },
+  {
+    "id": "15551001003",
+    "phone": "+15551001003",
+    "name": "Charlie",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.325Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.325Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.308Z",
+    "updatedAt": "2026-03-27T07:39:27.325Z"
+  },
+  {
+    "id": "15552002001",
+    "phone": "+15552002001",
+    "name": "Dupe2",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.316Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.316Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.316Z",
+    "updatedAt": "2026-03-27T07:39:27.316Z"
+  },
+  {
+    "id": "15553003001",
+    "phone": "+15553003001",
+    "name": "Good",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.321Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.321Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.321Z",
+    "updatedAt": "2026-03-27T07:39:27.321Z"
+  },
+  {
+    "id": "15554004001",
+    "phone": "+15554004001",
+    "name": "ListUser1",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.328Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.328Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.328Z",
+    "updatedAt": "2026-03-27T07:39:27.328Z"
+  },
+  {
+    "id": "15554004002",
+    "phone": "+15554004002",
+    "name": "ListUser2",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.328Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.328Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.328Z",
+    "updatedAt": "2026-03-27T07:39:27.328Z"
+  },
+  {
+    "id": "15555005001",
+    "phone": "+15555005001",
+    "name": "TagUser",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.332Z"
+    },
+    "tags": [
+      "vip",
+      "club"
+    ],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.332Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.332Z",
+    "updatedAt": "2026-03-27T07:39:27.332Z"
+  },
+  {
+    "id": "15556006001",
+    "phone": "+15556006001",
+    "name": "AltName",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.336Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.336Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.336Z",
+    "updatedAt": "2026-03-27T07:39:27.336Z"
+  },
+  {
+    "id": "15557007001",
+    "phone": "+15557007001",
+    "name": "TBP User 1",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.342Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.342Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.342Z",
+    "updatedAt": "2026-03-27T07:39:27.342Z"
+  },
+  {
+    "id": "15557007002",
+    "phone": "+15557007002",
+    "name": "TBP User 2",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.342Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.342Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.342Z",
+    "updatedAt": "2026-03-27T07:39:27.342Z"
+  },
+  {
+    "id": "15558008001",
+    "phone": "+15558008001",
+    "name": "Good",
+    "pushName": null,
+    "profilePic": null,
+    "source": {
+      "type": "csv_import",
+      "importSource": "manual",
+      "firstSeen": "2026-03-27T07:39:27.349Z"
+    },
+    "tags": [],
+    "lists": [
+      "all-contacts"
+    ],
+    "profile": {
+      "language": null,
+      "interests": [],
+      "lastActive": "2026-03-27T07:39:27.349Z",
+      "messageCount": 0,
+      "firstMessage": null,
+      "lastMessage": null,
+      "triggeredKeywords": [],
+      "dmSent": false,
+      "dmSentAt": null,
+      "responded": false,
+      "respondedAt": null,
+      "eventsClicked": 0,
+      "ticketsPurchased": 0
+    },
+    "score": 0,
+    "status": "cold",
+    "blocked": false,
+    "createdAt": "2026-03-27T07:39:27.349Z",
+    "updatedAt": "2026-03-27T07:39:27.349Z"
+  }
+]

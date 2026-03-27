@@ -1,11 +1,16 @@
 [
   {
-    "id": "list_d2633e69-96e",
-    "name": "Test List",
-    "description": "A test broadcast list",
-    "contacts": [],
-    "tags": [],
-    "createdAt": "2026-03-27T07:32:13.076Z",
+    "id": "list_9cb83ee1-2b8",
+    "name": "CSV Import Test",
+    "description": "Imported from CSV (manual)",
+    "contacts": [
+      "+15554004001",
+      "+15554004002"
+    ],
+    "tags": [
+      "csv-import"
+    ],
+    "createdAt": "2026-03-27T07:39:27.328Z",
     "lastBroadcastAt": null,
     "broadcastCount": 0
   }

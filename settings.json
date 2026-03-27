@@ -1,5 +1,6 @@
 {
   "quietStart": "01:00",
   "quietEnd": "09:00",
-  "cooldownMinutes": 60
+  "cooldownMinutes": 60,
+  "scannerEnabled": true
 }
