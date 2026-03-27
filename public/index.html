@@ -1102,6 +1102,25 @@
     }
     .lead-card .lead-action-secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
 
+    /* Lead Score Badges */
+    .lead-score-badge {
+      display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px;
+      border-radius: 9999px; font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .lead-score-badge.hot { background: #ef444420; color: #ef4444; }
+    .lead-score-badge.warm { background: #f59e0b20; color: #f59e0b; }
+    .lead-score-badge.cool { background: #3b82f620; color: #3b82f6; }
+    .lead-score-badge.cold { background: #6b728020; color: #6b7280; }
+    .scored-lead-row {
+      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+      border-bottom: 1px solid var(--border-color); font-size: 13px;
+    }
+    .scored-lead-row:last-child { border-bottom: none; }
+    .scored-lead-name { flex: 1; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .scored-lead-phone { font-size: 11px; color: var(--text-secondary); font-family: var(--font-mono); }
+    .scored-lead-bar { width: 60px; height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+    .scored-lead-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+
     /* ═══════════════════════════════════════════════════════════
        UX: People Tab — Slide-in Panel
        ═══════════════════════════════════════════════════════════ */
@@ -1475,6 +1494,20 @@
           <div class="stat-card"><div class="stat-num" id="statToday">0</div><div class="stat-label">Today</div></div>
           <div class="stat-card"><div class="stat-num" id="statWeek">0</div><div class="stat-label">This Week</div></div>
         </div>
+
+        <!-- Lead Score Summary -->
+        <div class="stats-row" id="scoreStats" style="margin-bottom:10px">
+          <div class="stat-card"><div class="stat-num" id="scoreAvg" style="color:#3b82f6">--</div><div class="stat-label">Avg Score</div></div>
+          <div class="stat-card"><div class="stat-num" id="scoreHot" style="color:#ef4444">0</div><div class="stat-label">Hot</div></div>
+          <div class="stat-card"><div class="stat-num" id="scoreWarm" style="color:#f59e0b">0</div><div class="stat-label">Warm</div></div>
+          <div class="stat-card"><div class="stat-num" id="scoreCold" style="color:#6b7280">0</div><div class="stat-label">Cold</div></div>
+        </div>
+
+        <!-- Top Scored Leads -->
+        <details style="margin-bottom:10px">
+          <summary style="cursor:pointer;user-select:none;font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;padding:4px 0">Top Scored Leads</summary>
+          <div id="topScoredLeads" style="margin-top:6px"></div>
+        </details>
 
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div class="bubble-label" style="margin:0">Live Leads</div>
@@ -2592,7 +2625,7 @@
       if (connBanner) connBanner.style.display = (tab === 'broadcast') ? '' : 'none';
 
       // Lazy load: only fetch data first time or refresh
-      if (tab === 'leads') { loadLeads(); loadLeadStats(); loadScannerFeed(); loadScannerStats(); }
+      if (tab === 'leads') { loadLeads(); loadLeadStats(); loadScannerFeed(); loadScannerStats(); loadScoreSummary(); loadTopScoredLeads(); }
       if (tab === 'keywords') { loadKeywords(); loadAutoRules(); loadQuietHours(); loadBlocklist(); loadCooldowns(); }
       if (tab === 'contacts') { loadContacts(); }
       if (tab === 'lists') { loadLists(); }
@@ -2892,6 +2925,46 @@
           tkEl.innerHTML = d.topKeywords.map(function(k) { return '<span class="lead-kw-tag" style="margin:2px">' + esc(k.keyword) + ' (' + k.count + ')</span>'; }).join('');
           tkEl.className = '';
         }
+      } catch (e) {}
+    }
+
+    async function loadScoreSummary() {
+      try {
+        var d = await cachedFetch('/api/leads/score-summary', 15000);
+        document.getElementById('scoreAvg').textContent = d.averageScore || 0;
+        document.getElementById('scoreHot').textContent = d.tiers ? d.tiers.hot : 0;
+        document.getElementById('scoreWarm').textContent = d.tiers ? d.tiers.warm : 0;
+        document.getElementById('scoreCold').textContent = d.tiers ? (d.tiers.cool + d.tiers.cold) : 0;
+      } catch (e) {}
+    }
+
+    function scoreBadge(score, tier) {
+      return '<span class="lead-score-badge ' + tier + '">' + score + '</span>';
+    }
+
+    function scoreBarColor(tier) {
+      if (tier === 'hot') return '#ef4444';
+      if (tier === 'warm') return '#f59e0b';
+      if (tier === 'cool') return '#3b82f6';
+      return '#6b7280';
+    }
+
+    async function loadTopScoredLeads() {
+      try {
+        var d = await cachedFetch('/api/leads/score?limit=10&minScore=1', 15000);
+        var el = document.getElementById('topScoredLeads');
+        var list = d.leads || [];
+        if (!list.length) { el.innerHTML = '<div style="padding:8px;font-size:12px;color:var(--text-secondary)">No scored leads yet. Contacts are scored based on message frequency, event attendance, ticket purchases, and response rate.</div>'; return; }
+        el.innerHTML = list.map(function(l) {
+          var name = l.name || l.phone || l.id;
+          var barWidth = Math.max(5, l.score);
+          return '<div class="scored-lead-row">'
+            + scoreBadge(l.score, l.tier)
+            + '<div class="scored-lead-name">' + esc(name) + '</div>'
+            + '<div class="scored-lead-phone">' + esc(l.phone || '') + '</div>'
+            + '<div class="scored-lead-bar"><div class="scored-lead-bar-fill" style="width:' + barWidth + '%;background:' + scoreBarColor(l.tier) + '"></div></div>'
+            + '</div>';
+        }).join('');
       } catch (e) {}
     }
 
@@ -4522,8 +4595,13 @@
           return;
         }
         el.innerHTML = list.map(function(l) {
+          var confTier = l.confidence >= 0.8 ? 'hot' : (l.confidence >= 0.6 ? 'warm' : (l.confidence >= 0.3 ? 'cool' : 'cold'));
+          var confPct = Math.round((l.confidence || 0) * 100);
           return '<div class="lead-card" id="lead-' + l.id + '">'
-            + '<div class="lead-group-big">' + icon('message-circle', 14) + ' ' + esc(l.groupName) + '</div>'
+            + '<div class="lead-group-big" style="display:flex;justify-content:space-between;align-items:center">'
+            + '<span>' + icon('message-circle', 14) + ' ' + esc(l.groupName) + '</span>'
+            + '<span class="lead-score-badge ' + confTier + '" title="Confidence: ' + confPct + '%">' + confPct + '%</span>'
+            + '</div>'
             + '<div class="lead-header"><div class="lead-sender">' + esc(l.senderName) + '</div>'
             + '<div class="lead-time">' + timeAgo(l.timestamp) + '</div></div>'
             + '<div class="lead-msg">' + highlightMsg(l.message, l.matchedKeywords) + '</div>'

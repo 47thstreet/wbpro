@@ -501,17 +501,93 @@ function formatPersonaTemplate(template, vars) {
   return msg;
 }
 
-function calculateScore(contact) {
-  let score = contact.score || 0;
+// ─── Lead Scoring Engine ────────────────────────────────────────────────
+// Weighted multi-signal scoring: message frequency, event attendance,
+// ticket purchases, response rate. Max 100 points.
+const SCORE_WEIGHTS = {
+  messageFrequency: 25,   // max 25 pts — based on messageCount
+  eventAttendance: 25,    // max 25 pts — based on eventsClicked
+  ticketPurchases: 30,    // max 30 pts — based on ticketsPurchased
+  responseRate: 20,       // max 20 pts — responded to DM
+};
+
+// Thresholds for normalization
+const SCORE_THRESHOLDS = {
+  messageFrequency: { low: 1, mid: 5, high: 20 },   // message counts
+  eventAttendance: { low: 1, mid: 3, high: 10 },     // events clicked
+  ticketPurchases: { low: 1, mid: 2, high: 5 },      // tickets bought
+};
+
+function calculateLeadScore(contact) {
+  const profile = contact.profile || {};
+  let total = 0;
+  const breakdown = {};
+
+  // 1. Message frequency (0-25 pts)
+  const msgCount = profile.messageCount || 0;
+  const msgThresh = SCORE_THRESHOLDS.messageFrequency;
+  let msgScore = 0;
+  if (msgCount >= msgThresh.high) msgScore = 1.0;
+  else if (msgCount >= msgThresh.mid) msgScore = 0.6 + 0.4 * ((msgCount - msgThresh.mid) / (msgThresh.high - msgThresh.mid));
+  else if (msgCount >= msgThresh.low) msgScore = 0.2 + 0.4 * ((msgCount - msgThresh.low) / (msgThresh.mid - msgThresh.low));
+  breakdown.messageFrequency = Math.round(msgScore * SCORE_WEIGHTS.messageFrequency * 10) / 10;
+  total += breakdown.messageFrequency;
+
+  // 2. Event attendance (0-25 pts)
+  const eventsClicked = profile.eventsClicked || 0;
+  const evtThresh = SCORE_THRESHOLDS.eventAttendance;
+  let evtScore = 0;
+  if (eventsClicked >= evtThresh.high) evtScore = 1.0;
+  else if (eventsClicked >= evtThresh.mid) evtScore = 0.6 + 0.4 * ((eventsClicked - evtThresh.mid) / (evtThresh.high - evtThresh.mid));
+  else if (eventsClicked >= evtThresh.low) evtScore = 0.2 + 0.4 * ((eventsClicked - evtThresh.low) / (evtThresh.mid - evtThresh.low));
+  breakdown.eventAttendance = Math.round(evtScore * SCORE_WEIGHTS.eventAttendance * 10) / 10;
+  total += breakdown.eventAttendance;
+
+  // 3. Ticket purchases (0-30 pts)
+  const tickets = profile.ticketsPurchased || 0;
+  const tktThresh = SCORE_THRESHOLDS.ticketPurchases;
+  let tktScore = 0;
+  if (tickets >= tktThresh.high) tktScore = 1.0;
+  else if (tickets >= tktThresh.mid) tktScore = 0.6 + 0.4 * ((tickets - tktThresh.mid) / (tktThresh.high - tktThresh.mid));
+  else if (tickets >= tktThresh.low) tktScore = 0.2 + 0.4 * ((tickets - tktThresh.low) / (tktThresh.mid - tktThresh.low));
+  breakdown.ticketPurchases = Math.round(tktScore * SCORE_WEIGHTS.ticketPurchases * 10) / 10;
+  total += breakdown.ticketPurchases;
+
+  // 4. Response rate (0-20 pts)
+  let respScore = 0;
+  if (profile.dmSent && profile.responded) respScore = 1.0;
+  else if (profile.dmSent && !profile.responded) respScore = 0.1; // at least engaged enough to be DM'd
+  breakdown.responseRate = Math.round(respScore * SCORE_WEIGHTS.responseRate * 10) / 10;
+  total += breakdown.responseRate;
+
   // Apply decay: -5 per week of inactivity
-  if (contact.profile && contact.profile.lastActive) {
-    const lastActive = new Date(contact.profile.lastActive).getTime();
+  let decay = 0;
+  if (profile.lastActive) {
+    const lastActive = new Date(profile.lastActive).getTime();
     const weeksSinceActive = Math.floor((Date.now() - lastActive) / (7 * 24 * 60 * 60 * 1000));
     if (weeksSinceActive > 0) {
-      score = Math.max(0, score - (weeksSinceActive * 5));
+      decay = weeksSinceActive * 5;
     }
   }
-  return Math.min(100, Math.max(0, score));
+  breakdown.decay = -Math.min(decay, total);
+  total = Math.max(0, total - decay);
+
+  return {
+    score: Math.min(100, Math.round(total * 10) / 10),
+    breakdown,
+    tier: tierFromScore(Math.min(100, Math.round(total * 10) / 10)),
+  };
+}
+
+function calculateScore(contact) {
+  return calculateLeadScore(contact).score;
+}
+
+function tierFromScore(score) {
+  if (score >= 70) return 'hot';
+  if (score >= 40) return 'warm';
+  if (score >= 15) return 'cool';
+  return 'cold';
 }
 
 function statusFromScore(score) {
@@ -1236,6 +1312,10 @@ app.delete('/api/accounts', (req, res, next) => {
 app.get('/api/leads', (req, res, next) => { req.url = '/api/whatsapp/leads' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
 app.get('/api/leads/stats', (req, res, next) => { req.url = '/api/whatsapp/leads/stats'; next(); });
 app.get('/api/leads/export', (req, res, next) => { req.url = '/api/whatsapp/leads/export' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
+app.get('/api/leads/score', (req, res, next) => { req.url = '/api/whatsapp/leads/score' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''); next(); });
+app.get('/api/leads/score-summary', (req, res, next) => { req.url = '/api/whatsapp/leads/score-summary'; next(); });
+app.get('/api/leads/score/:id', (req, res, next) => { req.url = '/api/whatsapp/leads/score/' + req.params.id; next(); });
+app.post('/api/leads/score/:id/boost', (req, res, next) => { req.url = '/api/whatsapp/leads/score/' + req.params.id + '/boost'; next(); });
 
 // --- Schedules aliases (plural and singular) ---
 app.get('/api/schedules', (req, res, next) => { req.url = '/api/whatsapp/schedules'; next(); });
@@ -3931,6 +4011,129 @@ app.put('/api/whatsapp/leads/:id', (req, res) => {
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
+});
+
+// ─── Lead Scoring Endpoints ──────────────────────────────────────────────
+
+// GET /api/leads/score — score all CRM contacts and return ranked list
+app.get('/api/whatsapp/leads/score', (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 50, 500);
+  const offset = parseInt(req.query.offset) || 0;
+  const minScore = parseFloat(req.query.minScore) || 0;
+  const tier = req.query.tier; // hot, warm, cool, cold
+
+  const all = Array.from(crmContacts.values());
+  let scored = all.map(contact => {
+    const result = calculateLeadScore(contact);
+    return {
+      id: contact.id,
+      phone: contact.phone,
+      name: contact.name || contact.pushName || null,
+      tags: contact.tags || [],
+      lists: contact.lists || [],
+      score: result.score,
+      tier: result.tier,
+      breakdown: result.breakdown,
+      profile: {
+        messageCount: contact.profile?.messageCount || 0,
+        eventsClicked: contact.profile?.eventsClicked || 0,
+        ticketsPurchased: contact.profile?.ticketsPurchased || 0,
+        dmSent: contact.profile?.dmSent || false,
+        responded: contact.profile?.responded || false,
+        lastActive: contact.profile?.lastActive || null,
+      },
+      status: contact.status,
+    };
+  });
+
+  // Filter
+  if (minScore > 0) scored = scored.filter(s => s.score >= minScore);
+  if (tier) scored = scored.filter(s => s.tier === tier);
+
+  // Sort by score descending
+  scored.sort((a, b) => b.score - a.score);
+
+  const total = scored.length;
+  const paged = scored.slice(offset, offset + limit);
+
+  res.json({ leads: paged, total, limit, offset });
+});
+
+// GET /api/leads/score/:id — score a single contact
+app.get('/api/whatsapp/leads/score/:id', (req, res) => {
+  const contact = crmContacts.get(req.params.id);
+  if (!contact) return res.status(404).json({ error: 'Contact not found' });
+
+  const result = calculateLeadScore(contact);
+  res.json({
+    id: contact.id,
+    phone: contact.phone,
+    name: contact.name || contact.pushName || null,
+    score: result.score,
+    tier: result.tier,
+    breakdown: result.breakdown,
+    profile: {
+      messageCount: contact.profile?.messageCount || 0,
+      eventsClicked: contact.profile?.eventsClicked || 0,
+      ticketsPurchased: contact.profile?.ticketsPurchased || 0,
+      dmSent: contact.profile?.dmSent || false,
+      responded: contact.profile?.responded || false,
+      lastActive: contact.profile?.lastActive || null,
+    },
+  });
+});
+
+// POST /api/leads/score/:id/boost — manually boost or adjust a contact's score signals
+app.post('/api/whatsapp/leads/score/:id/boost', (req, res) => {
+  const contact = crmContacts.get(req.params.id);
+  if (!contact) return res.status(404).json({ error: 'Contact not found' });
+
+  const { eventsClicked, ticketsPurchased, messageCount } = req.body;
+  const profileUpdates = {};
+  if (typeof eventsClicked === 'number') {
+    profileUpdates.eventsClicked = Math.max(0, (contact.profile?.eventsClicked || 0) + eventsClicked);
+  }
+  if (typeof ticketsPurchased === 'number') {
+    profileUpdates.ticketsPurchased = Math.max(0, (contact.profile?.ticketsPurchased || 0) + ticketsPurchased);
+  }
+  if (typeof messageCount === 'number') {
+    profileUpdates.messageCount = Math.max(0, (contact.profile?.messageCount || 0) + messageCount);
+  }
+
+  if (Object.keys(profileUpdates).length === 0) {
+    return res.status(400).json({ error: 'Provide at least one of: eventsClicked, ticketsPurchased, messageCount' });
+  }
+
+  const updated = upsertCrmContact(req.params.id, { profile: profileUpdates });
+  const result = calculateLeadScore(updated);
+  res.json({
+    ok: true,
+    id: updated.id,
+    score: result.score,
+    tier: result.tier,
+    breakdown: result.breakdown,
+  });
+});
+
+// GET /api/leads/score/summary — aggregate scoring summary
+app.get('/api/whatsapp/leads/score-summary', (req, res) => {
+  const all = Array.from(crmContacts.values());
+  const tiers = { hot: 0, warm: 0, cool: 0, cold: 0 };
+  let totalScore = 0;
+
+  for (const contact of all) {
+    const result = calculateLeadScore(contact);
+    tiers[result.tier]++;
+    totalScore += result.score;
+  }
+
+  res.json({
+    totalContacts: all.length,
+    averageScore: all.length > 0 ? Math.round((totalScore / all.length) * 10) / 10 : 0,
+    tiers,
+    weights: SCORE_WEIGHTS,
+    thresholds: SCORE_THRESHOLDS,
+  });
 });
 
 app.get('/api/whatsapp/keywords', (req, res) => {
