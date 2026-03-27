@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET;
 const WBPRO_PASSWORD = process.env.WBPRO_PASSWORD;
-if (!WBPRO_PASSWORD) {
+if (!WBPRO_PASSWORD && require.main === module) {
   console.error('FATAL: WBPRO_PASSWORD environment variable is required. Refusing to start with default password.');
   process.exit(1);
 }
@@ -4127,19 +4127,23 @@ app.get('/api/health', (req, res) => {
 
 // ─── Start ───────────────────────────────────────────────────────────────
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`WhatsApp Multi-Account server on 0.0.0.0:${PORT}`);
-  console.log(`Events API: ${KARTIS_EVENTS_URL}`);
-  console.log(`TBP URL: ${TBP_URL}`);
-  leads.initLeads(DATA_DIR);
-  loadCRM();
-  loadBroadcastLists();
-  seedDefaultTemplates();
-  loadAndInitAccounts();
-  startScrapeSchedule();
-  startAutoAnnounceSchedule();
-  // Initial scrape 60s after startup (give clients time to connect)
-  setTimeout(() => scrapeAllGroups(), 60000);
-  // Register Kartis webhook after startup
-  registerKartisWebhook();
-});
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`WhatsApp Multi-Account server on 0.0.0.0:${PORT}`);
+    console.log(`Events API: ${KARTIS_EVENTS_URL}`);
+    console.log(`TBP URL: ${TBP_URL}`);
+    leads.initLeads(DATA_DIR);
+    loadCRM();
+    loadBroadcastLists();
+    seedDefaultTemplates();
+    loadAndInitAccounts();
+    startScrapeSchedule();
+    startAutoAnnounceSchedule();
+    // Initial scrape 60s after startup (give clients time to connect)
+    setTimeout(() => scrapeAllGroups(), 60000);
+    // Register Kartis webhook after startup
+    registerKartisWebhook();
+  });
+}
+
+module.exports = app;
