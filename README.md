@@ -1,14 +1,68 @@
 # WBpro (WhatsApp Broadcast Pro)
 
-**WhatsApp broadcast, CRM, lead capture, and automation platform for nightlife promoters.**
+**WhatsApp broadcast, CRM, AI chatbot, lead scoring, automation, and ticket sales platform for nightlife promoters.**
 
-WBpro connects to WhatsApp via whatsapp-web.js and provides a full web dashboard for broadcasting to groups, managing contacts and CRM data, capturing leads from keyword detection, scheduling messages, building automation flows, managing personas with templates, and analytics -- all integrated with the Kartis event platform.
+WBpro connects to WhatsApp via whatsapp-web.js and provides a full web dashboard for broadcasting to groups, AI-powered chatbot responses, intelligent lead scoring, automated follow-up sequences, smart group management, WhatsApp-to-Kartis ticket purchase flows, conversation flows with branching logic, persona templates, scheduling, contact import, and analytics -- all integrated with the Kartis event platform.
 
-Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with persistent storage.
+Built with Express, Puppeteer, whatsapp-web.js, and NVIDIA NIM (Llama 3.3 70B). Deployed on Render with persistent storage.
 
 ---
 
 ## Features
+
+### AI-Powered Chatbot (NVIDIA NIM / Llama 3.3 70B)
+
+- AI response nodes in conversation flows -- call NVIDIA NIM to generate contextual replies
+- Per-conversation rate limiting (10 requests/minute with sliding window)
+- Conversation history tracking (last 10 messages per sender)
+- Configurable system prompts, temperature, max tokens per flow node
+- Exit keywords to break out of AI conversation loops
+- Automatic history cleanup when flow sessions end
+- Status endpoint for checking AI configuration
+
+### Lead Scoring Engine
+
+- Multi-signal weighted scoring: message frequency (25%), event attendance (25%), ticket purchases (30%), response rate (20%)
+- Time-decay normalization (activity older than 90 days decays)
+- Tier classification: hot (70+), warm (40-69), cool (15-39), cold (0-14)
+- Manual score boost endpoint for back-filling historical data
+- Score summary with tier distribution and averages
+- Dashboard integration showing confidence badges and ranked lead cards
+- Sorted, paginated, filterable score API
+
+### Automated Follow-Up Sequences
+
+- Trigger-based enrollment: auto-enroll contacts when lead score hits 70+
+- Multi-step timed message sequences (e.g., Day 1 welcome, Day 3 event rec, Day 7 VIP offer)
+- Variable substitution in messages ({name}, {nextEvent}, {eventUrl})
+- Sequence CRUD with enable/disable toggle
+- Per-contact pause/resume controls
+- Re-enrollment prevention via contact tagging
+- Background processor running on 60-second check interval
+- Default "Hot Lead Welcome Sequence" seeded on first load
+
+### Smart Group Management
+
+- Group profiles with city, category, tags, invite link, capacity, tier
+- Intelligent group-to-contact matching: city (30pts), interests (25pts), lead tier (20pts), group health (15pts), invite link (10pts)
+- Automatic disqualification for full-capacity groups
+- Group health scoring (0-100): activity (40pts), members (30pts), recency (20pts), profile completeness (10pts)
+- Optimal posting times analysis (hourly/daily message distribution, top 3 best hours/days)
+- Live group activity tracking wired into message handler
+- Health dashboard with summary stats (healthy/moderate/needs-attention counts)
+- Activity seeding endpoint for testing
+
+### WhatsApp-to-Kartis Ticket Purchase Flow
+
+- `ticket_purchase` node type in the conversation flow engine
+- Triggers on "buy tickets", "tickets for [event]", Hebrew variants
+- Fetches events from Kartis API, matches by keyword (name, venue, description)
+- Presents numbered ticket cards with dates, venues, prices, and checkout links
+- Users reply with a number to get a direct Kartis purchase link
+- Bilingual support (English + Hebrew)
+- CRM auto-tags contacts with "ticket-interest" on selection
+- Simulate endpoint for testing conversations without WhatsApp
+- Seed endpoint to create the default ticket flow
 
 ### WhatsApp Broadcasting
 
@@ -21,11 +75,24 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 - Recurring scheduled broadcasts
 - Broadcast history with delivery tracking
 
+### Conversation Flow Engine
+
+- Visual flow builder UI with drag-and-drop nodes
+- Three node types: `message` (static), `ai_response` (LLM-powered), `ticket_purchase` (event lookup)
+- Branching logic with option matching (by number, text, or keywords)
+- Data collection nodes (store user input for later use)
+- Variable substitution throughout flow messages
+- Trigger types: exact match, contains, starts with
+- Scope filtering: DM-only, group-only, or all
+- 30-minute session TTL with automatic cleanup
+- Flow completion logging and analytics
+
 ### Lead Capture
 
 - Real-time keyword detection across WhatsApp groups
 - Multi-language keyword dictionaries (English + Hebrew)
 - Categories: party, event, club, DJ, VIP, guestlist, tickets, nightlife, celebration, venue
+- Smart intent detection beyond simple keywords
 - Custom keyword management
 - Lead stats and analytics
 - Lead dismissal and reply workflows
@@ -39,6 +106,7 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 - Contact import (JSON and CSV file upload)
 - Contact export
 - Contact deletion with confirmation
+- CRM scraping from WhatsApp group participants
 
 ### Broadcast Lists
 
@@ -51,18 +119,18 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 
 ### Personas
 
-- Multiple brand personas for different contexts
+- Multiple brand personas for different contexts (Hype Master, Elegant Host, Music Curator, Social Butterfly, Energy Bomb)
 - Per-persona contact lists
-- Persona-specific message templates with variants
+- Persona-specific message templates with variants (eventAnnouncement, lastChance, welcome, etc.)
 - Template rendering with variable substitution
 - Per-persona broadcasting
 
-### Automation
+### Automation Rules
 
-- Auto-rules engine (trigger-based responses)
-- Visual flow builder for multi-step automations
-- Flow execution with branching logic
-- Rule management (create, update, delete)
+- Auto-rules engine (keyword trigger-based responses)
+- Template variable support ({nextEvent}, {ticketLink}, {eventList}, {eventName})
+- Per-account or global rule scoping
+- Rule management (create, update, delete, enable/disable)
 
 ### Scanner
 
@@ -70,30 +138,30 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 - Scanner stats (messages scanned, leads detected)
 - Group stats tracking (queries detected, responses sent)
 
-### Blocklist
-
-- Phone number blocklist
-- Block/unblock management
-
-### Settings
-
-- Configurable cooldown minutes
-- Quiet hours (start/end times)
-- General platform settings
-
 ### Analytics Dashboard
 
 - Broadcast performance metrics
 - Group activity stats
 - Lead detection analytics
 - Message delivery tracking
+- Lead score distribution and tier summary
+- Top scored leads panel
 
 ### Kartis Integration
 
-- Event data sync from Kartis public events API
+- Event data sync from Kartis public events API (cached with TTL)
+- Ticket purchase flow with checkout links
 - Webhook receiver for Kartis event updates
 - Auto-register webhook on startup
 - Event-based broadcast triggers
+- Event recommendation engine (by day, keyword, intent)
+
+### Multi-Account Support
+
+- Multiple WhatsApp accounts with independent sessions
+- Per-account QR code pairing
+- Account status monitoring
+- Stale session lock cleanup
 
 ### Security
 
@@ -101,6 +169,19 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 - Session cookies with HMAC signing
 - JWT support for external API auth
 - Kartis webhook signature verification
+
+### Blocklist
+
+- Phone number blocklist
+- Block/unblock management
+- Respected across all features (import, broadcast, scoring)
+
+### Settings
+
+- Configurable cooldown minutes
+- Quiet hours (start/end times)
+- Auto-announce toggle
+- General platform settings
 
 ---
 
@@ -110,16 +191,17 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 |-------|-----------|
 | Server | [Express](https://expressjs.com) |
 | WhatsApp | [whatsapp-web.js](https://wwebjs.dev) with Puppeteer |
+| AI | [NVIDIA NIM](https://build.nvidia.com) (Llama 3.3 70B Instruct) |
 | Storage | JSON file persistence (portable, no database required) |
 | QR Codes | [qrcode](https://www.npmjs.com/package/qrcode) |
 | File Upload | [multer](https://www.npmjs.com/package/multer) |
-| Testing | [Vitest](https://vitest.dev) (210 tests across 14 suites) |
+| Testing | [Vitest](https://vitest.dev) (307 tests across 19 suites) |
 | Deployment | [Render](https://render.com) with persistent disk |
 | Frontend | Static HTML/JS (5 pages) |
 
 ---
 
-## API Reference (90+ routes)
+## API Reference (120+ routes)
 
 ### Authentication
 
@@ -162,6 +244,59 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 | POST | `/api/templates` | Create template |
 | DELETE | `/api/templates/:id` | Delete template |
 
+### AI Chatbot
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/whatsapp/ai/chat` | Send message to AI chatbot |
+| GET | `/api/whatsapp/ai/status` | AI configuration status |
+
+### Lead Scoring
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/leads/score` | Score all contacts (sorted, paginated, filterable) |
+| GET | `/api/leads/score/:id` | Score a specific contact |
+| POST | `/api/leads/score/:id/boost` | Boost contact scoring signals |
+| GET | `/api/leads/score-summary` | Tier distribution and averages |
+
+### Auto Follow-Up Sequences
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/leads/auto-follow-up` | List all sequences |
+| POST | `/api/leads/auto-follow-up` | Create sequence |
+| GET | `/api/leads/auto-follow-up/:id` | Get sequence details |
+| PUT | `/api/leads/auto-follow-up/:id` | Update sequence |
+| DELETE | `/api/leads/auto-follow-up/:id` | Delete sequence |
+| GET | `/api/leads/auto-follow-up-queue` | View active follow-up queue |
+| POST | `/api/leads/auto-follow-up-enroll` | Manually enroll a contact |
+| POST | `/api/leads/auto-follow-up-cancel` | Cancel a contact's follow-up |
+| POST | `/api/leads/auto-follow-up-pause` | Pause/resume a follow-up |
+| GET | `/api/leads/auto-follow-up-status` | Follow-up system status |
+
+### Smart Group Management
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/groups/profiles` | List group profiles with health |
+| GET | `/api/groups/profiles/:groupId` | Single profile with health + optimal times |
+| POST | `/api/groups/profiles` | Create/update group profile |
+| PUT | `/api/groups/profiles/:groupId` | Update group profile |
+| DELETE | `/api/groups/profiles/:groupId` | Delete group profile |
+| POST | `/api/groups/smart-join` | Get ranked group recommendations for a contact |
+| GET | `/api/groups/health` | Group health dashboard with summary |
+| POST | `/api/groups/activity` | Report group activity (testing/seeding) |
+
+### Ticket Purchase Flow
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/tickets/seed-flow` | Seed the default ticket purchase flow |
+| GET | `/api/tickets/lookup` | Search events with ticket URLs |
+| POST | `/api/tickets/simulate` | Simulate a ticket purchase conversation |
+| GET | `/api/tickets/flow-status` | Check ticket flow status |
+
 ### Leads
 
 | Method | Endpoint | Description |
@@ -169,16 +304,15 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 | GET | `/api/leads` | List captured leads |
 | GET | `/api/leads/stats` | Lead capture statistics |
 | GET | `/api/leads/export` | Export leads as CSV |
-| POST | `/api/leads/dismiss` | Dismiss a lead |
-| POST | `/api/leads/dismiss-all` | Dismiss all leads |
-| POST | `/api/leads/reply` | Reply to a lead via WhatsApp |
+| PUT | `/api/leads/:id` | Update lead status |
 
 ### Keywords
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/keywords` | Get keyword dictionaries |
-| PUT | `/api/keywords` | Update keyword dictionaries |
+| POST | `/api/keywords` | Add custom keywords |
+| DELETE | `/api/keywords/:keyword` | Remove custom keyword |
 
 ### Contacts & CRM
 
@@ -202,6 +336,7 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 | POST | `/api/lists` | Create broadcast list |
 | DELETE | `/api/lists` | Delete broadcast list |
 | GET | `/api/lists/members` | List members |
+| POST | `/api/lists/broadcast` | Send broadcast to list |
 | GET | `/api/broadcast-lists` | List all broadcast lists |
 | POST | `/api/broadcast-lists` | Create broadcast list |
 | POST | `/api/broadcast-lists/from-filter` | Create list from filter |
@@ -278,6 +413,13 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 | POST | `/api/blocklist` | Add to blocklist |
 | DELETE | `/api/blocklist/:phone` | Remove from blocklist |
 
+### CRM Scraping
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/whatsapp/scrape` | Scrape all group participants |
+| POST | `/api/whatsapp/scrape/:groupId` | Scrape specific group |
+
 ### Analytics
 
 | Method | Endpoint | Description |
@@ -292,6 +434,8 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 | DELETE | `/api/accounts` | Delete WhatsApp session |
 | POST | `/api/webhooks/kartis` | Kartis webhook receiver |
 
+> All `/api/whatsapp/*` routes have short aliases under `/api/*` for frontend compatibility.
+
 ---
 
 ## Environment Variables
@@ -300,6 +444,9 @@ Built with Express, Puppeteer, whatsapp-web.js, and deployed on Render with pers
 |----------|----------|-------------|
 | `WBPRO_PASSWORD` | Yes | Login password (required to start) |
 | `PORT` | No | Server port (default: 8080) |
+| `NVIDIA_NIM_API_KEY` | No | NVIDIA NIM API key for AI chatbot |
+| `NVIDIA_NIM_MODEL` | No | LLM model (default: meta/llama-3.3-70b-instruct) |
+| `NVIDIA_NIM_URL` | No | NIM API endpoint URL |
 | `JWT_SECRET` | No | Secret for external API JWT auth |
 | `KARTIS_EVENTS_URL` | No | Kartis events API URL |
 | `KARTIS_URL` | No | Kartis base URL |
@@ -336,10 +483,18 @@ npm start
 # Scan the QR code with WhatsApp
 ```
 
+### AI Chatbot Setup
+
+```bash
+export NVIDIA_NIM_API_KEY="your-nvidia-api-key"
+# Then seed the ticket purchase flow:
+# POST /api/tickets/seed-flow
+```
+
 ### Testing
 
 ```bash
-# 210 tests across 14 suites
+# 307 tests across 19 suites
 npm test
 ```
 
@@ -358,7 +513,7 @@ All data is stored as JSON files (no database required):
 | `accounts.json` | WhatsApp account sessions |
 | `templates.json` | Message templates |
 | `auto-rules.json` | Automation rules |
-| `flows.json` | Automation flows |
+| `flows.json` | Automation flows (including AI + ticket purchase flows) |
 | `contacts.json` | CRM contacts |
 | `crm.json` | CRM metadata |
 | `blocklist.json` | Blocked phone numbers |
@@ -366,6 +521,9 @@ All data is stored as JSON files (no database required):
 | `personas.json` | Brand personas |
 | `settings.json` | Platform settings |
 | `group-tags.json` | Group tag assignments |
+| `group-profiles.json` | Smart group profiles (city, category, tier, invite links) |
+| `follow-up-sequences.json` | Auto follow-up sequence definitions |
+| `follow-up-queue.json` | Active follow-up queue state |
 | `wwebjs_auth/` | WhatsApp session data |
 
 ---
@@ -373,16 +531,26 @@ All data is stored as JSON files (no database required):
 ## Project Structure
 
 ```
-server.js               # Express app (all routes, WhatsApp client, ~5000 lines)
+server.js               # Express app (all routes, WhatsApp client, AI, scoring, ~6600 lines)
 leads.js                # Lead capture module (keyword detection, storage)
 public/
-  index.html            # Main dashboard
+  index.html            # Main dashboard (leads, contacts, scoring, groups)
   login.html            # Login page
   analytics.html        # Analytics dashboard
-  flows.html            # Flow builder
+  flows.html            # Flow builder (message, AI, ticket nodes)
   import.html           # Contact import
 templates/              # Persona-specific message templates
-tests/                  # 14 test suites, 210 tests
+tests/                  # 19 test suites, 307 tests
+  ai-response.test.js   # AI chatbot flow tests (10 tests)
+  lead-scoring.test.js  # Lead scoring engine tests (20 tests)
+  auto-follow-up.test.js # Follow-up sequence tests (25 tests)
+  smart-groups.test.js  # Smart group management tests (21 tests)
+  ticket-purchase.test.js # Ticket purchase flow tests (21 tests)
+  flows.test.js         # Conversation flow tests
+  broadcast.test.js     # Broadcasting tests
+  contacts-crm.test.js  # CRM tests
+  leads.test.js         # Lead capture tests
+  ...                   # 10 more test suites
 render.yaml             # Render deployment config
 Dockerfile              # Container build
 ```
