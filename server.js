@@ -90,6 +90,7 @@ function setSessionCookie(res, value) {
     'SameSite=Lax',
     `Max-Age=${SESSION_MAX_AGE}`,
     'Path=/',
+    ...(process.env.NODE_ENV === 'production' ? ['Secure'] : []),
   ];
   res.setHeader('Set-Cookie', flags.join('; '));
 }
