@@ -125,6 +125,7 @@ const CRM_FILE = path.join(DATA_DIR, 'crm.json');
 const BLOCKLIST_FILE = path.join(DATA_DIR, 'blocklist.json');
 const LISTS_FILE = path.join(DATA_DIR, 'lists.json');
 const BROADCAST_LISTS_FILE = path.join(DATA_DIR, 'broadcast-lists.json');
+const PERSONAS_FILE = path.join(DATA_DIR, 'personas.json');
 const ANNOUNCED_FILE = path.join(DATA_DIR, 'announced.json');
 const RECURRING_FILE = path.join(DATA_DIR, 'recurring-schedules.json');
 
@@ -386,6 +387,113 @@ setInterval(saveBroadcastLists, 30000);
 
 function getBroadcastList(id) {
   return broadcastLists.find(l => l.id === id) || null;
+}
+
+// ─── Personas In-Memory Store ────────────────────────────────────────────
+
+const DEFAULT_PERSONAS = [
+  {
+    id: 'alex',
+    name: 'Alex',
+    role: 'Nightlife Host',
+    tone: 'hype',
+    contacts: [],
+    templates: {
+      eventAnnouncement: 'Yo {name}! 🔥 *{eventName}* is going OFF this {day}!\n\n📅 {date} | 📍 {venue}\n🎟️ Grab your ticket: {ticketUrl}\n\nDon\'t sleep on this one! 🚀',
+      lastChance: 'LAST CALL {name}! ⏰ *{eventName}* is TONIGHT!\n\nThis is your FINAL chance — tickets selling fast!\n🎟️ {ticketUrl}\n\nSee you there! 💯',
+      welcome: 'Hey {name}! 👋 Welcome to the crew! I\'m Alex — your go-to for the best nightlife in town. Stay tuned for fire events! 🔥',
+    },
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'mia',
+    name: 'Mia',
+    role: 'VIP Concierge',
+    tone: 'elegant',
+    contacts: [],
+    templates: {
+      eventAnnouncement: 'Hi {name} ✨ We\'d love to invite you to *{eventName}*\n\n📅 {date} | 📍 {venue}\n🎟️ Reserve your spot: {ticketUrl}\n\nLooking forward to seeing you there 💫',
+      lastChance: 'Gentle reminder, {name} — *{eventName}* is tonight ✨\n\nLimited availability remaining.\n🎟️ {ticketUrl}\n\nHope to see you! 🥂',
+      welcome: 'Hello {name} ✨ I\'m Mia, your VIP concierge. I\'ll keep you updated on our most exclusive events and experiences. Welcome aboard!',
+    },
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'dj-vibe',
+    name: 'DJ Vibe',
+    role: 'Music Curator',
+    tone: 'chill',
+    contacts: [],
+    templates: {
+      eventAnnouncement: 'What\'s good {name} 🎵 Check this out — *{eventName}*\n\n📅 {date} | 📍 {venue}\n🎟️ Tickets: {ticketUrl}\n\nThe lineup is insane. Trust me on this one 🎧',
+      lastChance: 'Heads up {name} 🎶 *{eventName}* — TONIGHT\n\nLast chance to get in!\n🎟️ {ticketUrl}\n\nThe vibes are gonna be unreal 🎧✨',
+      welcome: 'Hey {name} 🎵 DJ Vibe here. I curate the best music events around. Follow along and never miss a beat! 🎧',
+    },
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'noa',
+    name: 'Noa',
+    role: 'Events Coordinator',
+    tone: 'friendly',
+    contacts: [],
+    templates: {
+      eventAnnouncement: 'Hey {name}! 🎉 Exciting news — *{eventName}* just dropped!\n\n📅 {date} | 📍 {venue}\n🎟️ Get tickets: {ticketUrl}\n\nWould love to see you there! 😊',
+      lastChance: 'Hey {name}! Quick heads up — *{eventName}* is happening tonight! 🎉\n\nDon\'t miss out!\n🎟️ {ticketUrl}\n\nSee you soon! 😊',
+      welcome: 'Hi {name}! 😊 I\'m Noa, your events coordinator. I\'ll keep you in the loop on all the amazing events coming up. Excited to have you!',
+    },
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'marco',
+    name: 'Marco',
+    role: 'Promoter',
+    tone: 'bold',
+    contacts: [],
+    templates: {
+      eventAnnouncement: '{name}! 💥 BIG one coming — *{eventName}*\n\n📅 {date} | 📍 {venue}\n🎟️ Lock it in: {ticketUrl}\n\nThis is gonna be MASSIVE. You in? 🙌',
+      lastChance: '{name} — TONIGHT IS THE NIGHT! 💥 *{eventName}*\n\nNo excuses. Get your ticket NOW!\n🎟️ {ticketUrl}\n\nLet\'s GO! 🙌🔥',
+      welcome: 'Yo {name}! 💥 Marco here — I bring the biggest parties to your city. Stick with me and you\'ll never miss the action! 🙌',
+    },
+    createdAt: new Date().toISOString(),
+  },
+];
+
+let personas = [];
+let personasDirty = false;
+
+function loadPersonas() {
+  personas = loadJSON(PERSONAS_FILE, []);
+  if (personas.length === 0) {
+    personas = DEFAULT_PERSONAS.map(p => ({ ...p }));
+    personasDirty = true;
+    savePersonas();
+  }
+  console.log(`Personas loaded: ${personas.length}`);
+}
+
+function savePersonas() {
+  if (!personasDirty) return;
+  saveJSON(PERSONAS_FILE, personas);
+  personasDirty = false;
+}
+
+// Flush personas every 30 seconds
+setInterval(savePersonas, 30000);
+
+// Load personas immediately (seeds defaults if file is missing)
+loadPersonas();
+
+function getPersona(id) {
+  return personas.find(p => p.id === id) || null;
+}
+
+function formatPersonaTemplate(template, vars) {
+  let msg = template;
+  for (const [key, value] of Object.entries(vars)) {
+    msg = msg.replace(new RegExp(`\\{${key}\\}`, 'g'), value || '');
+  }
+  return msg;
 }
 
 function calculateScore(contact) {
@@ -2619,6 +2727,49 @@ app.post('/api/webhooks/kartis', async (req, res) => {
     };
     saveJSON(ANNOUNCED_FILE, announced);
 
+    // ── Persona auto-broadcast: each persona DMs their own contact list ──
+    try {
+      const loadedPersonas = loadJSON(PERSONAS_FILE, []);
+      for (const persona of loadedPersonas) {
+        if (!persona.contacts || persona.contacts.length === 0) continue;
+        const tplMsg = persona.templates?.eventAnnouncement;
+        if (!tplMsg) continue;
+
+        const evVars = {
+          name: '{name}', // Will be replaced per-contact below
+          eventName: eventData?.name || 'New Event',
+          date: eventData?.date ? new Date(eventData.date).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }) : 'TBA',
+          day: eventData?.date ? new Date(eventData.date).toLocaleDateString('en-US', { weekday: 'long' }) : '',
+          venue: eventData?.venue || '',
+          ticketUrl: eventData?.slug
+            ? `https://kartis-astro.vercel.app/en/event/${eventData.slug}`
+            : eventData?.ticketUrl || `${KARTIS_URL}/events`,
+        };
+
+        let personaSent = 0, personaFailed = 0;
+        for (const phone of persona.contacts) {
+          const phoneId = phone.replace(/[^0-9]/g, '');
+          const crmContact = getCrmContact(phoneId);
+          const contactName = crmContact ? (crmContact.name || crmContact.pushName || 'there') : 'there';
+
+          const personalVars = { ...evVars, name: contactName };
+          const personalMsg = formatPersonaTemplate(tplMsg, personalVars);
+
+          try {
+            await acc.client.sendMessage(phoneId + '@c.us', personalMsg);
+            personaSent++;
+            if (personaSent < persona.contacts.length) await new Promise(r => setTimeout(r, 3000));
+          } catch (dmErr) {
+            console.error(`Persona ${persona.name} webhook DM failed for ${phone}:`, dmErr.message);
+            personaFailed++;
+          }
+        }
+        console.log(`Persona ${persona.name} webhook broadcast: sent=${personaSent}, failed=${personaFailed}`);
+      }
+    } catch (personaErr) {
+      console.error('Persona webhook broadcast error:', personaErr.message);
+    }
+
   } catch (err) {
     console.error('Kartis webhook broadcast error:', err.message);
   }
@@ -3972,6 +4123,163 @@ app.post('/api/whatsapp/broadcast-lists/:id/send', async (req, res) => {
   res.json({ sent, skipped, failed, total });
 });
 
+// ─── Persona Broadcast Management ────────────────────────────────────────
+
+// GET /api/personas — list all personas
+app.get('/api/personas', (req, res) => {
+  const result = personas.map(p => ({
+    id: p.id,
+    name: p.name,
+    role: p.role,
+    tone: p.tone,
+    contactCount: (p.contacts || []).length,
+    templates: Object.keys(p.templates || {}),
+    createdAt: p.createdAt,
+  }));
+  res.json({ personas: result });
+});
+
+// GET /api/personas/:id — get persona details
+app.get('/api/personas/:id', (req, res) => {
+  const persona = getPersona(req.params.id);
+  if (!persona) return res.status(404).json({ error: 'Persona not found' });
+  res.json({ persona });
+});
+
+// GET /api/personas/:id/contacts — list contacts for a persona
+app.get('/api/personas/:id/contacts', (req, res) => {
+  const persona = getPersona(req.params.id);
+  if (!persona) return res.status(404).json({ error: 'Persona not found' });
+
+  const members = (persona.contacts || []).map(phone => {
+    const phoneId = phone.replace(/[^0-9]/g, '');
+    const contact = getCrmContact(phoneId);
+    const score = contact ? (contact.score || 0) : 0;
+    return {
+      phone,
+      name: contact ? (contact.name || contact.pushName || null) : null,
+      score,
+    };
+  });
+  res.json({ contacts: members });
+});
+
+// POST /api/personas/:id/contacts — add contact(s) to persona
+app.post('/api/personas/:id/contacts', (req, res) => {
+  const persona = getPersona(req.params.id);
+  if (!persona) return res.status(404).json({ error: 'Persona not found' });
+
+  const { phones } = req.body;
+  if (!phones || !Array.isArray(phones)) return res.status(400).json({ error: 'phones[] required' });
+
+  let added = 0;
+  for (const raw of phones) {
+    const phone = formatPhone(raw.replace(/[^0-9]/g, ''));
+    if (!persona.contacts.includes(phone)) {
+      persona.contacts.push(phone);
+      added++;
+    }
+  }
+  personasDirty = true;
+  savePersonas();
+  res.json({ ok: true, added, total: persona.contacts.length });
+});
+
+// DELETE /api/personas/:id/contacts — remove contact from persona
+app.delete('/api/personas/:id/contacts', (req, res) => {
+  const persona = getPersona(req.params.id);
+  if (!persona) return res.status(404).json({ error: 'Persona not found' });
+
+  const { phone } = req.body;
+  if (!phone) return res.status(400).json({ error: 'phone required' });
+
+  const normalized = formatPhone(phone.replace(/[^0-9]/g, ''));
+  const idx = persona.contacts.indexOf(normalized);
+  if (idx >= 0) {
+    persona.contacts.splice(idx, 1);
+    personasDirty = true;
+    savePersonas();
+  }
+  res.json({ ok: true, total: persona.contacts.length });
+});
+
+// POST /api/personas/:id/broadcast — send broadcast to persona's contact list
+app.post('/api/personas/:id/broadcast', async (req, res) => {
+  const persona = getPersona(req.params.id);
+  if (!persona) return res.status(404).json({ error: 'Persona not found' });
+
+  const { templateKey, message: customMessage, eventData } = req.body;
+
+  // Resolve message: custom message, or template + eventData
+  let baseMessage;
+  if (customMessage) {
+    baseMessage = customMessage;
+  } else if (templateKey && persona.templates[templateKey]) {
+    baseMessage = persona.templates[templateKey];
+  } else {
+    return res.status(400).json({ error: 'Provide message or templateKey' });
+  }
+
+  if (!persona.contacts || persona.contacts.length === 0) {
+    return res.status(400).json({ error: 'Persona has no contacts' });
+  }
+
+  // Find a connected account
+  let acc = null;
+  for (const [, a] of accounts) {
+    if (a.ready) { acc = a; break; }
+  }
+  if (!acc) return res.status(503).json({ error: 'No connected account' });
+
+  let sent = 0, failed = 0;
+  const total = persona.contacts.length;
+
+  for (const phone of persona.contacts) {
+    const phoneId = phone.replace(/[^0-9]/g, '');
+    const crmContact = getCrmContact(phoneId);
+    const contactName = crmContact ? (crmContact.name || crmContact.pushName || 'there') : 'there';
+
+    const vars = {
+      name: contactName,
+      eventName: eventData?.name || '',
+      date: eventData?.date || '',
+      day: eventData?.date ? new Date(eventData.date).toLocaleDateString('en-US', { weekday: 'long' }) : '',
+      venue: eventData?.venue || '',
+      ticketUrl: eventData?.ticketUrl || eventData?.slug
+        ? `https://kartis-astro.vercel.app/en/event/${eventData.slug}`
+        : '',
+    };
+
+    const personalMsg = formatPersonaTemplate(baseMessage, vars);
+
+    try {
+      const jid = phoneId + '@c.us';
+      await acc.client.sendMessage(jid, personalMsg);
+      sent++;
+      if (sent < total) await new Promise(r => setTimeout(r, 3000));
+    } catch (err) {
+      console.error(`Persona ${persona.name} broadcast DM failed for ${phone}:`, err.message);
+      failed++;
+    }
+  }
+
+  res.json({ ok: true, persona: persona.id, sent, failed, total });
+});
+
+// PUT /api/personas/:id/templates — update persona templates
+app.put('/api/personas/:id/templates', (req, res) => {
+  const persona = getPersona(req.params.id);
+  if (!persona) return res.status(404).json({ error: 'Persona not found' });
+
+  const { templates } = req.body;
+  if (!templates || typeof templates !== 'object') return res.status(400).json({ error: 'templates object required' });
+
+  persona.templates = { ...persona.templates, ...templates };
+  personasDirty = true;
+  savePersonas();
+  res.json({ ok: true, templates: persona.templates });
+});
+
 // ─── Campaign Analytics Dashboard ────────────────────────────────────────
 
 app.get('/api/analytics', (req, res) => {
@@ -4135,6 +4443,7 @@ if (require.main === module) {
     leads.initLeads(DATA_DIR);
     loadCRM();
     loadBroadcastLists();
+    loadPersonas();
     seedDefaultTemplates();
     loadAndInitAccounts();
     startScrapeSchedule();
