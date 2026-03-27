@@ -126,6 +126,7 @@ const BLOCKLIST_FILE = path.join(DATA_DIR, 'blocklist.json');
 const LISTS_FILE = path.join(DATA_DIR, 'lists.json');
 const BROADCAST_LISTS_FILE = path.join(DATA_DIR, 'broadcast-lists.json');
 const PERSONAS_FILE = path.join(DATA_DIR, 'personas.json');
+const PERSONA_TEMPLATES_DIR = path.join(DATA_DIR, 'templates');
 const ANNOUNCED_FILE = path.join(DATA_DIR, 'announced.json');
 const RECURRING_FILE = path.join(DATA_DIR, 'recurring-schedules.json');
 
@@ -2564,6 +2565,17 @@ app.post('/api/whatsapp/broadcast', async (req, res) => {
   const chatIds = req.body.chatIds || req.body.groupIds;
   let { message, templateId, variables } = req.body;
 
+  // If using a persona template (personaId + variant), resolve it
+  const { personaId, variant } = req.body;
+  if (personaId && variant && !message && !templateId) {
+    const ptFile = path.join(PERSONA_TEMPLATES_DIR, `${personaId}.json`);
+    const ptData = loadJSON(ptFile, null);
+    if (!ptData) return res.status(404).json({ error: `Persona template "${personaId}" not found` });
+    const ptVariant = ptData.variants && ptData.variants[variant];
+    if (!ptVariant) return res.status(404).json({ error: `Variant "${variant}" not found for persona "${personaId}"` });
+    message = formatPersonaTemplate(ptVariant.message, variables || {});
+  }
+
   // If using a template, resolve it
   if (templateId) {
     const templates = loadJSON(TEMPLATES_FILE, []);
@@ -4278,6 +4290,60 @@ app.put('/api/personas/:id/templates', (req, res) => {
   personasDirty = true;
   savePersonas();
   res.json({ ok: true, templates: persona.templates });
+});
+
+// ─── Persona Template Files (templates/ directory) ──────────────────────
+
+function loadPersonaTemplates() {
+  try {
+    if (!fs.existsSync(PERSONA_TEMPLATES_DIR)) return [];
+    const files = fs.readdirSync(PERSONA_TEMPLATES_DIR).filter(f => f.endsWith('.json'));
+    return files.map(f => {
+      const data = loadJSON(path.join(PERSONA_TEMPLATES_DIR, f), null);
+      if (data) data._file = f;
+      return data;
+    }).filter(Boolean);
+  } catch (e) {
+    console.error('Failed to load persona templates:', e.message);
+    return [];
+  }
+}
+
+// GET /api/persona-templates — list all persona template files
+app.get('/api/persona-templates', (req, res) => {
+  const templates = loadPersonaTemplates();
+  res.json(templates);
+});
+
+// GET /api/persona-templates/:persona — get template for specific persona
+app.get('/api/persona-templates/:persona', (req, res) => {
+  const filePath = path.join(PERSONA_TEMPLATES_DIR, `${req.params.persona}.json`);
+  const data = loadJSON(filePath, null);
+  if (!data) return res.status(404).json({ error: `Persona template "${req.params.persona}" not found` });
+  res.json(data);
+});
+
+// GET /api/persona-templates/:persona/:variant — get specific variant message
+app.get('/api/persona-templates/:persona/:variant', (req, res) => {
+  const filePath = path.join(PERSONA_TEMPLATES_DIR, `${req.params.persona}.json`);
+  const data = loadJSON(filePath, null);
+  if (!data) return res.status(404).json({ error: `Persona template "${req.params.persona}" not found` });
+  const variant = data.variants && data.variants[req.params.variant];
+  if (!variant) return res.status(404).json({ error: `Variant "${req.params.variant}" not found` });
+  res.json(variant);
+});
+
+// POST /api/persona-templates/:persona/render — render a variant with variables
+app.post('/api/persona-templates/:persona/render', (req, res) => {
+  const filePath = path.join(PERSONA_TEMPLATES_DIR, `${req.params.persona}.json`);
+  const data = loadJSON(filePath, null);
+  if (!data) return res.status(404).json({ error: `Persona template "${req.params.persona}" not found` });
+  const { variant, variables } = req.body;
+  if (!variant) return res.status(400).json({ error: 'variant required' });
+  const tpl = data.variants && data.variants[variant];
+  if (!tpl) return res.status(404).json({ error: `Variant "${variant}" not found` });
+  const rendered = formatPersonaTemplate(tpl.message, variables || {});
+  res.json({ persona: data.persona, variant, rendered });
 });
 
 // ─── Campaign Analytics Dashboard ────────────────────────────────────────

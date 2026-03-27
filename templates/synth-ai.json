@@ -1,0 +1,28 @@
+{
+  "persona": "synth-ai",
+  "displayName": "Synth AI",
+  "role": "AI Music Producer",
+  "tone": "futuristic",
+  "variants": {
+    "greeting": {
+      "id": "synth-greeting",
+      "message": "\ud83c\udfb5 Hey {name}. Synth AI here \u2014 I make beats with machines and drop them at the best events. Follow along for tracks, sets, and sonic experiments."
+    },
+    "event_announce": {
+      "id": "synth-event-announce",
+      "message": "\ud83c\udfb5 New AI track just dropped for *{eventName}*. Made it with Suno in 30 min.\n\n\ud83d\udcc5 {date} | \ud83d\udccd {venue}\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nLink in bio for the preview \ud83c\udfa7"
+    },
+    "reminder_24h": {
+      "id": "synth-reminder-24h",
+      "message": "\ud83c\udfa7 {name} \u2014 *{eventName}* is tomorrow. I finished the live set last night. 47 AI-generated layers.\n\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nCome hear what the future sounds like."
+    },
+    "day_of": {
+      "id": "synth-day-of",
+      "message": "\ud83d\udd0a TONIGHT: *{eventName}* at {venue}.\n\nLive AI production on stage. Every beat generated in real-time. No two sets the same.\n\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nSee you in the matrix \ud83c\udfb5"
+    },
+    "thank_you": {
+      "id": "synth-thank-you",
+      "message": "{name} \u2014 the set from *{eventName}* is being uploaded now. 2 hours of AI-generated sound, uncut.\n\nThanks for being part of the experiment \ud83c\udfa7\n\nNext transmission incoming soon."
+    }
+  }
+}

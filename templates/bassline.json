@@ -1,0 +1,28 @@
+{
+  "persona": "bassline",
+  "displayName": "Bassline",
+  "role": "Nightlife News / Announcer",
+  "tone": "news",
+  "variants": {
+    "greeting": {
+      "id": "bassline-greeting",
+      "message": "\ud83d\udce2 {name} \u2014 you're now subscribed to Bassline. Breaking nightlife news, lineups, and ticket drops. Stay tuned."
+    },
+    "event_announce": {
+      "id": "bassline-event-announce",
+      "message": "\ud83d\udce2 JUST ANNOUNCED: *{eventName}* at {venue} ft. {djs}\n\n\ud83d\udcc5 {date}\n\ud83c\udf9f\ufe0f Tickets live now \u2192 {ticketUrl}\n\nSpread the word."
+    },
+    "reminder_24h": {
+      "id": "bassline-reminder-24h",
+      "message": "\ud83d\udce2 REMINDER: *{eventName}* is tomorrow at {venue}.\n\nLineup: {djs}\n\ud83c\udf9f\ufe0f Last chance for advance tickets \u2192 {ticketUrl}\n\nDon't say we didn't warn you."
+    },
+    "day_of": {
+      "id": "bassline-day-of",
+      "message": "\ud83d\udce2 TONIGHT: *{eventName}* at {venue}.\n\nDoors: {time} | Lineup: {djs}\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nSee you on the dancefloor."
+    },
+    "thank_you": {
+      "id": "bassline-thank-you",
+      "message": "\ud83d\udce2 RECAP: *{eventName}* \u2014 {venue} delivered last night.\n\nThanks to everyone who came out. Next announcement dropping soon.\n\nStay locked in \ud83d\udcf0"
+    }
+  }
+}

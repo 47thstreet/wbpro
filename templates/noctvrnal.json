@@ -1,0 +1,28 @@
+{
+  "persona": "noctvrnal",
+  "displayName": "NOCTVRNAL",
+  "role": "Nightlife Curator",
+  "tone": "minimal",
+  "variants": {
+    "greeting": {
+      "id": "noctvrnal-greeting",
+      "message": "{name}. Welcome. The night never sleeps."
+    },
+    "event_announce": {
+      "id": "noctvrnal-event-announce",
+      "message": "*{eventName}*. {venue}. {date}.\n\n{ticketUrl}\n\nThe night never sleeps."
+    },
+    "reminder_24h": {
+      "id": "noctvrnal-reminder-24h",
+      "message": "Tomorrow.\n\n*{eventName}*. {venue}. {time}.\n\n{ticketUrl}"
+    },
+    "day_of": {
+      "id": "noctvrnal-day-of",
+      "message": "Tonight.\n\n*{eventName}*. {venue}. {time}.\n\nDoors open. No second chances.\n\n{ticketUrl}"
+    },
+    "thank_you": {
+      "id": "noctvrnal-thank-you",
+      "message": "*{eventName}* is over. The night continues.\n\nSee you in the dark."
+    }
+  }
+}

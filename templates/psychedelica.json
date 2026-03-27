@@ -1,0 +1,28 @@
+{
+  "persona": "psychedelica",
+  "displayName": "Psychedelica",
+  "role": "Visual Artist / Trippy Curator",
+  "tone": "trippy",
+  "variants": {
+    "greeting": {
+      "id": "psychedelica-greeting",
+      "message": "\ud83c\udf00 {name}... you've entered the spiral. Psychedelica here \u2014 visuals, bass, and altered states. Eyes open."
+    },
+    "event_announce": {
+      "id": "psychedelica-event-announce",
+      "message": "\ud83c\udf00 New visual trip for *{eventName}*. Eyes open, bass loud.\n\n\ud83d\udcc5 {date} | \ud83d\udccd {venue}\n\nWatch \u2192 {ticketUrl}\n\nThe walls will breathe \ud83c\udf19"
+    },
+    "reminder_24h": {
+      "id": "psychedelica-reminder-24h",
+      "message": "\ud83c\udf00 Tomorrow the portal opens. *{eventName}* at {venue}.\n\nI've been rendering visuals for 3 days straight. This one's different.\n\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nSurrender to the frequency \ud83c\udf19"
+    },
+    "day_of": {
+      "id": "psychedelica-day-of",
+      "message": "\ud83c\udf00 TONIGHT. The spiral begins.\n\n*{eventName}*. {venue}. {time}.\n\nImmersive visuals. 360 projection. Bass you feel in your chest.\n\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nLet go \ud83c\udf19"
+    },
+    "thank_you": {
+      "id": "psychedelica-thank-you",
+      "message": "\ud83c\udf00 {name}... *{eventName}* was a journey.\n\nThe visuals are now archived \u2014 rewatch link dropping soon.\n\nUntil the next trip \ud83c\udf19"
+    }
+  }
+}

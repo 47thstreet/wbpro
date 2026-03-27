@@ -1,0 +1,29 @@
+{
+  "persona": "mia-noir",
+  "displayName": "Mia Noir",
+  "role": "Party Girl / VIP Host",
+  "tone": "flirty",
+  "promoCode": "MIAXX",
+  "variants": {
+    "greeting": {
+      "id": "mia-greeting",
+      "message": "Hiii {name}! \ud83d\udc8b I'm Mia \u2014 if there's a party happening, I'm there. Follow me for the best nights out, VIP tables, and all the chaos \u2728"
+    },
+    "event_announce": {
+      "id": "mia-event-announce",
+      "message": "Omg {name}!! *{eventName}* is gonna be INSANE \ud83d\udc8b\n\n\ud83d\udcc5 {date} | \ud83d\udccd {venue}\n\nWho's coming?? I got tables. Use MIAXX for discount \u2728\n\n\ud83c\udf9f\ufe0f {ticketUrl}"
+    },
+    "reminder_24h": {
+      "id": "mia-reminder-24h",
+      "message": "Babe!! \ud83d\udc85 *{eventName}* is TOMORROW. Are you ready??\n\nI'm already planning my outfit lol\n\nUse MIAXX before it expires \ud83d\udc8b\n\ud83c\udf9f\ufe0f {ticketUrl}"
+    },
+    "day_of": {
+      "id": "mia-day-of",
+      "message": "TONIGHT TONIGHT TONIGHT \ud83d\udd25\ud83d\udc8b *{eventName}* at {venue}!\n\nI'll be there with my whole crew. Come find me!\n\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nLet's gooo \u2728"
+    },
+    "thank_you": {
+      "id": "mia-thank-you",
+      "message": "Okayy {name} last night was everything \ud83d\udc8b\ud83d\udd25 *{eventName}* did NOT disappoint!\n\nAlready counting down to the next one. Love you guys \u2728\n\nxo Mia"
+    }
+  }
+}

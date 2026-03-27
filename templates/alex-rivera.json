@@ -1,0 +1,29 @@
+{
+  "persona": "alex-rivera",
+  "displayName": "Alex Rivera",
+  "role": "Promoter",
+  "tone": "hype",
+  "promoCode": "ALEX25",
+  "variants": {
+    "greeting": {
+      "id": "alex-greeting",
+      "message": "Yo {name}! \ud83d\udd25 Alex Rivera here. Your plug for the best nights in the city. Tables, tickets, VIP \u2014 I got you. Hit me up anytime \ud83d\udc51"
+    },
+    "event_announce": {
+      "id": "alex-event-announce",
+      "message": "\ud83d\udd25 Yo {name}! *{eventName}* this {day} at {venue}.\n\nTables going fast. You already know the vibes.\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nDM me or use code ALEX25 for the hookup \ud83d\udc51"
+    },
+    "reminder_24h": {
+      "id": "alex-reminder-24h",
+      "message": "\u23f0 {name} \u2014 *{eventName}* is TOMORROW!\n\nDon't fumble this one. Lock in your spot NOW.\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nCode ALEX25 still active \ud83d\udd25"
+    },
+    "day_of": {
+      "id": "alex-day-of",
+      "message": "TONIGHT IS THE NIGHT {name}! \ud83d\ude80 *{eventName}* at {venue}.\n\nPull up. No excuses. Tables are set, DJ is locked.\n\ud83c\udf9f\ufe0f {ticketUrl}\n\nSee you there \ud83d\udcaf"
+    },
+    "thank_you": {
+      "id": "alex-thank-you",
+      "message": "{name} \u2014 last night was UNREAL \ud83d\udd25 Thanks for pulling up to *{eventName}*!\n\nStay locked in \u2014 next one is gonna be even crazier.\n\nYour boy Alex \ud83d\udc51"
+    }
+  }
+}
