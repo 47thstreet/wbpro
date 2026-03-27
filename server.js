@@ -133,6 +133,8 @@ const PERSONA_TEMPLATES_DIR = path.join(DATA_DIR, 'templates');
 const ANNOUNCED_FILE = path.join(DATA_DIR, 'announced.json');
 const RECURRING_FILE = path.join(DATA_DIR, 'recurring-schedules.json');
 const FLOWS_FILE = path.join(DATA_DIR, 'flows.json');
+const FOLLOWUP_SEQUENCES_FILE = path.join(DATA_DIR, 'follow-up-sequences.json');
+const FOLLOWUP_QUEUE_FILE = path.join(DATA_DIR, 'follow-up-queue.json');
 
 // ─── Cooldown System ─────────────────────────────────────────────────────
 const groupCooldowns = new Map(); // groupId -> timestamp
@@ -1316,6 +1318,17 @@ app.get('/api/leads/score', (req, res, next) => { req.url = '/api/whatsapp/leads
 app.get('/api/leads/score-summary', (req, res, next) => { req.url = '/api/whatsapp/leads/score-summary'; next(); });
 app.get('/api/leads/score/:id', (req, res, next) => { req.url = '/api/whatsapp/leads/score/' + req.params.id; next(); });
 app.post('/api/leads/score/:id/boost', (req, res, next) => { req.url = '/api/whatsapp/leads/score/' + req.params.id + '/boost'; next(); });
+// --- Follow-up aliases ---
+app.get('/api/leads/auto-follow-up', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up'; next(); });
+app.post('/api/leads/auto-follow-up', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up'; next(); });
+app.get('/api/leads/auto-follow-up-queue', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up-queue'; next(); });
+app.get('/api/leads/auto-follow-up-status', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up-status'; next(); });
+app.post('/api/leads/auto-follow-up-enroll', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up-enroll'; next(); });
+app.post('/api/leads/auto-follow-up-cancel', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up-cancel'; next(); });
+app.post('/api/leads/auto-follow-up-pause', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up-pause'; next(); });
+app.get('/api/leads/auto-follow-up/:id', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up/' + req.params.id; next(); });
+app.put('/api/leads/auto-follow-up/:id', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up/' + req.params.id; next(); });
+app.delete('/api/leads/auto-follow-up/:id', (req, res, next) => { req.url = '/api/whatsapp/leads/auto-follow-up/' + req.params.id; next(); });
 
 // --- Schedules aliases (plural and singular) ---
 app.get('/api/schedules', (req, res, next) => { req.url = '/api/whatsapp/schedules'; next(); });
@@ -2057,6 +2070,273 @@ setInterval(() => {
     }
   }
 }, 30 * 60 * 1000);
+
+// ─── Auto Follow-Up Sequences ────────────────────────────────────────────
+// Sequences are templates defining a series of timed messages.
+// When a contact crosses the "hot" threshold (score >= 70), they auto-enroll.
+// followUpQueue tracks active follow-ups: contactId -> { sequenceId, stepIndex, nextSendAt, ... }
+
+const followUpQueue = new Map(); // contactId -> { sequenceId, stepIndex, nextSendAt, enrolledAt, contactName, account, paused }
+const FOLLOWUP_HOT_THRESHOLD = 70;
+const FOLLOWUP_CHECK_INTERVAL = 60 * 1000; // check every 60s
+
+// Default sequence seeded on first load
+const DEFAULT_FOLLOWUP_SEQUENCE = {
+  id: 'hot-lead-welcome',
+  name: 'Hot Lead Welcome Sequence',
+  description: 'Auto-triggered when a lead score reaches 70+. Sends 3 personalized messages over 7 days.',
+  trigger: 'score_threshold',
+  triggerValue: FOLLOWUP_HOT_THRESHOLD,
+  enabled: true,
+  steps: [
+    {
+      id: 'day1',
+      delayHours: 0,
+      message: 'Hey {name}! We noticed you\'ve been to a few of our events — that\'s awesome! We love having you in the TBP crew. Anything coming up you\'re excited about?',
+    },
+    {
+      id: 'day3',
+      delayHours: 72,
+      message: 'Hey {name}! Just wanted to let you know about {nextEvent}. Based on the events you\'ve been to, we think you\'d love it! Check it out: {eventUrl}',
+    },
+    {
+      id: 'day7',
+      delayHours: 168,
+      message: 'Hey {name}! Because you\'re one of our top supporters, we\'d love to offer you VIP access to our next event. Reply "VIP" to get exclusive early access and a special discount. You deserve it!',
+    },
+  ],
+  createdAt: new Date().toISOString(),
+};
+
+function loadFollowUpSequences() {
+  const seqs = loadJSON(FOLLOWUP_SEQUENCES_FILE, null);
+  if (seqs === null || !Array.isArray(seqs)) {
+    // Seed default sequence
+    const initial = [DEFAULT_FOLLOWUP_SEQUENCE];
+    saveJSON(FOLLOWUP_SEQUENCES_FILE, initial);
+    return initial;
+  }
+  return seqs;
+}
+
+function loadFollowUpQueue() {
+  const items = loadJSON(FOLLOWUP_QUEUE_FILE, []);
+  followUpQueue.clear();
+  for (const item of items) {
+    followUpQueue.set(item.contactId, item);
+  }
+}
+
+function saveFollowUpQueue() {
+  const items = Array.from(followUpQueue.values());
+  saveJSON(FOLLOWUP_QUEUE_FILE, items);
+}
+
+function resolveFollowUpVars(text, contact, eventData) {
+  let msg = text || '';
+  const name = contact.name || contact.pushName || 'there';
+  msg = msg.replace(/\{name\}/g, name);
+  msg = msg.replace(/\{phone\}/g, contact.phone || '');
+
+  if (eventData) {
+    const nextEvent = eventData.name || eventData.title || 'our next event';
+    const eventUrl = eventData.url || eventData.link || TBP_URL + '/events';
+    msg = msg.replace(/\{nextEvent\}/g, nextEvent);
+    msg = msg.replace(/\{eventUrl\}/g, eventUrl);
+    msg = msg.replace(/\{eventDate\}/g, eventData.date || 'TBA');
+    msg = msg.replace(/\{eventVenue\}/g, eventData.venue || '');
+  } else {
+    msg = msg.replace(/\{nextEvent\}/g, 'our next event');
+    msg = msg.replace(/\{eventUrl\}/g, TBP_URL + '/events');
+    msg = msg.replace(/\{eventDate\}/g, 'TBA');
+    msg = msg.replace(/\{eventVenue\}/g, '');
+  }
+
+  return msg;
+}
+
+function enrollInFollowUp(contactId, sequenceId, account) {
+  if (followUpQueue.has(contactId)) return null; // already enrolled
+
+  const sequences = loadFollowUpSequences();
+  const seq = sequences.find(s => s.id === sequenceId);
+  if (!seq || !seq.enabled) return null;
+  if (!seq.steps || seq.steps.length === 0) return null;
+
+  const contact = crmContacts.get(contactId);
+  const contactName = contact ? (contact.name || contact.pushName || null) : null;
+
+  const firstDelay = (seq.steps[0].delayHours || 0) * 60 * 60 * 1000;
+  const entry = {
+    contactId,
+    sequenceId,
+    stepIndex: 0,
+    nextSendAt: Date.now() + firstDelay,
+    enrolledAt: new Date().toISOString(),
+    contactName,
+    account: account || 'default',
+    paused: false,
+    completedSteps: [],
+    lastSentAt: null,
+  };
+
+  followUpQueue.set(contactId, entry);
+  saveFollowUpQueue();
+  return entry;
+}
+
+function cancelFollowUp(contactId) {
+  const existed = followUpQueue.delete(contactId);
+  if (existed) saveFollowUpQueue();
+  return existed;
+}
+
+async function processFollowUpQueue() {
+  const now = Date.now();
+  const sequences = loadFollowUpSequences();
+
+  for (const [contactId, entry] of followUpQueue) {
+    if (entry.paused) continue;
+    if (entry.nextSendAt > now) continue;
+
+    const seq = sequences.find(s => s.id === entry.sequenceId);
+    if (!seq || !seq.enabled) {
+      followUpQueue.delete(contactId);
+      continue;
+    }
+
+    if (entry.stepIndex >= seq.steps.length) {
+      // Sequence complete
+      followUpQueue.delete(contactId);
+      continue;
+    }
+
+    const step = seq.steps[entry.stepIndex];
+    const contact = crmContacts.get(contactId);
+    if (!contact) {
+      followUpQueue.delete(contactId);
+      continue;
+    }
+
+    // Check blocked
+    if (contact.blocked) {
+      followUpQueue.delete(contactId);
+      continue;
+    }
+
+    // Get event data for template resolution
+    let eventData = null;
+    try {
+      const events = await fetchEvents();
+      const upcoming = getUpcoming(events);
+      if (upcoming.length > 0) {
+        eventData = upcoming[0];
+      }
+    } catch (e) { /* ignore */ }
+
+    // Resolve message
+    const message = resolveFollowUpVars(step.message, contact, eventData);
+
+    // Send via WhatsApp
+    const acc = accounts.get(entry.account) || accounts.get('default');
+    if (!acc || (!acc.ready && acc.status !== 'authenticated')) {
+      // Skip this tick, will retry next cycle
+      continue;
+    }
+
+    try {
+      const jid = contactId + '@c.us';
+      await acc.client.sendMessage(jid, message);
+
+      // Update CRM
+      upsertCrmContact(contactId, {
+        profile: { dmSent: true, dmSentAt: new Date().toISOString() },
+      });
+
+      // Record step completion
+      entry.completedSteps.push({
+        stepId: step.id,
+        sentAt: new Date().toISOString(),
+      });
+      entry.lastSentAt = new Date().toISOString();
+      entry.stepIndex++;
+
+      // Schedule next step
+      if (entry.stepIndex < seq.steps.length) {
+        const nextDelay = (seq.steps[entry.stepIndex].delayHours || 0) * 60 * 60 * 1000;
+        entry.nextSendAt = now + nextDelay;
+      } else {
+        // Sequence complete
+        console.log(`[follow-up] Sequence "${seq.name}" complete for ${contactId}`);
+        markFollowUpDone(contactId, seq.id);
+        followUpQueue.delete(contactId);
+      }
+
+      console.log(`[follow-up] Sent step "${step.id}" to ${contactId}`);
+    } catch (err) {
+      console.error(`[follow-up] Failed to send step "${step.id}" to ${contactId}:`, err.message);
+      // Don't remove from queue — will retry next cycle
+    }
+  }
+
+  saveFollowUpQueue();
+}
+
+// Check for contacts crossing the hot threshold and auto-enroll
+function checkScoreThresholdEnrollments() {
+  const sequences = loadFollowUpSequences();
+  const thresholdSeqs = sequences.filter(s => s.enabled && s.trigger === 'score_threshold');
+
+  for (const seq of thresholdSeqs) {
+    const threshold = seq.triggerValue || FOLLOWUP_HOT_THRESHOLD;
+    for (const [contactId, contact] of crmContacts) {
+      // Skip if already enrolled or blocked
+      if (followUpQueue.has(contactId)) continue;
+      if (contact.blocked) continue;
+
+      const result = calculateLeadScore(contact);
+      if (result.score >= threshold) {
+        // Check if already completed this sequence (via tag)
+        if (contact.tags && contact.tags.includes(`followup:${seq.id}:done`)) continue;
+
+        enrollInFollowUp(contactId, seq.id, 'default');
+        // Tag contact to prevent re-enrollment after completion
+        upsertCrmContact(contactId, {
+          tags: [`followup:${seq.id}:active`],
+        });
+        console.log(`[follow-up] Auto-enrolled ${contactId} in "${seq.name}" (score: ${result.score})`);
+      }
+    }
+  }
+}
+
+// Mark sequence as done when contact is removed from queue (completed)
+function markFollowUpDone(contactId, sequenceId) {
+  const contact = crmContacts.get(contactId);
+  if (!contact) return;
+  // Replace active tag with done tag
+  const activeTags = (contact.tags || []).filter(t => t !== `followup:${sequenceId}:active`);
+  activeTags.push(`followup:${sequenceId}:done`);
+  contact.tags = activeTags;
+  crmDirty = true;
+}
+
+// Start the follow-up processor (runs every minute)
+let followUpTimer = null;
+function startFollowUpProcessor() {
+  // Load persisted queue
+  loadFollowUpQueue();
+  console.log(`[follow-up] Loaded ${followUpQueue.size} active follow-ups`);
+
+  followUpTimer = setInterval(async () => {
+    try {
+      checkScoreThresholdEnrollments();
+      await processFollowUpQueue();
+    } catch (err) {
+      console.error('[follow-up] Processor error:', err.message);
+    }
+  }, FOLLOWUP_CHECK_INTERVAL);
+}
 
 // ─── Conversation Flow Engine ────────────────────────────────────────────
 // flowSessions: Map<senderId, { flowId, nodeId, account, startedAt, data }>
@@ -4136,6 +4416,171 @@ app.get('/api/whatsapp/leads/score-summary', (req, res) => {
   });
 });
 
+// ─── Auto Follow-Up Sequence Endpoints ───────────────────────────────────
+
+// GET /api/leads/auto-follow-up — list all sequences
+app.get('/api/whatsapp/leads/auto-follow-up', (req, res) => {
+  const sequences = loadFollowUpSequences();
+  res.json({ sequences });
+});
+
+// POST /api/leads/auto-follow-up — create a new sequence
+app.post('/api/whatsapp/leads/auto-follow-up', (req, res) => {
+  const { name, description, trigger, triggerValue, steps, enabled } = req.body;
+  if (!name || typeof name !== 'string')
+    return res.status(400).json({ error: 'name required' });
+  if (!steps || !Array.isArray(steps) || steps.length === 0)
+    return res.status(400).json({ error: 'steps array required (at least one step)' });
+
+  for (const step of steps) {
+    if (!step.id || typeof step.id !== 'string')
+      return res.status(400).json({ error: 'each step must have a string id' });
+    if (!step.message || typeof step.message !== 'string')
+      return res.status(400).json({ error: `step "${step.id}" must have a message` });
+    if (typeof step.delayHours !== 'number' || step.delayHours < 0)
+      return res.status(400).json({ error: `step "${step.id}" must have a non-negative delayHours` });
+  }
+
+  const id = crypto.randomUUID();
+  const seq = {
+    id,
+    name,
+    description: description || '',
+    trigger: trigger || 'manual',
+    triggerValue: triggerValue || null,
+    enabled: enabled !== false,
+    steps,
+    createdAt: new Date().toISOString(),
+  };
+
+  const sequences = loadFollowUpSequences();
+  sequences.push(seq);
+  saveJSON(FOLLOWUP_SEQUENCES_FILE, sequences);
+  res.json({ ok: true, sequence: seq });
+});
+
+// GET /api/leads/auto-follow-up/:id — get sequence detail
+app.get('/api/whatsapp/leads/auto-follow-up/:id', (req, res) => {
+  const sequences = loadFollowUpSequences();
+  const seq = sequences.find(s => s.id === req.params.id);
+  if (!seq) return res.status(404).json({ error: 'Sequence not found' });
+
+  // Count active enrollments
+  let activeEnrollments = 0;
+  for (const [, entry] of followUpQueue) {
+    if (entry.sequenceId === seq.id) activeEnrollments++;
+  }
+
+  res.json({ sequence: { ...seq, activeEnrollments } });
+});
+
+// PUT /api/leads/auto-follow-up/:id — update a sequence
+app.put('/api/whatsapp/leads/auto-follow-up/:id', (req, res) => {
+  const sequences = loadFollowUpSequences();
+  const idx = sequences.findIndex(s => s.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Sequence not found' });
+
+  const { name, description, trigger, triggerValue, steps, enabled } = req.body;
+  if (name !== undefined) sequences[idx].name = name;
+  if (description !== undefined) sequences[idx].description = description;
+  if (trigger !== undefined) sequences[idx].trigger = trigger;
+  if (triggerValue !== undefined) sequences[idx].triggerValue = triggerValue;
+  if (steps !== undefined) sequences[idx].steps = steps;
+  if (enabled !== undefined) sequences[idx].enabled = enabled;
+  sequences[idx].updatedAt = new Date().toISOString();
+
+  saveJSON(FOLLOWUP_SEQUENCES_FILE, sequences);
+  res.json({ ok: true, sequence: sequences[idx] });
+});
+
+// DELETE /api/leads/auto-follow-up/:id — delete a sequence
+app.delete('/api/whatsapp/leads/auto-follow-up/:id', (req, res) => {
+  const sequences = loadFollowUpSequences();
+  const filtered = sequences.filter(s => s.id !== req.params.id);
+  if (filtered.length === sequences.length) return res.status(404).json({ error: 'Sequence not found' });
+
+  // Cancel all active follow-ups for this sequence
+  for (const [contactId, entry] of followUpQueue) {
+    if (entry.sequenceId === req.params.id) followUpQueue.delete(contactId);
+  }
+  saveFollowUpQueue();
+
+  saveJSON(FOLLOWUP_SEQUENCES_FILE, filtered);
+  res.json({ ok: true, deleted: req.params.id });
+});
+
+// GET /api/leads/auto-follow-up/queue — list active follow-ups
+app.get('/api/whatsapp/leads/auto-follow-up-queue', (req, res) => {
+  const entries = Array.from(followUpQueue.values()).map(entry => ({
+    ...entry,
+    nextSendIn: entry.paused ? null : Math.max(0, Math.floor((entry.nextSendAt - Date.now()) / 1000)),
+  }));
+  res.json({ queue: entries, count: entries.length });
+});
+
+// POST /api/leads/auto-follow-up/enroll — manually enroll a contact
+app.post('/api/whatsapp/leads/auto-follow-up-enroll', (req, res) => {
+  const { contactId, sequenceId, account } = req.body;
+  if (!contactId || !sequenceId)
+    return res.status(400).json({ error: 'contactId and sequenceId required' });
+
+  const contact = crmContacts.get(contactId);
+  if (!contact) return res.status(404).json({ error: 'Contact not found' });
+
+  if (followUpQueue.has(contactId))
+    return res.status(409).json({ error: 'Contact already enrolled in a follow-up sequence' });
+
+  const entry = enrollInFollowUp(contactId, sequenceId, account);
+  if (!entry) return res.status(400).json({ error: 'Sequence not found, disabled, or has no steps' });
+
+  res.json({ ok: true, enrollment: entry });
+});
+
+// POST /api/leads/auto-follow-up/cancel — cancel a contact's follow-up
+app.post('/api/whatsapp/leads/auto-follow-up-cancel', (req, res) => {
+  const { contactId } = req.body;
+  if (!contactId) return res.status(400).json({ error: 'contactId required' });
+
+  const existed = cancelFollowUp(contactId);
+  if (!existed) return res.status(404).json({ error: 'No active follow-up for this contact' });
+
+  res.json({ ok: true, cancelled: contactId });
+});
+
+// POST /api/leads/auto-follow-up/pause — pause/resume a contact's follow-up
+app.post('/api/whatsapp/leads/auto-follow-up-pause', (req, res) => {
+  const { contactId, paused } = req.body;
+  if (!contactId) return res.status(400).json({ error: 'contactId required' });
+
+  const entry = followUpQueue.get(contactId);
+  if (!entry) return res.status(404).json({ error: 'No active follow-up for this contact' });
+
+  entry.paused = paused !== false;
+  saveFollowUpQueue();
+  res.json({ ok: true, contactId, paused: entry.paused });
+});
+
+// GET /api/leads/auto-follow-up/status — summary of follow-up system
+app.get('/api/whatsapp/leads/auto-follow-up-status', (req, res) => {
+  const sequences = loadFollowUpSequences();
+  const queueSize = followUpQueue.size;
+  let paused = 0, active = 0;
+  for (const [, entry] of followUpQueue) {
+    if (entry.paused) paused++;
+    else active++;
+  }
+
+  res.json({
+    sequences: sequences.length,
+    enabledSequences: sequences.filter(s => s.enabled).length,
+    queueSize,
+    active,
+    paused,
+    hotThreshold: FOLLOWUP_HOT_THRESHOLD,
+    checkIntervalMs: FOLLOWUP_CHECK_INTERVAL,
+  });
+});
+
 app.get('/api/whatsapp/keywords', (req, res) => {
   res.json(leads.getCustomKeywords());
 });
@@ -5422,6 +5867,8 @@ if (require.main === module) {
     setTimeout(() => scrapeAllGroups(), 60000);
     // Register Kartis webhook after startup
     registerKartisWebhook();
+    // Start follow-up sequence processor (checks every 60s)
+    startFollowUpProcessor();
   });
 }
 
