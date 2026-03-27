@@ -11,7 +11,9 @@
       "+97242007151",
       "+97242007152",
       "+97247876941",
-      "+97247876942"
+      "+97247876942",
+      "+97253724641",
+      "+97253724642"
     ],
     "templates": {
       "eventAnnouncement": "Yo {name}! 🔥 *{eventName}* is going OFF this {day}!\n\n📅 {date} | 📍 {venue}\n🎟️ Grab your ticket: {ticketUrl}\n\nDon't sleep on this one! 🚀",
