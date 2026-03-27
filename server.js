@@ -10,7 +10,11 @@ const leads = require('./leads');
 const app = express();
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET;
-const WBPRO_PASSWORD = process.env.WBPRO_PASSWORD || 'admin';
+const WBPRO_PASSWORD = process.env.WBPRO_PASSWORD;
+if (!WBPRO_PASSWORD) {
+  console.error('FATAL: WBPRO_PASSWORD environment variable is required. Refusing to start with default password.');
+  process.exit(1);
+}
 const KARTIS_EVENTS_URL = process.env.KARTIS_EVENTS_URL || 'http://localhost:3031/api/cms/public-events';
 const KARTIS_URL = process.env.KARTIS_URL || 'http://localhost:3031';
 const KARTIS_WEBHOOK_SECRET = process.env.KARTIS_WEBHOOK_SECRET;
