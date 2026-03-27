@@ -1,0 +1,14 @@
+[
+  {
+    "id": "test-tpl-1",
+    "name": "Test Template",
+    "message": "Hello {name}!",
+    "updatedAt": "2026-03-27T06:59:48.327Z"
+  },
+  {
+    "id": "update-tpl",
+    "name": "Updated",
+    "message": "Updated message",
+    "updatedAt": "2026-03-27T06:59:48.369Z"
+  }
+]

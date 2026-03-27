@@ -1,0 +1,76 @@
+[
+  {
+    "id": "alex",
+    "name": "Alex",
+    "role": "Nightlife Host",
+    "tone": "hype",
+    "contacts": [
+      "+972509876543",
+      "+97239242661",
+      "+97239242662",
+      "+97242007151",
+      "+97242007152",
+      "+97247876941",
+      "+97247876942"
+    ],
+    "templates": {
+      "eventAnnouncement": "Yo {name}! 🔥 *{eventName}* is going OFF this {day}!\n\n📅 {date} | 📍 {venue}\n🎟️ Grab your ticket: {ticketUrl}\n\nDon't sleep on this one! 🚀",
+      "lastChance": "LAST CALL {name}! ⏰ *{eventName}* is TONIGHT!\n\nThis is your FINAL chance — tickets selling fast!\n🎟️ {ticketUrl}\n\nSee you there! 💯",
+      "welcome": "Hey {name}! 👋 Welcome to the crew! I'm Alex — your go-to for the best nightlife in town. Stay tuned for fire events! 🔥"
+    },
+    "createdAt": "2026-03-27T06:44:19.778Z"
+  },
+  {
+    "id": "mia",
+    "name": "Mia",
+    "role": "VIP Concierge",
+    "tone": "elegant",
+    "contacts": [],
+    "templates": {
+      "eventAnnouncement": "Hi {name} ✨ We'd love to invite you to *{eventName}*\n\n📅 {date} | 📍 {venue}\n🎟️ Reserve your spot: {ticketUrl}\n\nLooking forward to seeing you there 💫",
+      "lastChance": "Gentle reminder, {name} — *{eventName}* is tonight ✨\n\nLimited availability remaining.\n🎟️ {ticketUrl}\n\nHope to see you! 🥂",
+      "welcome": "Hello {name} ✨ I'm Mia, your VIP concierge. I'll keep you updated on our most exclusive events and experiences. Welcome aboard!",
+      "customGreeting": "Hello {name}, welcome!"
+    },
+    "createdAt": "2026-03-27T06:44:19.778Z"
+  },
+  {
+    "id": "dj-vibe",
+    "name": "DJ Vibe",
+    "role": "Music Curator",
+    "tone": "chill",
+    "contacts": [],
+    "templates": {
+      "eventAnnouncement": "What's good {name} 🎵 Check this out — *{eventName}*\n\n📅 {date} | 📍 {venue}\n🎟️ Tickets: {ticketUrl}\n\nThe lineup is insane. Trust me on this one 🎧",
+      "lastChance": "Heads up {name} 🎶 *{eventName}* — TONIGHT\n\nLast chance to get in!\n🎟️ {ticketUrl}\n\nThe vibes are gonna be unreal 🎧✨",
+      "welcome": "Hey {name} 🎵 DJ Vibe here. I curate the best music events around. Follow along and never miss a beat! 🎧"
+    },
+    "createdAt": "2026-03-27T06:44:19.778Z"
+  },
+  {
+    "id": "noa",
+    "name": "Noa",
+    "role": "Events Coordinator",
+    "tone": "friendly",
+    "contacts": [],
+    "templates": {
+      "eventAnnouncement": "Hey {name}! 🎉 Exciting news — *{eventName}* just dropped!\n\n📅 {date} | 📍 {venue}\n🎟️ Get tickets: {ticketUrl}\n\nWould love to see you there! 😊",
+      "lastChance": "Hey {name}! Quick heads up — *{eventName}* is happening tonight! 🎉\n\nDon't miss out!\n🎟️ {ticketUrl}\n\nSee you soon! 😊",
+      "welcome": "Hi {name}! 😊 I'm Noa, your events coordinator. I'll keep you in the loop on all the amazing events coming up. Excited to have you!"
+    },
+    "createdAt": "2026-03-27T06:44:19.778Z"
+  },
+  {
+    "id": "marco",
+    "name": "Marco",
+    "role": "Promoter",
+    "tone": "bold",
+    "contacts": [],
+    "templates": {
+      "eventAnnouncement": "{name}! 💥 BIG one coming — *{eventName}*\n\n📅 {date} | 📍 {venue}\n🎟️ Lock it in: {ticketUrl}\n\nThis is gonna be MASSIVE. You in? 🙌",
+      "lastChance": "{name} — TONIGHT IS THE NIGHT! 💥 *{eventName}*\n\nNo excuses. Get your ticket NOW!\n🎟️ {ticketUrl}\n\nLet's GO! 🙌🔥",
+      "welcome": "Yo {name}! 💥 Marco here — I bring the biggest parties to your city. Stick with me and you'll never miss the action! 🙌"
+    },
+    "createdAt": "2026-03-27T06:44:19.778Z"
+  }
+]
