@@ -6566,36 +6566,81 @@ app.get('*', (req, res) => {
 
 // ─── Kartis Webhook Registration ─────────────────────────────────────────
 
-async function registerKartisWebhook() {
+async function registerKartisWebhook(retries = 5, delayMs = 10000) {
   if (!KARTIS_URL || !KARTIS_WEBHOOK_SECRET) {
     console.log('Kartis webhook: skipping registration (KARTIS_URL or KARTIS_WEBHOOK_SECRET not set)');
     return;
   }
 
   const webhookUrl = `${WBPRO_URL}/api/webhooks/kartis`;
-  console.log(`Kartis webhook: registering ${webhookUrl} with ${KARTIS_URL}...`);
 
-  try {
-    const resp = await fetch(`${KARTIS_URL}/api/webhooks/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: webhookUrl,
-        events: ['event.published'],
-        secret: KARTIS_WEBHOOK_SECRET,
-      }),
-    });
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    console.log(`Kartis webhook: registering ${webhookUrl} with ${KARTIS_URL} (attempt ${attempt}/${retries})...`);
 
-    if (resp.ok) {
-      webhookRegistered = true;
-      console.log('Kartis webhook: registered successfully');
-    } else {
-      const body = await resp.text();
-      console.warn(`Kartis webhook: registration failed (${resp.status}): ${body}`);
+    try {
+      const resp = await fetch(`${KARTIS_URL}/api/webhooks/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(15000),
+        body: JSON.stringify({
+          url: webhookUrl,
+          events: ['event.published'],
+          secret: KARTIS_WEBHOOK_SECRET,
+        }),
+      });
+
+      if (resp.ok) {
+        webhookRegistered = true;
+        console.log('Kartis webhook: registered successfully');
+        return;
+      } else {
+        const body = await resp.text();
+        console.warn(`Kartis webhook: registration failed (${resp.status}): ${body}`);
+      }
+    } catch (err) {
+      console.warn(`Kartis webhook: attempt ${attempt} failed:`, err.message);
     }
-  } catch (err) {
-    console.warn('Kartis webhook: registration failed:', err.message);
+
+    if (attempt < retries) {
+      const backoff = delayMs * attempt;
+      console.log(`Kartis webhook: retrying in ${backoff / 1000}s...`);
+      await new Promise(r => setTimeout(r, backoff));
+    }
   }
+
+  console.error(`Kartis webhook: all ${retries} registration attempts failed`);
+}
+
+// Re-register webhook periodically (every 30 min) in case Kartis restarts
+let kartisReregisterInterval = null;
+function startKartisReregistration() {
+  if (kartisReregisterInterval) return;
+  kartisReregisterInterval = setInterval(async () => {
+    if (!webhookRegistered) {
+      await registerKartisWebhook(2, 5000);
+    } else {
+      // Verify registration is still valid by re-registering (idempotent)
+      try {
+        const resp = await fetch(`${KARTIS_URL}/api/webhooks/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(10000),
+          body: JSON.stringify({
+            url: `${WBPRO_URL}/api/webhooks/kartis`,
+            events: ['event.published'],
+            secret: KARTIS_WEBHOOK_SECRET,
+          }),
+        });
+        if (!resp.ok) {
+          webhookRegistered = false;
+          console.warn('Kartis webhook: re-registration failed, will retry next cycle');
+        }
+      } catch {
+        webhookRegistered = false;
+        console.warn('Kartis webhook: re-registration check failed');
+      }
+    }
+  }, 30 * 60 * 1000); // every 30 minutes
 }
 
 // ─── Health Check ────────────────────────────────────────────────────────
@@ -6641,8 +6686,9 @@ if (require.main === module) {
     startAutoAnnounceSchedule();
     // Initial scrape 60s after startup (give clients time to connect)
     setTimeout(() => scrapeAllGroups(), 60000);
-    // Register Kartis webhook after startup
-    registerKartisWebhook();
+    // Register Kartis webhook after startup (with retry + periodic re-registration)
+    setTimeout(() => registerKartisWebhook(), 5000); // delay 5s to let server fully start
+    startKartisReregistration();
     // Start follow-up sequence processor (checks every 60s)
     startFollowUpProcessor();
   });
