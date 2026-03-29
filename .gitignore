@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.*
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!vitest.config.json
