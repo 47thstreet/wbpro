@@ -1,8 +1,18 @@
 node_modules/
 .env
 .env.*
-*.json
-!package.json
-!package-lock.json
-!tsconfig.json
-!vitest.config.json
+
+# Runtime data files
+accounts.json
+crm.json
+broadcast-lists.json
+flows.json
+follow-up-sequences.json
+follow-up-queue.json
+blocklist.json
+personas.json
+templates.json
+settings.json
+auto-rules.json
+group-profiles.json
+group-tags.json
