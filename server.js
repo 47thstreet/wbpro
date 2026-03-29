@@ -69,8 +69,11 @@ function verifySession(value) {
   if (idx === -1) return false;
   const ts = value.substring(0, idx);
   const hash = value.substring(idx + 1);
-  // Check hash validity
-  if (signSession(ts) !== hash) return false;
+  // Check hash validity (constant-time comparison to prevent timing attacks)
+  const expected = signSession(ts);
+  if (expected.length !== hash.length) return false;
+  const hashesMatch = crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(hash));
+  if (!hashesMatch) return false;
   // Check expiration (30 days)
   const age = (Date.now() - Number(ts)) / 1000;
   return age < SESSION_MAX_AGE;
@@ -3303,14 +3306,57 @@ function setupClientEvents(accountId, client) {
     } catch (e) {
       console.error(`[${accountId}] Contact capture failed:`, e.message);
     }
-    try {
-      const recommendation = await getRecommendation(msg.body);
-      await msg.reply(recommendation);
-    } catch (err) {
-      console.error(`[${accountId}] DM reply failed:`, err.message);
-      await msg.reply(
-        `🎉 *The Best Parties*\n\nCheck out our events ➡️ ${TBP_URL}/events`
-      ).catch(() => {});
+    // Check if DM is a party/event query — if so, respond with event recommendation
+    // Otherwise, use LLM fallback for general questions (parking, dress code, age, etc.)
+    const dmLower = msg.body.toLowerCase();
+    const isPartyQuery = PARTY_KEYWORDS.some(kw => dmLower.includes(kw.toLowerCase())) || isPartyIntent(msg.body);
+
+    if (isPartyQuery) {
+      try {
+        const recommendation = await getRecommendation(msg.body);
+        await msg.reply(recommendation);
+      } catch (err) {
+        console.error(`[${accountId}] DM reply failed:`, err.message);
+        await msg.reply(
+          `🎉 *The Best Parties*\n\nCheck out our events ➡️ ${TBP_URL}/events`
+        ).catch(() => {});
+      }
+    } else if (NVIDIA_NIM_API_KEY) {
+      // LLM fallback — handle general questions via NVIDIA NIM
+      try {
+        const aiReply = await generateAiResponse(msg.from, msg.body, {
+          systemPrompt:
+            'You are a helpful WhatsApp assistant for The Best Parties (TBP), a nightlife and events company. ' +
+            'Answer questions about events, venues, dress codes, parking, age requirements, VIP tables, and general nightlife info. ' +
+            'Be friendly and concise (under 150 words). If the user asks about specific tickets or upcoming events, ' +
+            'tell them to type "tickets" or "events" to see what\'s available. ' +
+            'If you don\'t know the answer, say so and suggest contacting staff.',
+        });
+        await msg.reply(aiReply);
+        console.log(`[${accountId}] DM AI fallback replied to ${msg.from}`);
+      } catch (aiErr) {
+        console.error(`[${accountId}] DM AI fallback failed:`, aiErr.message);
+        // Fall back to event recommendation if AI fails
+        try {
+          const recommendation = await getRecommendation(msg.body);
+          await msg.reply(recommendation);
+        } catch (recErr) {
+          await msg.reply(
+            `🎉 *The Best Parties*\n\nCheck out our events ➡️ ${TBP_URL}/events`
+          ).catch(() => {});
+        }
+      }
+    } else {
+      // No AI key configured — always show event recommendation
+      try {
+        const recommendation = await getRecommendation(msg.body);
+        await msg.reply(recommendation);
+      } catch (err) {
+        console.error(`[${accountId}] DM reply failed:`, err.message);
+        await msg.reply(
+          `🎉 *The Best Parties*\n\nCheck out our events ➡️ ${TBP_URL}/events`
+        ).catch(() => {});
+      }
     }
   });
 }
