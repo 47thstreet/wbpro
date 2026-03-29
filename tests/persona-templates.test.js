@@ -53,7 +53,7 @@ describe('Persona Templates API — GET /api/persona-templates', () => {
     expect(personas).toContain('alex-rivera');
     expect(personas).toContain('mia-noir');
     expect(personas).toContain('bassline');
-    expect(personas).toContain('noctvrnal');
+    expect(personas).toContain('n3ctvr');
     expect(personas).toContain('psychedelica');
     expect(personas).toContain('synth-ai');
   });
